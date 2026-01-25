@@ -5,895 +5,1066 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FIRE Model</title>
 
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root{
-      --bg:#0b0d12;
-      --panel:#111522;
-      --panel2:#0f1320;
-      --muted:#98a2b3;
-      --text:#e6e8ee;
-      --accent:#7c5cff;
-      --accent2:#23c5a6;
-      --danger:#ff4d4d;
-      --border:rgba(255,255,255,.08);
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-      --radius:16px;
-      --radius2:22px;
-      --max:1100px;
+      --bg: #070a12;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.65);
+      --muted2: rgba(255,255,255,0.48);
+      --brand: #7c5cff;
+      --good: #3ddc97;
+      --bad: #ff5c7a;
+      --warn:#f6c177;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --radius2: 22px;
+      --gap: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    *{ box-sizing:border-box; }
+
+    *{ box-sizing: border-box; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.35), transparent 60%),
-                  radial-gradient(900px 600px at 80% 10%, rgba(35,197,166,.22), transparent 55%),
-                  var(--bg);
-      color:var(--text);
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -20%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(900px 500px at 110% 20%, rgba(61,220,151,.15), transparent 55%),
+        radial-gradient(800px 500px at 30% 120%, rgba(255,92,122,.10), transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 24px;
     }
-    a{ color:inherit; text-decoration:none; }
-    .container{ max-width:var(--max); margin:0 auto; padding:24px; }
-    .nav{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 18px; border:1px solid var(--border); border-radius:var(--radius2);
-      background: rgba(17,21,34,.55); backdrop-filter: blur(10px);
+
+    .shell{
+      max-width: 1180px;
+      margin: 0 auto;
+      display:flex;
+      flex-direction:column;
+      gap: 18px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
-      position: sticky; top: 16px; z-index: 10;
+      backdrop-filter: blur(10px);
     }
+
     .brand{
-      display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .2px;
     }
     .dot{
-      width:10px; height:10px; border-radius:99px; background:var(--accent);
-      box-shadow: 0 0 0 5px rgba(124,92,255,.18);
-    }
-    .nav-links{
-      display:flex; gap:10px; align-items:center;
+      width: 14px; height:14px; border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 6px rgba(124,92,255,.18);
     }
     .pill{
-      padding:10px 12px; border:1px solid var(--border); border-radius:999px;
-      color:var(--muted); font-size:14px;
-      transition:.2s;
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--stroke);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill .ok{
+      width:8px;height:8px;border-radius:999px;background: var(--good);
+    }
+    .pill .bad{
+      width:8px;height:8px;border-radius:999px;background: var(--bad);
+    }
+
+    .tabs{
+      display:flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--stroke);
+    }
+    .tab{
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 700;
       cursor:pointer;
-      background: rgba(255,255,255,.02);
+      user-select:none;
+      transition: all .15s ease;
     }
-    .pill.active{
-      color:var(--text);
-      border-color: rgba(124,92,255,.45);
-      background: rgba(124,92,255,.14);
+    .tab.active{
+      background: rgba(124,92,255,.20);
+      color: var(--text);
+      border: 1px solid rgba(124,92,255,.35);
     }
-    .pill:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.16); }
 
-    .page{ display:none; padding-top:18px; }
-    .page.active{ display:block; }
+    .page{
+      display:none;
+      gap: 16px;
+    }
+    .page.active{ display:grid; }
 
-    .hero{
-      padding:42px 28px;
-      border:1px solid var(--border);
-      border-radius:var(--radius2);
-      background: linear-gradient(180deg, rgba(17,21,34,.75), rgba(17,21,34,.45));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .hero:after{
-      content:"";
-      position:absolute; inset:-120px -220px auto auto;
-      width:520px; height:520px;
-      background: radial-gradient(circle at 30% 30%, rgba(124,92,255,.25), transparent 60%);
-      transform: rotate(25deg);
-      pointer-events:none;
-    }
-    .hero h1{ margin:0 0 10px 0; font-size:42px; }
-    .hero p{ margin:0 0 22px 0; color:var(--muted); line-height:1.55; max-width:720px; }
-    .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
-    .btn{
-      padding:12px 16px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      color:var(--text);
-      cursor:pointer;
-      transition:.2s;
-      font-weight:600;
-      display:inline-flex; align-items:center; gap:10px;
-    }
-    .btn.primary{
-      background: linear-gradient(90deg, rgba(124,92,255,.95), rgba(35,197,166,.85));
-      border-color: rgba(124,92,255,.35);
-    }
-    .btn:hover{ transform: translateY(-1px); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:18px;
-      margin-top:18px;
-    }
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-      .nav{ position:static; }
-      .hero h1{ font-size:34px; }
+    .grid2{ grid-template-columns: 1.1fr .9fr; }
+    .grid1{ grid-template-columns: 1fr; }
+    @media(max-width: 980px){
+      .grid2{ grid-template-columns: 1fr; }
     }
 
     .card{
-      border:1px solid var(--border);
-      border-radius:var(--radius2);
-      background: rgba(17,21,34,.55);
-      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius2);
       box-shadow: var(--shadow);
-      padding:18px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
     }
-    .card h2{ margin:0 0 10px 0; font-size:18px; }
-    .muted{ color:var(--muted); }
-    .small{ font-size:12px; color:var(--muted); }
-    .divider{ height:1px; background: var(--border); margin:14px 0; }
+    .card h2, .card h3{
+      margin: 0 0 12px 0;
+      letter-spacing: .2px;
+    }
+    .card h2{ font-size: 22px; }
+    .card h3{ font-size: 16px; color: var(--text); opacity: .95; }
 
-    .form-grid{
+    .sub{
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: -6px;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .row{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:12px;
+      gap: 12px;
     }
-    @media (max-width: 680px){
-      .form-grid{ grid-template-columns: 1fr; }
-    }
-    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
-    input, textarea, select{
-      width:100%;
-      padding:12px 12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background: rgba(10,12,18,.55);
-      color:var(--text);
-      outline:none;
-    }
-    textarea{ min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; }
-    input:focus, textarea:focus{
-      border-color: rgba(124,92,255,.45);
-      box-shadow: 0 0 0 4px rgba(124,92,255,.12);
+    @media(max-width: 640px){
+      .row{ grid-template-columns: 1fr; }
     }
 
-    .toggle{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 12px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background: rgba(255,255,255,.02);
-      cursor:pointer;
-      user-select:none;
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+      letter-spacing: .25px;
     }
-    .toggle span{ color:var(--muted); font-size:13px; }
-    .toggle strong{ font-size:13px; }
-    .badge{
-      font-size:11px; padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      color:var(--muted);
-      background: rgba(255,255,255,.03);
+    input, select, textarea{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    textarea{
+      min-height: 140px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45;
+      resize: vertical;
+    }
+    input::placeholder{ color: rgba(255,255,255,.35); }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .06s ease, background .15s ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(124,92,255,.40);
+      background: linear-gradient(90deg, rgba(124,92,255,.55), rgba(61,220,151,.30));
+    }
+    .btn.danger{
+      border-color: rgba(255,92,122,.35);
+      background: rgba(255,92,122,.12);
+    }
+
+    .hr{
+      height:1px;
+      background: rgba(255,255,255,.10);
+      margin: 14px 0;
     }
 
     .kpis{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
-      gap:12px;
+      gap: 12px;
     }
-    @media (max-width: 980px){
-      .kpis{ grid-template-columns: repeat(2, 1fr); }
+    @media(max-width: 980px){
+      .kpis{ grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width: 520px){
+      .kpis{ grid-template-columns: 1fr; }
     }
     .kpi{
-      padding:14px;
-      border-radius:16px;
-      border:1px solid var(--border);
-      background: rgba(10,12,18,.55);
+      padding: 14px;
+      border-radius: var(--radius);
+      background: rgba(0,0,0,.20);
+      border: 1px solid rgba(255,255,255,.10);
     }
-    .kpi .label{ font-size:12px; color:var(--muted); margin-bottom:6px; }
-    .kpi .value{ font-size:18px; font-weight:700; letter-spacing:.2px; }
+    .kpi .k{ color: var(--muted); font-size: 12px; font-weight: 800; }
+    .kpi .v{ font-size: 22px; font-weight: 900; margin-top: 6px; }
+
+    .note{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
 
     .table-wrap{
-      border:1px solid var(--border);
-      border-radius:var(--radius2);
-      overflow:hidden;
-      background: rgba(10,12,18,.55);
+      overflow:auto;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
     }
     table{
       width:100%;
-      border-collapse:collapse;
-      font-size:13px;
-    }
-    thead{
-      background: rgba(255,255,255,.03);
+      border-collapse: collapse;
+      min-width: 760px;
     }
     th, td{
-      padding:10px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      vertical-align:top;
-      text-align:left;
-      white-space:nowrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size: 13px;
+      white-space: nowrap;
     }
     th{
-      font-size:12px;
-      color:var(--muted);
-      cursor:pointer;
-      user-select:none;
+      position: sticky;
+      top: 0;
+      background: rgba(10,14,24,.95);
+      color: var(--muted);
+      text-align: left;
+      font-weight: 900;
+      letter-spacing: .2px;
     }
-    tr:hover td{ background: rgba(255,255,255,.02); }
 
-    .toolbar{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      margin: 8px 0 12px 0;
+    .small{
+      font-size: 12px;
+      color: var(--muted2);
     }
-    .toolbar .left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .toolbar .right{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
     .status{
-      font-size:13px;
-      color:var(--muted);
+      display:flex; align-items:center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
     }
 
-    .error{
-      border: 1px solid rgba(255,77,77,.35);
-      background: rgba(255,77,77,.08);
-      color: #ffd2d2;
+    .status .check{
+      width: 16px; height: 16px;
+      border-radius: 4px;
+      background: rgba(61,220,151,.18);
+      border: 1px solid rgba(61,220,151,.35);
+      display:grid; place-items:center;
+      color: var(--good);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .badge{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .twoCharts{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media(max-width: 980px){
+      .twoCharts{ grid-template-columns: 1fr; }
+    }
+
+    .mutedBox{
       padding: 12px;
       border-radius: 14px;
-    }
-
-    details{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:10px 12px;
-      background: rgba(255,255,255,.02);
-    }
-    details summary{ cursor:pointer; color:var(--muted); }
-    pre{
-      margin:10px 0 0 0;
-      padding:12px;
-      border-radius:14px;
-      background: rgba(10,12,18,.55);
-      border:1px solid rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      font-family: var(--mono);
+      white-space: pre-wrap;
       overflow:auto;
-      font-size:12px;
-      color:#cfd3dc;
+      max-height: 260px;
     }
-
-    .foot{ margin-top:24px; color:var(--muted); font-size:12px; text-align:center; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="nav">
+  <div class="shell">
+    <div class="topbar">
       <div class="brand">
         <div class="dot"></div>
-        <div>FIRE Model</div>
-        <span class="badge" id="apiBadge">API: unknown</span>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:18px;">FIRE Model</div>
+            <div id="apiPill" class="pill"><span class="bad"></span> API: unknown</div>
+          </div>
+          <div class="small" style="margin-top:2px;">API-connected planner (cash + stocks + properties + offsets)</div>
+        </div>
       </div>
-      <div class="nav-links">
-        <div class="pill active" data-nav="home">Home</div>
-        <div class="pill" data-nav="inputs">Inputs</div>
-        <div class="pill" data-nav="results">Results</div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="home">Home</div>
+        <div class="tab" data-tab="inputs">Inputs</div>
+        <div class="tab" data-tab="results">Results</div>
       </div>
     </div>
 
     <!-- HOME -->
-    <section id="home" class="page active">
-      <div class="hero">
-        <h1>Run your FIRE plan with properties, offset, tax and stocks.</h1>
-        <p>
-          This is your API-connected model. Enter assumptions, paste your property list, run the engine, and get
-          charts + summary metrics + a full output table you can export later.
-        </p>
-        <div class="btn-row">
-          <button class="btn primary" onclick="go('inputs')">Start →</button>
-          <button class="btn" onclick="pingHealth()">Check API health</button>
-          <button class="btn" onclick="loadExample()">Load example inputs</button>
-        </div>
-      </div>
+    <div id="page-home" class="page active grid2">
+      <div class="card">
+        <h2>Home</h2>
+        <div class="sub">Quick sanity checks and navigation.</div>
 
-      <div class="grid">
-        <div class="card">
-          <h2>What you get</h2>
-          <div class="divider"></div>
-          <p class="muted" style="margin:0 0 10px 0;">
-            • KPI cards (cash, stock, net worth, first/last year)<br>
-            • Chart (cash + stock over time)<br>
-            • Summary table (core columns)<br>
-            • Full table (all columns returned by your API)<br>
-            • Raw JSON debug (collapsible)
-          </p>
-          <p class="small" style="margin:0;">
-            Next upgrade: add a proper property editor UI instead of JSON paste.
-          </p>
-        </div>
-
-        <div class="card">
-          <h2>Status</h2>
-          <div class="divider"></div>
-          <div id="homeStatus" class="status">Not checked yet.</div>
-          <div style="height:10px;"></div>
-          <div class="small">
-            API base: <span id="apiBaseText"></span><br>
-            Endpoint: <span id="apiEndpointText"></span>
+        <div class="row">
+          <div>
+            <label>API Base URL</label>
+            <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
+            <div class="small" style="margin-top:6px;">Must include https:// (Render URL). Stored locally in your browser.</div>
+          </div>
+          <div>
+            <label>Mode</label>
+            <select id="mode">
+              <option value="yearly" selected>Yearly (recommended)</option>
+              <option value="monthly">Monthly (debug / heavy)</option>
+            </select>
+            <div class="small" style="margin-top:6px;">Yearly makes tables + charts faster.</div>
           </div>
         </div>
+
+        <div class="actions">
+          <button class="btn" onclick="checkHealth()">Check API health</button>
+          <button class="btn primary" onclick="goTab('inputs')">Go to inputs</button>
+          <button class="btn" onclick="loadDefaults()">Load defaults</button>
+        </div>
+
+        <div class="hr"></div>
+        <div class="note">
+          Tip: If Netlify shows “no request”, it usually means your frontend isn’t calling the correct endpoint or the API is down.
+          This UI calls <span class="badge">POST /run_fire_model</span> by default (see code — change if needed).
+        </div>
       </div>
-    </section>
+
+      <div class="card">
+        <h2>Status</h2>
+        <div id="homeStatus" class="status">
+          <div class="check">i</div>
+          <div>Set your API Base URL, then run a health check.</div>
+        </div>
+
+        <div class="sub">Last saved request payload (what we send to the API):</div>
+        <div id="payloadPreview" class="mutedBox">{}</div>
+      </div>
+    </div>
 
     <!-- INPUTS -->
-    <section id="inputs" class="page">
-      <div class="grid">
-        <div class="card">
-          <h2>Core inputs</h2>
-          <div class="divider"></div>
+    <div id="page-inputs" class="page grid2">
+      <div class="card">
+        <h2>Core inputs</h2>
+        <div class="sub">These map 1:1 to your API’s <span class="badge">inputs</span> object.</div>
 
-          <div class="form-grid">
-            <div>
-              <label>API Base URL</label>
-              <input id="apiBase" value="https://fire-api-wixz.onrender.com" />
-              <div class="small">Must include https://</div>
-            </div>
-            <div>
-              <label>Mode</label>
-              <select id="display_month">
-                <option value="false" selected>Yearly (recommended)</option>
-                <option value="true">Monthly (huge output)</option>
-              </select>
-              <div class="small">Yearly makes tables + charts faster.</div>
-            </div>
-
-            <div><label>current_age</label><input id="current_age" type="number" value="25" /></div>
-            <div><label>end_age</label><input id="end_age" type="number" value="60" /></div>
-
-            <div><label>initial_savings</label><input id="initial_savings" type="number" value="500000" /></div>
-            <div><label>todays_lifestyle_income</label><input id="todays_lifestyle_income" type="number" value="80000" /></div>
-
-            <div><label>current_income</label><input id="current_income" type="number" value="200000" /></div>
-            <div><label>current_expenses</label><input id="current_expenses" type="number" value="64000" /></div>
+        <div class="row">
+          <div>
+            <label>current_age</label>
+            <input id="current_age" type="number" step="1" />
           </div>
-
-          <div class="divider"></div>
-
-          <div class="toggle" onclick="toggleAdvanced()">
-            <div>
-              <strong>Advanced assumptions</strong><br>
-              <span>Inflation, salary growth, stock growth + contribution settings</span>
-            </div>
-            <span class="badge" id="advBadge">Hidden</span>
+          <div>
+            <label>end_age</label>
+            <input id="end_age" type="number" step="1" />
           </div>
-
-          <div id="advancedBox" style="display:none; margin-top:12px;">
-            <div class="form-grid">
-              <div><label>inflation (e.g. 0.025)</label><input id="inflation" type="number" step="0.001" value="0.025" /></div>
-              <div><label>average_salary_increase (e.g. 0.035)</label><input id="average_salary_increase" type="number" step="0.001" value="0.035" /></div>
-              <div><label>stock_growth (e.g. 0.06)</label><input id="stock_growth" type="number" step="0.001" value="0.06" /></div>
-              <div><label>stock_yearly_contribution</label><input id="stock_yearly_contribution" type="number" value="20000" /></div>
-              <div><label>starting_stock_value</label><input id="starting_stock_value" type="number" value="35000" /></div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <button class="btn primary" id="runBtn" onclick="runModel()">Run model</button>
-          <div id="inputError" style="margin-top:12px;"></div>
         </div>
 
-        <div class="card">
-          <h2>property_list (JSON)</h2>
-          <div class="divider"></div>
-          <div class="small" style="margin-bottom:10px;">
-            Paste the JSON array of properties. Next iteration we’ll replace this with a proper editor UI.
+        <div class="row">
+          <div>
+            <label>initial_savings</label>
+            <input id="initial_savings" type="number" step="1" />
           </div>
-          <textarea id="property_list"></textarea>
-          <div class="small">Tip: Keep keys exactly like your API expects.</div>
+          <div>
+            <label>todays_lifestyle_income</label>
+            <input id="todays_lifestyle_income" type="number" step="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>current_income</label>
+            <input id="current_income" type="number" step="1" />
+          </div>
+          <div>
+            <label>current_expenses</label>
+            <input id="current_expenses" type="number" step="1" />
+          </div>
+        </div>
+
+        <details style="margin-top:12px;">
+          <summary class="btn" style="display:inline-flex;align-items:center;gap:8px;">Advanced assumptions</summary>
+          <div style="margin-top:12px;" class="row">
+            <div>
+              <label>inflation</label>
+              <input id="inflation" type="number" step="0.001" />
+            </div>
+            <div>
+              <label>average_salary_increase</label>
+              <input id="average_salary_increase" type="number" step="0.001" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>stock_growth</label>
+              <input id="stock_growth" type="number" step="0.001" />
+            </div>
+            <div>
+              <label>stock_yearly_contribution</label>
+              <input id="stock_yearly_contribution" type="number" step="1" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>starting_stock_value</label>
+              <input id="starting_stock_value" type="number" step="1" />
+            </div>
+            <div></div>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button class="btn" onclick="saveState()">Save inputs</button>
+          <button class="btn primary" onclick="runModel()">Run model</button>
+        </div>
+
+        <div class="hr"></div>
+        <div class="note">
+          Note: The property editor on the right builds the <span class="badge">property_list</span> JSON automatically.
         </div>
       </div>
-    </section>
+
+      <div class="card">
+        <h2>Properties</h2>
+        <div class="sub">Edit PPOR + investment properties as separate cards (no raw JSON needed).</div>
+
+        <div id="propCards"></div>
+
+        <div class="actions">
+          <button class="btn" onclick="addInvestmentProperty()">+ Add investment property</button>
+          <button class="btn" onclick="resetProperties()">Reset properties</button>
+        </div>
+
+        <div class="hr"></div>
+        <div class="note">Debug: property_list we will send:</div>
+        <div id="propertyJsonPreview" class="mutedBox">[]</div>
+      </div>
+    </div>
 
     <!-- RESULTS -->
-    <section id="results" class="page">
+    <div id="page-results" class="page grid1">
       <div class="card">
         <h2>Results</h2>
-        <div class="divider"></div>
+        <div class="sub">Charts + tables based on the API response.</div>
 
-        <div class="kpis" id="kpiRow"></div>
+        <div class="kpis">
+          <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
+          <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
+          <div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
+          <div class="kpi"><div class="k">Rows returned</div><div class="v" id="kpiRows">—</div></div>
+        </div>
 
-        <div class="divider"></div>
+        <div class="hr"></div>
 
-        <div class="grid" style="grid-template-columns: 1fr;">
-          <div class="card" style="background: rgba(10,12,18,.35);">
-            <div class="toolbar">
-              <div class="left">
-                <div class="status" id="resultStatus">No results yet.</div>
-              </div>
-              <div class="right">
-                <button class="btn" onclick="downloadCSV()">Download CSV</button>
-                <button class="btn" onclick="go('inputs')">Edit inputs</button>
-              </div>
-            </div>
-            <canvas id="chart" height="120"></canvas>
+        <div class="actions" style="justify-content:flex-end;">
+          <button class="btn" onclick="downloadCSV()">Download CSV</button>
+          <button class="btn" onclick="goTab('inputs')">Edit inputs</button>
+        </div>
+
+        <div class="twoCharts" style="margin-top:12px;">
+          <div class="card" style="box-shadow:none;">
+            <h3>Cash vs Stocks</h3>
+            <canvas id="chartMain" height="140"></canvas>
+          </div>
+          <div class="card" style="box-shadow:none;">
+            <h3>Property values</h3>
+            <canvas id="chartProps" height="140"></canvas>
           </div>
         </div>
 
-        <div class="divider"></div>
+        <div class="hr"></div>
 
-        <h3 style="margin:0 0 10px 0;">Summary table</h3>
-        <div class="small" style="margin-bottom:10px;">Key columns only (clean view).</div>
+        <h3>Property summary (end row)</h3>
         <div class="table-wrap">
-          <table id="summaryTable"></table>
+          <table id="propertySummaryTable">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Is PPOR</th>
+                <th>Value (end)</th>
+                <th>Mortgage balance (end)</th>
+                <th>Offset allocated (end)</th>
+                <th>Rent (period)</th>
+                <th>Net rent (period)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
 
-        <div class="divider"></div>
+        <div class="hr"></div>
 
-        <h3 style="margin:0 0 10px 0;">Full output table</h3>
-        <div class="toolbar">
-          <div class="left">
-            <input id="search" placeholder="Search rows (any field)…" oninput="renderFullTable()" style="max-width:320px;" />
-            <div class="small" id="rowCount"></div>
-          </div>
-          <div class="right">
-            <select id="rowLimit" onchange="renderFullTable()">
-              <option value="50">Show 50</option>
-              <option value="100" selected>Show 100</option>
-              <option value="200">Show 200</option>
-              <option value="999999">Show all</option>
-            </select>
-          </div>
-        </div>
+        <h3>Full table (first 200 rows shown)</h3>
         <div class="table-wrap">
-          <table id="fullTable"></table>
+          <table id="fullTable">
+            <thead id="fullThead"></thead>
+            <tbody id="fullTbody"></tbody>
+          </table>
         </div>
 
-        <div class="divider"></div>
-
-        <details>
-          <summary>Raw API response (debug)</summary>
-          <pre id="debug"></pre>
-        </details>
+        <div class="hr"></div>
+        <h3>Raw API response (debug)</h3>
+        <div id="rawResp" class="mutedBox">{}</div>
       </div>
-    </section>
-
-    <div class="foot">Built for your Render API + Netlify frontend. Next: property editor UI + better charts.</div>
+    </div>
   </div>
 
-  <script>
-    // ------------------------
-    // STATE
-    // ------------------------
-    let lastResponse = null;
-    let chart = null;
-    let sortState = { table: "full", key: null, dir: 1 };
+<script>
+  // -----------------------------
+  // CONFIG (adjust if needed)
+  // -----------------------------
+  // If your FastAPI endpoint is different (e.g. POST /fire), change here:
+  const ENDPOINT_RUN = "/run_fire_model";   // <--- change if your API uses another path
+  const ENDPOINT_HEALTH = "/health";
 
-    const DEFAULT_PROPERTIES = [
-      {
-        "id": 1,
-        "name": "Apartment",
-        "purchase_price": 400000,
-        "current_value": 640000,
-        "original_loan": 325000,
-        "loan_balance_current": 215000,
-        "purchase_fees": 20000,
-        "monthly_rent": 2400,
-        "strata_quarterly": 1200,
-        "rates_quarterly": 900,
-        "other_costs_monthly": 200,
-        "interest_rate": 0.055,
-        "property_growth": 0.03,
-        "rental_growth": 0.03,
-        "year_bought": 2021,
-        "loan_term_years": 30,
-        "use_offset": true,
-        "is_owner_occupied": false
+  // -----------------------------
+  // STATE
+  // -----------------------------
+  const LS_KEY = "fire_frontend_state_v2";
+  let lastResult = null;
+  let chartMain = null;
+  let chartProps = null;
+
+  const defaultState = {
+    apiBase: "https://fire-api-wixz.onrender.com",
+    mode: "yearly",
+    inputs: {
+      current_age: 25,
+      inflation: 0.025,
+      todays_lifestyle_income: 80000,
+      initial_savings: 500000,
+      current_income: 200000,
+      current_expenses: 64000,
+      average_salary_increase: 0.035,
+      end_age: 60,
+      stock_growth: 0.06,
+      stock_yearly_contribution: 20000,
+      starting_stock_value: 35000
+    },
+    properties: {
+      ppor: {
+        id: 3,
+        name: "PPOR",
+        purchase_price: 1200000,
+        current_value: 1200000,
+        original_loan: 900000,
+        loan_balance_current: 0,
+        purchase_fees: 40000,
+        monthly_rent: 0,
+        strata_quarterly: 0,
+        rates_quarterly: 900,
+        other_costs_monthly: 300,
+        interest_rate: 0.055,
+        property_growth: 0.03,
+        rental_growth: 0,
+        year_bought: 2027,
+        loan_term_years: 30,
+        use_offset: true,
+        is_owner_occupied: true
       },
-      {
-        "id": 2,
-        "name": "House",
-        "purchase_price": 750000,
-        "current_value": 820000,
-        "original_loan": 600000,
-        "loan_balance_current": 540000,
-        "purchase_fees": 35000,
-        "monthly_rent": 3200,
-        "strata_quarterly": 1200,
-        "rates_quarterly": 900,
-        "other_costs_monthly": 200,
-        "interest_rate": 0.055,
-        "property_growth": 0.03,
-        "rental_growth": 0.03,
-        "year_bought": 2028,
-        "loan_term_years": 30,
-        "use_offset": true,
-        "is_owner_occupied": false
-      },
-      {
-        "id": 3,
-        "name": "PPOR",
-        "purchase_price": 1200000,
-        "current_value": 1200000,
-        "original_loan": 900000,
-        "loan_balance_current": 0,
-        "purchase_fees": 40000,
-        "monthly_rent": 0,
-        "strata_quarterly": 0,
-        "rates_quarterly": 900,
-        "other_costs_monthly": 300,
-        "interest_rate": 0.055,
-        "property_growth": 0.03,
-        "rental_growth": 0.0,
-        "year_bought": 2027,
-        "loan_term_years": 30,
-        "use_offset": true,
-        "is_owner_occupied": true
-      }
-    ];
-
-    // ------------------------
-    // NAV
-    // ------------------------
-    function go(page){
-      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-      document.getElementById(page).classList.add("active");
-
-      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-      document.querySelector(`.pill[data-nav="${page}"]`)?.classList.add("active");
+      investments: [
+        {
+          id: 1,
+          name: "Apartment",
+          purchase_price: 400000,
+          current_value: 640000,
+          original_loan: 325000,
+          loan_balance_current: 215000,
+          purchase_fees: 20000,
+          monthly_rent: 2400,
+          strata_quarterly: 1200,
+          rates_quarterly: 900,
+          other_costs_monthly: 200,
+          interest_rate: 0.055,
+          property_growth: 0.03,
+          rental_growth: 0.03,
+          year_bought: 2021,
+          loan_term_years: 30,
+          use_offset: true,
+          is_owner_occupied: false
+        },
+        {
+          id: 2,
+          name: "House",
+          purchase_price: 750000,
+          current_value: 820000,
+          original_loan: 600000,
+          loan_balance_current: 540000,
+          purchase_fees: 35000,
+          monthly_rent: 3200,
+          strata_quarterly: 1200,
+          rates_quarterly: 900,
+          other_costs_monthly: 200,
+          interest_rate: 0.055,
+          property_growth: 0.03,
+          rental_growth: 0.03,
+          year_bought: 2028,
+          loan_term_years: 30,
+          use_offset: true,
+          is_owner_occupied: false
+        }
+      ]
     }
+  };
 
-    document.querySelectorAll(".pill").forEach(p => {
-      p.addEventListener("click", () => go(p.dataset.nav));
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return structuredClone(defaultState);
+      const s = JSON.parse(raw);
+      return {
+        ...structuredClone(defaultState),
+        ...s,
+        inputs: { ...structuredClone(defaultState.inputs), ...(s.inputs||{}) },
+        properties: {
+          ...structuredClone(defaultState.properties),
+          ...(s.properties||{}),
+          ppor: { ...structuredClone(defaultState.properties.ppor), ...((s.properties||{}).ppor||{}) },
+          investments: Array.isArray((s.properties||{}).investments) ? (s.properties.investments) : structuredClone(defaultState.properties.investments)
+        }
+      };
+    }catch{
+      return structuredClone(defaultState);
+    }
+  }
+
+  let state = loadState();
+
+  function saveState(){
+    readInputsIntoState();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    renderPreviews();
+    toast("Saved.");
+  }
+
+  function loadDefaults(){
+    state = structuredClone(defaultState);
+    syncUIFromState();
+    renderPropertyCards();
+    renderPreviews();
+    toast("Defaults loaded.");
+  }
+
+  // -----------------------------
+  // UI NAV
+  // -----------------------------
+  function goTab(tab){
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.classList.toggle("active", t.dataset.tab === tab);
+    });
+    document.querySelectorAll(".page").forEach(p=>{
+      p.classList.toggle("active", p.id === `page-${tab}`);
+    });
+  }
+
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click", ()=>goTab(t.dataset.tab));
+  });
+
+  // -----------------------------
+  // HEALTH CHECK
+  // -----------------------------
+  async function checkHealth(){
+    readInputsIntoState();
+    const base = state.apiBase.replace(/\/+$/,"");
+    setHomeStatus("Checking API health…");
+    try{
+      const res = await fetch(base + ENDPOINT_HEALTH, { method:"GET" });
+      const ok = res.ok;
+      const data = await res.json().catch(()=> ({}));
+      setApiPill(ok, ok ? "ok" : "down");
+      setHomeStatus(ok ? `API healthy: ${JSON.stringify(data)}` : `API responded ${res.status}`);
+      toast(ok ? "API OK" : "API not OK");
+    }catch(e){
+      setApiPill(false, "down");
+      setHomeStatus("API unreachable. Check URL / CORS / Render status.");
+      toast("API unreachable");
+    }
+  }
+
+  function setApiPill(ok, label){
+    const pill = document.getElementById("apiPill");
+    pill.innerHTML = `<span class="${ok ? "ok" : "bad"}"></span> API: ${label}`;
+  }
+
+  function setHomeStatus(msg){
+    document.getElementById("homeStatus").innerHTML = `<div class="check">i</div><div>${msg}</div>`;
+  }
+
+  // -----------------------------
+  // PROPERTY EDITOR
+  // -----------------------------
+  function buildPropertyList(){
+    // PPOR first (nice for predictable ordering)
+    const ppor = normalizeProperty(state.properties.ppor, true, 1);
+    // investments
+    const inv = (state.properties.investments || []).map((p, idx)=>normalizeProperty(p, false, idx+2));
+    // ensure ids are unique-ish
+    return [...inv, ppor];
+  }
+
+  function normalizeProperty(p, isPPOR, fallbackId){
+    const out = { ...(p||{}) };
+    if(!out.id) out.id = fallbackId;
+    if(!out.name) out.name = isPPOR ? "PPOR" : `Property ${fallbackId}`;
+    out.is_owner_occupied = !!(isPPOR || out.is_owner_occupied);
+    // guard rails
+    if(out.is_owner_occupied){
+      out.monthly_rent = 0;
+      out.rental_growth = 0;
+    }
+    // coerce numbers
+    const numKeys = [
+      "purchase_price","current_value","original_loan","loan_balance_current","purchase_fees",
+      "monthly_rent","strata_quarterly","rates_quarterly","other_costs_monthly",
+      "interest_rate","property_growth","rental_growth","year_bought","loan_term_years"
+    ];
+    numKeys.forEach(k=>{
+      if(out[k] === "" || out[k] == null) out[k] = 0;
+      out[k] = Number(out[k]);
+    });
+    out.use_offset = !!out.use_offset;
+    return out;
+  }
+
+  function renderPropertyCards(){
+    const host = document.getElementById("propCards");
+    host.innerHTML = "";
+
+    // Investments
+    const inv = state.properties.investments || [];
+    inv.forEach((p, idx)=>{
+      host.appendChild(makePropertyCard(p, `Investment Property ${idx+1}`, false, idx));
     });
 
-    // ------------------------
-    // UI helpers
-    // ------------------------
-    function money(x){
-      if (x === null || x === undefined || Number.isNaN(Number(x))) return "-";
-      return "$" + Math.round(Number(x)).toLocaleString();
-    }
-    function num(x){
-      if (x === null || x === undefined || Number.isNaN(Number(x))) return "-";
-      return Math.round(Number(x)).toLocaleString();
-    }
-    function getNum(id){ return Number(document.getElementById(id).value); }
-    function getBool(id){
-      const v = String(document.getElementById(id).value).trim().toLowerCase();
-      return v === "true";
-    }
+    // PPOR
+    host.appendChild(makePropertyCard(state.properties.ppor, "PPOR", true, null));
 
-    function toggleAdvanced(){
-      const box = document.getElementById("advancedBox");
-      const badge = document.getElementById("advBadge");
-      const isOpen = box.style.display !== "none";
-      box.style.display = isOpen ? "none" : "block";
-      badge.textContent = isOpen ? "Hidden" : "Visible";
-    }
+    renderPreviews();
+  }
 
-    // ------------------------
-    // API health
-    // ------------------------
-    async function pingHealth(){
-      const base = document.getElementById("apiBase")?.value || "https://fire-api-wixz.onrender.com";
-      try{
-        const r = await fetch(`${base}/health`);
-        const j = await r.json();
-        const ok = !!j.ok;
-        document.getElementById("apiBadge").textContent = "API: " + (ok ? "ok" : "down");
-        document.getElementById("homeStatus").textContent = ok ? "✅ API healthy" : "❌ API not healthy";
-      }catch(e){
-        document.getElementById("apiBadge").textContent = "API: down";
-        document.getElementById("homeStatus").textContent = "❌ API not reachable";
-      }
-    }
+  function makePropertyCard(prop, title, isPPOR, invIndex){
+    const wrap = document.createElement("div");
+    wrap.className = "card";
+    wrap.style.boxShadow = "none";
+    wrap.style.marginBottom = "12px";
 
-    // ------------------------
-    // Load example
-    // ------------------------
-    function loadExample(){
-      document.getElementById("property_list").value = JSON.stringify(DEFAULT_PROPERTIES, null, 2);
-      document.getElementById("apiBase").value = "https://fire-api-wixz.onrender.com";
-      document.getElementById("apiBaseText").textContent = "https://fire-api-wixz.onrender.com";
-      document.getElementById("apiEndpointText").textContent = "/fire";
-      document.getElementById("homeStatus").textContent = "Example loaded. Go to Inputs → Run model.";
-      go("inputs");
-    }
+    const idPrefix = isPPOR ? "ppor" : `inv_${invIndex}`;
 
-    // ------------------------
-    // Model run
-    // ------------------------
-    async function runModel(){
-      const errBox = document.getElementById("inputError");
-      errBox.innerHTML = "";
-      const btn = document.getElementById("runBtn");
-      btn.disabled = true;
-      btn.textContent = "Running…";
+    const removeBtn = (!isPPOR)
+      ? `<button class="btn danger" onclick="removeInvestmentProperty(${invIndex})">Remove</button>`
+      : "";
 
-      const base = document.getElementById("apiBase").value.trim().replace(/\/$/, "");
-      document.getElementById("apiBaseText").textContent = base;
-      document.getElementById("apiEndpointText").textContent = "/fire";
-
-      let property_list;
-      try{
-        property_list = JSON.parse(document.getElementById("property_list").value);
-        if (!Array.isArray(property_list)) throw new Error("property_list must be a JSON array");
-      }catch(e){
-        errBox.innerHTML = `<div class="error">❌ Invalid property_list JSON: ${String(e.message || e)}</div>`;
-        btn.disabled = false;
-        btn.textContent = "Run model";
-        return;
-      }
-
-      const inputs = {
-        current_age: getNum("current_age"),
-        inflation: getNum("inflation"),
-        todays_lifestyle_income: getNum("todays_lifestyle_income"),
-        initial_savings: getNum("initial_savings"),
-        current_income: getNum("current_income"),
-        current_expenses: getNum("current_expenses"),
-        average_salary_increase: getNum("average_salary_increase"),
-        end_age: getNum("end_age"),
-        stock_growth: getNum("stock_growth"),
-        stock_yearly_contribution: getNum("stock_yearly_contribution"),
-        starting_stock_value: getNum("starting_stock_value")
-      };
-
-      const payload = {
-        inputs,
-        property_list,
-        display_month: getBool("display_month")
-      };
-
-      try{
-        const res = await fetch(`${base}/fire`, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
-
-        if (!res.ok){
-          errBox.innerHTML = `<div class="error">❌ API Error (${res.status}). See debug on Results page.</div>`;
-          lastResponse = data;
-          go("results");
-          btn.disabled = false;
-          btn.textContent = "Run model";
-          return;
-        }
-
-        lastResponse = data;
-        renderResults(data);
-        go("results");
-      }catch(e){
-        errBox.innerHTML = `<div class="error">❌ Request failed: ${String(e.message || e)}</div>`;
-      }finally{
-        btn.disabled = false;
-        btn.textContent = "Run model";
-      }
-    }
-
-    // ------------------------
-    // Results rendering
-    // ------------------------
-    function renderResults(api){
-      const rows = api.rows || [];
-      const mode = api.mode || "unknown";
-      document.getElementById("resultStatus").textContent = `✅ ${rows.length} rows returned (${mode}).`;
-
-      // KPI cards (based on last row)
-      const last = rows[rows.length - 1] || {};
-      const first = rows[0] || {};
-
-      // Try to read yearly-renamed columns if present, else monthly originals
-      const cashKey = last.Cumulative_Savings !== undefined ? "Cumulative_Savings" : "Cash_Balance_End";
-      const stockKey = last.Total_Stock_Balance !== undefined ? "Total_Stock_Balance" : "Stock_Balance_End";
-
-      const cashEnd = Number(last[cashKey] ?? 0);
-      const stockEnd = Number(last[stockKey] ?? 0);
-      const cashStart = Number(first[cashKey] ?? 0);
-      const stockStart = Number(first[stockKey] ?? 0);
-      const netEnd = cashEnd + stockEnd;
-      const netStart = cashStart + stockStart;
-
-      const kpis = [
-        { label:"Cash (end)", value: money(cashEnd) },
-        { label:"Stocks (end)", value: money(stockEnd) },
-        { label:"Net worth (end)", value: money(netEnd) },
-        { label:"Net worth (start)", value: money(netStart) },
-      ];
-      document.getElementById("kpiRow").innerHTML = kpis.map(k => `
-        <div class="kpi">
-          <div class="label">${k.label}</div>
-          <div class="value">${k.value}</div>
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h3 style="margin:0;">${title}</h3>
+        <div class="actions" style="margin:0;">
+          ${removeBtn}
         </div>
-      `).join("");
+      </div>
+      <div class="sub" style="margin-top:6px;">
+        ${isPPOR ? "Owner-occupied. Rent + rental growth forced to 0." : "Investment property. Rent + costs affect cashflow + tax."}
+      </div>
 
-      // Chart cash + stock
-      const labels = rows.map(r => mode === "yearly" ? r.Year : r.Date);
-      const cashSeries = rows.map(r => Number(r[cashKey] ?? 0));
-      const stockSeries = rows.map(r => Number(r[stockKey] ?? 0));
+      <div class="row">
+        <div>
+          <label>name</label>
+          <input id="${idPrefix}_name" />
+        </div>
+        <div>
+          <label>id</label>
+          <input id="${idPrefix}_id" type="number" step="1" />
+        </div>
+      </div>
 
-      if (chart) chart.destroy();
-      chart = new Chart(document.getElementById("chart"), {
-        type:"line",
-        data:{
-          labels,
-          datasets:[
-            { label:"Cash", data: cashSeries, borderWidth:2 },
-            { label:"Stocks", data: stockSeries, borderWidth:2 }
-          ]
-        },
-        options:{
-          responsive:true,
-          interaction:{ mode:"index", intersect:false },
-          scales:{
-            y:{ ticks:{ callback:v => "$" + Number(v).toLocaleString() } }
-          }
-        }
-      });
+      <div class="row">
+        <div>
+          <label>year_bought</label>
+          <input id="${idPrefix}_year_bought" type="number" step="1" />
+        </div>
+        <div>
+          <label>loan_term_years</label>
+          <input id="${idPrefix}_loan_term_years" type="number" step="1" />
+        </div>
+      </div>
 
-      // Summary table
-      renderSummaryTable(rows, mode);
+      <div class="row">
+        <div>
+          <label>purchase_price</label>
+          <input id="${idPrefix}_purchase_price" type="number" step="1" />
+        </div>
+        <div>
+          <label>purchase_fees</label>
+          <input id="${idPrefix}_purchase_fees" type="number" step="1" />
+        </div>
+      </div>
 
-      // Full table
-      sortState = { table:"full", key:null, dir:1 };
-      document.getElementById("search").value = "";
-      document.getElementById("rowLimit").value = "100";
-      renderFullTable();
-    }
+      <div class="row">
+        <div>
+          <label>current_value</label>
+          <input id="${idPrefix}_current_value" type="number" step="1" />
+        </div>
+        <div>
+          <label>property_growth</label>
+          <input id="${idPrefix}_property_growth" type="number" step="0.001" />
+        </div>
+      </div>
 
-    function renderSummaryTable(rows, mode){
-      // Choose a sane set of columns
-      const sample = rows[0] || {};
-      const hasYearlyRename = ("Cumulative_Savings" in sample) || ("Total_Stock_Balance" in sample);
+      <div class="row">
+        <div>
+          <label>original_loan</label>
+          <input id="${idPrefix}_original_loan" type="number" step="1" />
+        </div>
+        <div>
+          <label>loan_balance_current</label>
+          <input id="${idPrefix}_loan_balance_current" type="number" step="1" />
+        </div>
+      </div>
 
-      const cols = mode === "yearly"
-        ? (hasYearlyRename
-            ? ["Year","Age","Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Payable_Paid","Cumulative_Savings","Total_Stock_Balance"]
-            : ["Year","Age","Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid","Cash_Balance_End","Stock_Balance_End"])
-        : ["Date","Age","Salary_Monthly","Expenses_Monthly","Total_Net_Rent","Tax_Paid","Cash_Balance_End","Stock_Balance_End"];
+      <div class="row">
+        <div>
+          <label>interest_rate</label>
+          <input id="${idPrefix}_interest_rate" type="number" step="0.001" />
+        </div>
+        <div>
+          <label>use_offset</label>
+          <select id="${idPrefix}_use_offset">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </div>
+      </div>
 
-      const table = document.getElementById("summaryTable");
-      table.innerHTML = "";
+      <div class="row">
+        <div>
+          <label>monthly_rent</label>
+          <input id="${idPrefix}_monthly_rent" type="number" step="1" ${isPPOR ? "disabled" : ""} />
+        </div>
+        <div>
+          <label>rental_growth</label>
+          <input id="${idPrefix}_rental_growth" type="number" step="0.001" ${isPPOR ? "disabled" : ""} />
+        </div>
+      </div>
 
-      table.insertAdjacentHTML("beforeend", `
-        <thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr>
-              ${cols.map(c => `<td>${formatCell(c, r[c])}</td>`).join("")}
-            </tr>
-          `).join("")}
-        </tbody>
-      `);
-    }
+      <div class="row">
+        <div>
+          <label>strata_quarterly</label>
+          <input id="${idPrefix}_strata_quarterly" type="number" step="1" />
+        </div>
+        <div>
+          <label>rates_quarterly</label>
+          <input id="${idPrefix}_rates_quarterly" type="number" step="1" />
+        </div>
+      </div>
 
-    function formatCell(key, val){
-      if (val === null || val === undefined) return "-";
-      // money-ish columns
-      const moneyish = /(Cash|Savings|Stock|Salary|Expenses|Rent|Mortgage|Value|Tax|Contribution|Net_Rent)/i.test(key);
-      if (typeof val === "number"){
-        if (moneyish) return money(val);
-        return num(val);
-      }
-      return String(val);
-    }
+      <div class="row">
+        <div>
+          <label>other_costs_monthly</label>
+          <input id="${idPrefix}_other_costs_monthly" type="number" step="1" />
+        </div>
+        <div>
+          <label>is_owner_occupied</label>
+          <select id="${idPrefix}_is_owner_occupied" ${isPPOR ? "disabled" : ""}>
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </div>
+      </div>
+    `;
 
-    function getFilteredRows(){
-      if (!lastResponse || !lastResponse.rows) return [];
-      const q = document.getElementById("search").value.trim().toLowerCase();
-      let rows = lastResponse.rows;
+    // fill values
+    const p = normalizeProperty(prop, isPPOR, (isPPOR? 999 : invIndex+1));
+    const set = (k, v)=>{ const el = wrap.querySelector(`#${idPrefix}_${k}`); if(el) el.value = v; };
+    set("name", p.name);
+    set("id", p.id);
+    set("year_bought", p.year_bought);
+    set("loan_term_years", p.loan_term_years);
+    set("purchase_price", p.purchase_price);
+    set("purchase_fees", p.purchase_fees);
+    set("current_value", p.current_value);
+    set("property_growth", p.property_growth);
+    set("original_loan", p.original_loan);
+    set("loan_balance_current", p.loan_balance_current);
+    set("interest_rate", p.interest_rate);
+    set("use_offset", String(!!p.use_offset));
+    set("monthly_rent", p.monthly_rent);
+    set("rental_growth", p.rental_growth);
+    set("strata_quarterly", p.strata_quarterly);
+    set("rates_quarterly", p.rates_quarterly);
+    set("other_costs_monthly", p.other_costs_monthly);
+    set("is_owner_occupied", String(!!p.is_owner_occupied));
 
-      if (q){
-        rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
-      }
-      return rows;
-    }
+    // onchange -> update state live
+    wrap.querySelectorAll("input,select").forEach(el=>{
+      el.addEventListener("input", ()=>{ readPropertiesIntoState(); renderPreviews(); });
+      el.addEventListener("change", ()=>{ readPropertiesIntoState(); renderPreviews(); });
+    });
 
-    function renderFullTable(){
-      const rows = getFilteredRows();
-      const limit = Number(document.getElementById("rowLimit").value || 100);
-      document.getElementById("rowCount").textContent = `${rows.length.toLocaleString()} rows (filtered)`;
+    return wrap;
+  }
 
-      const table = document.getElementById("fullTable");
-      table.innerHTML = "";
+  function readPropertiesIntoState(){
+    // Investments
+    const inv = state.properties.investments || [];
+    inv.forEach((p, idx)=>{
+      const idPrefix = `inv_${idx}`;
+      const get = (k)=>document.getElementById(`${idPrefix}_${k}`)?.value;
+      inv[idx] = {
+        ...p,
+        id: Number(get("id")),
+        name: get("name"),
+        year_bought: Number(get("year_bought")),
+        loan_term_years: Number(get("loan_term_years")),
+        purchase_price: Number(get("purchase_price")),
+        purchase_fees: Number(get("purchase_fees")),
+        current_value: Number(get("current_value")),
+        property_growth: Number(get("property_growth")),
+        original_loan: Number(get("original_loan")),
+        loan_balance_current: Number(get("loan_balance_current")),
+        interest_rate: Number(get("interest_rate")),
+        use_offset: (get("use_offset") === "true"),
+        monthly_rent: Number(get("monthly_rent")),
+        rental_growth: Number(get("rental_growth")),
+        strata_quarterly: Number(get("strata_quarterly")),
+        rates_quarterly: Number(get("rates_quarterly")),
+        other_costs_monthly: Number(get("other_costs_monthly")),
+        is_owner_occupied: false
+      };
+    });
 
-      if (!rows.length){
-        table.insertAdjacentHTML("beforeend", `<thead><tr><th>No rows</th></tr></thead>`);
-        return;
-      }
+    // PPOR
+    const getP = (k)=>document.getElementById(`ppor_${k}`)?.value;
+    state.properties.ppor = {
+      ...state.properties.ppor,
+      id: Number(getP("id")),
+      name: getP("name"),
+      year_bought: Number(getP("year_bought")),
+      loan_term_years: Number(getP("loan_term_years")),
+      purchase_price: Number(getP("purchase_price")),
+      purchase_fees: Number(getP("purchase_fees")),
+      current_value: Number(getP("current_value")),
+      property_growth: Number(getP("property_growth")),
+      original_loan: Number(getP("original_loan")),
+      loan_balance_current: Number(getP("loan_balance_current")),
+      interest_rate: Number(getP("interest_rate")),
+      use_offset: (getP("use_offset") === "true"),
+      // forced
+      monthly_rent: 0,
+      rental_growth: 0,
+      strata_quarterly: Number(getP("strata_quarterly")),
+      rates_quarterly: Number(getP("rates_quarterly")),
+      other_costs_monthly: Number(getP("other_costs_monthly")),
+      is_owner_occupied: true
+    };
+  }
 
-      // Columns: use API columns order if provided
-      const cols = lastResponse.columns && lastResponse.columns.length
-        ? lastResponse.columns
-        : Object.keys(rows[0]);
+  function addInvestmentProperty(){
+    const n = (state.properties.investments || []).length + 1;
+    state.properties.investments = state.properties.investments || [];
+    state.properties.investments.push({
+      id: 100 + n,
+      name: `Investment ${n}`,
+      purchase_price: 800000,
+      current_value: 800000,
+      original_loan: 640000,
+      loan_balance_current: 0,
+      purchase_fees: 30000,
+      monthly_rent: 3200,
+      strata_quarterly: 0,
+      rates_quarterly: 900,
+      other_costs_monthly: 200,
+      interest_rate: 0.055,
+      property_growth: 0.03,
+      rental_growth: 0.03,
+      year_bought: new Date().getFullYear() + 1,
+      loan_term_years: 30,
+      use_offset: true,
+      is_owner_occupied: false
+    });
+    renderPropertyCards();
+    saveState();
+  }
 
-      // Sorting
-      let displayRows = rows.slice();
-      if (sortState.key){
-        const k = sortState.key;
-        const dir = sortState.dir;
-        displayRows.sort((a,b) => {
-          const av = a[k]; const bv = b[k];
-          const an = typeof av === "number" ? av : Number(av);
-          const bn = typeof bv === "number" ? bv : Number(bv);
-          const bothNum = !Number.isNaN(an) && !Number.isNaN(bn);
-          if (bothNum) return (an - bn) * dir;
-          return String(av ?? "").localeCompare(String(bv ?? "")) * dir;
-        });
-      }
+  function removeInvestmentProperty(idx){
+    state.properties.investments.splice(idx,1);
+    renderPropertyCards();
+    saveState();
+  }
 
-      displayRows = displayRows.slice(0, limit);
+  function resetProperties(){
+    state.properties = structuredClone(defaultState.properties);
+    renderPropertyCards();
+    saveState();
+  }
 
-      table.insertAdjacentHTML("beforeend", `
-        <thead><tr>
-          ${cols.map(c => `<th onclick="sortBy('${escapeQuotes(c)}')">${c}${sortState.key===c ? (sortState.dir===1 ? " ▲" : " ▼") : ""}</th>`).join("")}
-        </tr></thead>
-        <tbody>
-          ${displayRows.map(r => `
-            <tr>${cols.map(c => `<td>${formatCell(c, r[c])}</td>`).join("")}</tr>
-          `).join("")}
-        </tbody>
-      `);
-    }
-
-    function escapeQuotes(s){ return String(s).replace(/'/g, "\\'"); }
-    function sortBy(key){
-      if (sortState.key === key){
-        sortState.dir *= -1;
-      } else {
-        sortState.key = key;
-        sortState.dir = 1;
-      }
-      renderFullTable();
-    }
-
-    // ------------------------
-    // CSV download
-    // ------------------------
-    function downloadCSV(){
-      if (!lastResponse || !lastResponse.rows) return;
-
-      const rows = lastResponse.rows;
-      const cols = lastResponse.columns && lastResponse.columns.length
-        ? lastResponse.columns
-        : Object.keys(rows[0] || {});
-
-      const csv = [
-        cols.join(","),
-        ...rows.map(r => cols.map(c => {
-          const v = r[c];
-          if (v === null || v === undefined) return "";
-          const s = String(v);
-          if (s.includes(",") || s.includes('"') || s.includes("\n")){
-            return `"${s.replace(/"/g,'""')}"`;
-          }
-          return s;
-        }).join(","))
-      ].join("\n");
-
-      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `fire_${lastResponse.mode || "output"}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    // ------------------------
-    // Init
-    // ------------------------
-    (function init(){
-      document.getElementById("property_list").value = JSON.stringify(DEFAULT_PROPERTIES, null, 2);
-      document.getElementById("apiBaseText").textContent = "https://fire-api-wixz.onrender.com";
-      document.getElementById("apiEndpointText").textContent = "/fire";
-      pingHealth();
-    })();
-  </script>
-</body>
-</html>
+  // -----------------------------
+  // CORE INPUTS
+  // -----------------------------
+  function syncUIFromState(){
+    document.getElementById("apiBase").value = state.apiBase;
+    document.getElementById("mode").value = state
