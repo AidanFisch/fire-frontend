@@ -1,127 +1,247 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>FIRE Tracker</title>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: 40px auto;
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { font-size: 12px; color: #333; }
+    input, textarea, button {
+      width: 100%; padding: 10px; margin: 6px 0 12px 0; box-sizing: border-box;
     }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-    }
-    button {
-      background: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    pre {
-      background: #f4f4f4;
-      padding: 10px;
-      overflow-x: auto;
-    }
+    textarea { min-height: 220px; font-family: monospace; font-size: 12px; }
+    button { background: black; color: white; border: none; cursor: pointer; padding: 12px; }
+    pre { background: #f4f4f4; padding: 12px; overflow-x: auto; }
+    h3 { margin-top: 28px; }
   </style>
 </head>
 
 <body>
+  <h2>FIRE Calculator (API-connected)</h2>
 
-<h2>FIRE Calculator (API-connected)</h2>
+  <h3>Inputs</h3>
+  <div class="grid">
+    <div>
+      <label>current_age</label>
+      <input id="current_age" type="number" value="25" />
+    </div>
+    <div>
+      <label>end_age</label>
+      <input id="end_age" type="number" value="60" />
+    </div>
 
-<input id="assets" placeholder="Current Assets (e.g. 500000)">
-<input id="income" placeholder="Current Annual Income (e.g. 200000)">
-<input id="expenses" placeholder="Annual Expenses (e.g. 64000)">
+    <div>
+      <label>inflation (e.g. 0.025)</label>
+      <input id="inflation" type="number" step="0.001" value="0.025" />
+    </div>
+    <div>
+      <label>average_salary_increase (e.g. 0.035)</label>
+      <input id="average_salary_increase" type="number" step="0.001" value="0.035" />
+    </div>
 
-<button onclick="calculate()">Run Model</button>
+    <div>
+      <label>todays_lifestyle_income</label>
+      <input id="todays_lifestyle_income" type="number" value="80000" />
+    </div>
+    <div>
+      <label>initial_savings</label>
+      <input id="initial_savings" type="number" value="500000" />
+    </div>
 
-<p id="result"></p>
+    <div>
+      <label>current_income</label>
+      <input id="current_income" type="number" value="200000" />
+    </div>
+    <div>
+      <label>current_expenses</label>
+      <input id="current_expenses" type="number" value="64000" />
+    </div>
 
-<canvas id="chart"></canvas>
+    <div>
+      <label>stock_growth (e.g. 0.06)</label>
+      <input id="stock_growth" type="number" step="0.001" value="0.06" />
+    </div>
+    <div>
+      <label>stock_yearly_contribution</label>
+      <input id="stock_yearly_contribution" type="number" value="20000" />
+    </div>
 
-<h3>Raw API Response (debug)</h3>
-<pre id="debug"></pre>
+    <div>
+      <label>starting_stock_value</label>
+      <input id="starting_stock_value" type="number" value="35000" />
+    </div>
 
-<script>
-let chart;
+    <div>
+      <label>display_month (true/false)</label>
+      <input id="display_month" type="text" value="false" />
+    </div>
+  </div>
 
-async function calculate() {
-  const assets = Number(document.getElementById("assets").value);
-  const income = Number(document.getElementById("income").value);
-  const expenses = Number(document.getElementById("expenses").value);
+  <h3>property_list (paste JSON array)</h3>
+  <textarea id="property_list">[
+  {
+    "id": 1,
+    "name": "Apartment",
+    "purchase_price": 400000,
+    "current_value": 640000,
+    "original_loan": 325000,
+    "loan_balance_current": 215000,
+    "purchase_fees": 20000,
+    "monthly_rent": 2400,
+    "strata_quarterly": 1200,
+    "rates_quarterly": 900,
+    "other_costs_monthly": 200,
+    "interest_rate": 0.055,
+    "property_growth": 0.03,
+    "rental_growth": 0.03,
+    "year_bought": 2021,
+    "loan_term_years": 30,
+    "use_offset": true,
+    "is_owner_occupied": false
+  },
+  {
+    "id": 2,
+    "name": "House",
+    "purchase_price": 750000,
+    "current_value": 820000,
+    "original_loan": 600000,
+    "loan_balance_current": 540000,
+    "purchase_fees": 35000,
+    "monthly_rent": 3200,
+    "strata_quarterly": 1200,
+    "rates_quarterly": 900,
+    "other_costs_monthly": 200,
+    "interest_rate": 0.055,
+    "property_growth": 0.03,
+    "rental_growth": 0.03,
+    "year_bought": 2028,
+    "loan_term_years": 30,
+    "use_offset": true,
+    "is_owner_occupied": false
+  },
+  {
+    "id": 3,
+    "name": "PPOR",
+    "purchase_price": 1200000,
+    "current_value": 1200000,
+    "original_loan": 900000,
+    "loan_balance_current": 0,
+    "purchase_fees": 40000,
+    "monthly_rent": 0,
+    "strata_quarterly": 0,
+    "rates_quarterly": 900,
+    "other_costs_monthly": 300,
+    "interest_rate": 0.055,
+    "property_growth": 0.03,
+    "rental_growth": 0.0,
+    "year_bought": 2027,
+    "loan_term_years": 30,
+    "use_offset": true,
+    "is_owner_occupied": true
+  }
+]</textarea>
 
-  const response = await fetch(
-    "https://fire-api-wixz.onrender.com/fire",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        inputs: {
-          current_age: 25,
-          inflation: 0.025,
-          todays_lifestyle_income: expenses,
-          initial_savings: assets,
-          current_income: income,
-          current_expenses: expenses,
-          average_salary_increase: 0.035,
-          end_age: 60,
-          stock_growth: 0.06,
-          stock_yearly_contribution: 20000,
-          starting_stock_value: 35000
-        },
-        property_list: [],
-        display_month: false
-      })
+  <button onclick="calculate()">Run Model</button>
+
+  <p id="result"></p>
+
+  <canvas id="chart"></canvas>
+
+  <h3>Raw API Response (debug)</h3>
+  <pre id="debug"></pre>
+
+  <script>
+    let chart;
+
+    function getNum(id) {
+      return Number(document.getElementById(id).value);
     }
-  );
+    function getBoolText(id) {
+      return String(document.getElementById(id).value).trim().toLowerCase() === "true";
+    }
 
-  const data = await response.json();
+    async function calculate() {
+      const apiUrl = "https://fire-api-wixz.onrender.com/fire";
 
-  // Debug output
-  document.getElementById("debug").textContent =
-    JSON.stringify(data, null, 2);
+      // Build inputs object exactly like your backend expects
+      const inputs = {
+        current_age: getNum("current_age"),
+        inflation: getNum("inflation"),
+        todays_lifestyle_income: getNum("todays_lifestyle_income"),
+        initial_savings: getNum("initial_savings"),
+        current_income: getNum("current_income"),
+        current_expenses: getNum("current_expenses"),
+        average_salary_increase: getNum("average_salary_increase"),
+        end_age: getNum("end_age"),
+        stock_growth: getNum("stock_growth"),
+        stock_yearly_contribution: getNum("stock_yearly_contribution"),
+        starting_stock_value: getNum("starting_stock_value")
+      };
 
-  // Basic sanity result
-  document.getElementById("result").innerText =
-    `Model ran successfully. Years returned: ${data.rows.length}`;
+      // property_list JSON textarea
+      let property_list;
+      try {
+        property_list = JSON.parse(document.getElementById("property_list").value);
+      } catch (e) {
+        document.getElementById("result").innerText = "❌ property_list JSON is invalid. Fix the JSON then retry.";
+        document.getElementById("debug").textContent = String(e);
+        return;
+      }
 
-  // ---- Chart (Cash Balance over time) ----
-  const labels = data.rows.map(r => r.Year);
-  const cash = data.rows.map(r => r.Cash_Balance_End);
+      const payload = {
+        inputs,
+        property_list,
+        display_month: getBoolText("display_month")
+      };
 
-  if (chart) chart.destroy();
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-  chart = new Chart(document.getElementById("chart"), {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Cash Balance (End of Year)",
-        data: cash,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          ticks: {
-            callback: value =>
-              "$" + value.toLocaleString()
+      const data = await res.json();
+      document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
+
+      if (!res.ok) {
+        document.getElementById("result").innerText = `❌ API Error (${res.status}). See debug below.`;
+        return;
+      }
+
+      document.getElementById("result").innerText = `✅ Model ran. Rows returned: ${data.rows.length} (${data.mode})`;
+
+      // Chart yearly cash balance if yearly, else chart monthly
+      const isYearly = data.mode === "yearly";
+      const labels = data.rows.map(r => isYearly ? r.Year : r.Date);
+      const cash = data.rows.map(r => r.Cash_Balance_End);
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: isYearly ? "Cash Balance (End of Year)" : "Cash Balance (End of Month)",
+            data: cash,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              ticks: {
+                callback: v => "$" + Number(v).toLocaleString()
+              }
+            }
           }
         }
-      }
+      });
     }
-  });
-}
-</script>
-
+  </script>
 </body>
 </html>
