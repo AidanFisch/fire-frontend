@@ -1,172 +1,629 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FIRE Tracker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FIRE Model</title>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    label { font-size: 12px; color: #333; }
-    input, textarea, button {
-      width: 100%; padding: 10px; margin: 6px 0 12px 0; box-sizing: border-box;
+    :root{
+      --bg:#0b0d12;
+      --panel:#111522;
+      --panel2:#0f1320;
+      --muted:#98a2b3;
+      --text:#e6e8ee;
+      --accent:#7c5cff;
+      --accent2:#23c5a6;
+      --danger:#ff4d4d;
+      --border:rgba(255,255,255,.08);
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --radius2:22px;
+      --max:1100px;
     }
-    textarea { min-height: 220px; font-family: monospace; font-size: 12px; }
-    button { background: black; color: white; border: none; cursor: pointer; padding: 12px; }
-    pre { background: #f4f4f4; padding: 12px; overflow-x: auto; }
-    h3 { margin-top: 28px; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.35), transparent 60%),
+                  radial-gradient(900px 600px at 80% 10%, rgba(35,197,166,.22), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{ color:inherit; text-decoration:none; }
+    .container{ max-width:var(--max); margin:0 auto; padding:24px; }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px; border:1px solid var(--border); border-radius:var(--radius2);
+      background: rgba(17,21,34,.55); backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      position: sticky; top: 16px; z-index: 10;
+    }
+    .brand{
+      display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.2px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:99px; background:var(--accent);
+      box-shadow: 0 0 0 5px rgba(124,92,255,.18);
+    }
+    .nav-links{
+      display:flex; gap:10px; align-items:center;
+    }
+    .pill{
+      padding:10px 12px; border:1px solid var(--border); border-radius:999px;
+      color:var(--muted); font-size:14px;
+      transition:.2s;
+      cursor:pointer;
+      background: rgba(255,255,255,.02);
+    }
+    .pill.active{
+      color:var(--text);
+      border-color: rgba(124,92,255,.45);
+      background: rgba(124,92,255,.14);
+    }
+    .pill:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.16); }
+
+    .page{ display:none; padding-top:18px; }
+    .page.active{ display:block; }
+
+    .hero{
+      padding:42px 28px;
+      border:1px solid var(--border);
+      border-radius:var(--radius2);
+      background: linear-gradient(180deg, rgba(17,21,34,.75), rgba(17,21,34,.45));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .hero:after{
+      content:"";
+      position:absolute; inset:-120px -220px auto auto;
+      width:520px; height:520px;
+      background: radial-gradient(circle at 30% 30%, rgba(124,92,255,.25), transparent 60%);
+      transform: rotate(25deg);
+      pointer-events:none;
+    }
+    .hero h1{ margin:0 0 10px 0; font-size:42px; }
+    .hero p{ margin:0 0 22px 0; color:var(--muted); line-height:1.55; max-width:720px; }
+    .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
+    .btn{
+      padding:12px 16px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      cursor:pointer;
+      transition:.2s;
+      font-weight:600;
+      display:inline-flex; align-items:center; gap:10px;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(124,92,255,.95), rgba(35,197,166,.85));
+      border-color: rgba(124,92,255,.35);
+    }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .nav{ position:static; }
+      .hero h1{ font-size:34px; }
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius2);
+      background: rgba(17,21,34,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .card h2{ margin:0 0 10px 0; font-size:18px; }
+    .muted{ color:var(--muted); }
+    .small{ font-size:12px; color:var(--muted); }
+    .divider{ height:1px; background: var(--border); margin:14px 0; }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 680px){
+      .form-grid{ grid-template-columns: 1fr; }
+    }
+    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    input, textarea, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(10,12,18,.55);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{ min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; }
+    input:focus, textarea:focus{
+      border-color: rgba(124,92,255,.45);
+      box-shadow: 0 0 0 4px rgba(124,92,255,.12);
+    }
+
+    .toggle{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.02);
+      cursor:pointer;
+      user-select:none;
+    }
+    .toggle span{ color:var(--muted); font-size:13px; }
+    .toggle strong{ font-size:13px; }
+    .badge{
+      font-size:11px; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 980px){
+      .kpis{ grid-template-columns: repeat(2, 1fr); }
+    }
+    .kpi{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background: rgba(10,12,18,.55);
+    }
+    .kpi .label{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .kpi .value{ font-size:18px; font-weight:700; letter-spacing:.2px; }
+
+    .table-wrap{
+      border:1px solid var(--border);
+      border-radius:var(--radius2);
+      overflow:hidden;
+      background: rgba(10,12,18,.55);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    thead{
+      background: rgba(255,255,255,.03);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      vertical-align:top;
+      text-align:left;
+      white-space:nowrap;
+    }
+    th{
+      font-size:12px;
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+    tr:hover td{ background: rgba(255,255,255,.02); }
+
+    .toolbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin: 8px 0 12px 0;
+    }
+    .toolbar .left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .toolbar .right{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .status{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .error{
+      border: 1px solid rgba(255,77,77,.35);
+      background: rgba(255,77,77,.08);
+      color: #ffd2d2;
+      padding: 12px;
+      border-radius: 14px;
+    }
+
+    details{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.02);
+    }
+    details summary{ cursor:pointer; color:var(--muted); }
+    pre{
+      margin:10px 0 0 0;
+      padding:12px;
+      border-radius:14px;
+      background: rgba(10,12,18,.55);
+      border:1px solid rgba(255,255,255,.06);
+      overflow:auto;
+      font-size:12px;
+      color:#cfd3dc;
+    }
+
+    .foot{ margin-top:24px; color:var(--muted); font-size:12px; text-align:center; }
   </style>
 </head>
 
 <body>
-  <h2>FIRE Calculator (API-connected)</h2>
-
-  <h3>Inputs</h3>
-  <div class="grid">
-    <div>
-      <label>current_age</label>
-      <input id="current_age" type="number" value="25" />
-    </div>
-    <div>
-      <label>end_age</label>
-      <input id="end_age" type="number" value="60" />
-    </div>
-
-    <div>
-      <label>inflation (e.g. 0.025)</label>
-      <input id="inflation" type="number" step="0.001" value="0.025" />
-    </div>
-    <div>
-      <label>average_salary_increase (e.g. 0.035)</label>
-      <input id="average_salary_increase" type="number" step="0.001" value="0.035" />
+  <div class="container">
+    <div class="nav">
+      <div class="brand">
+        <div class="dot"></div>
+        <div>FIRE Model</div>
+        <span class="badge" id="apiBadge">API: unknown</span>
+      </div>
+      <div class="nav-links">
+        <div class="pill active" data-nav="home">Home</div>
+        <div class="pill" data-nav="inputs">Inputs</div>
+        <div class="pill" data-nav="results">Results</div>
+      </div>
     </div>
 
-    <div>
-      <label>todays_lifestyle_income</label>
-      <input id="todays_lifestyle_income" type="number" value="80000" />
-    </div>
-    <div>
-      <label>initial_savings</label>
-      <input id="initial_savings" type="number" value="500000" />
-    </div>
+    <!-- HOME -->
+    <section id="home" class="page active">
+      <div class="hero">
+        <h1>Run your FIRE plan with properties, offset, tax and stocks.</h1>
+        <p>
+          This is your API-connected model. Enter assumptions, paste your property list, run the engine, and get
+          charts + summary metrics + a full output table you can export later.
+        </p>
+        <div class="btn-row">
+          <button class="btn primary" onclick="go('inputs')">Start →</button>
+          <button class="btn" onclick="pingHealth()">Check API health</button>
+          <button class="btn" onclick="loadExample()">Load example inputs</button>
+        </div>
+      </div>
 
-    <div>
-      <label>current_income</label>
-      <input id="current_income" type="number" value="200000" />
-    </div>
-    <div>
-      <label>current_expenses</label>
-      <input id="current_expenses" type="number" value="64000" />
-    </div>
+      <div class="grid">
+        <div class="card">
+          <h2>What you get</h2>
+          <div class="divider"></div>
+          <p class="muted" style="margin:0 0 10px 0;">
+            • KPI cards (cash, stock, net worth, first/last year)<br>
+            • Chart (cash + stock over time)<br>
+            • Summary table (core columns)<br>
+            • Full table (all columns returned by your API)<br>
+            • Raw JSON debug (collapsible)
+          </p>
+          <p class="small" style="margin:0;">
+            Next upgrade: add a proper property editor UI instead of JSON paste.
+          </p>
+        </div>
 
-    <div>
-      <label>stock_growth (e.g. 0.06)</label>
-      <input id="stock_growth" type="number" step="0.001" value="0.06" />
-    </div>
-    <div>
-      <label>stock_yearly_contribution</label>
-      <input id="stock_yearly_contribution" type="number" value="20000" />
-    </div>
+        <div class="card">
+          <h2>Status</h2>
+          <div class="divider"></div>
+          <div id="homeStatus" class="status">Not checked yet.</div>
+          <div style="height:10px;"></div>
+          <div class="small">
+            API base: <span id="apiBaseText"></span><br>
+            Endpoint: <span id="apiEndpointText"></span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div>
-      <label>starting_stock_value</label>
-      <input id="starting_stock_value" type="number" value="35000" />
-    </div>
+    <!-- INPUTS -->
+    <section id="inputs" class="page">
+      <div class="grid">
+        <div class="card">
+          <h2>Core inputs</h2>
+          <div class="divider"></div>
 
-    <div>
-      <label>display_month (true/false)</label>
-      <input id="display_month" type="text" value="false" />
-    </div>
+          <div class="form-grid">
+            <div>
+              <label>API Base URL</label>
+              <input id="apiBase" value="https://fire-api-wixz.onrender.com" />
+              <div class="small">Must include https://</div>
+            </div>
+            <div>
+              <label>Mode</label>
+              <select id="display_month">
+                <option value="false" selected>Yearly (recommended)</option>
+                <option value="true">Monthly (huge output)</option>
+              </select>
+              <div class="small">Yearly makes tables + charts faster.</div>
+            </div>
+
+            <div><label>current_age</label><input id="current_age" type="number" value="25" /></div>
+            <div><label>end_age</label><input id="end_age" type="number" value="60" /></div>
+
+            <div><label>initial_savings</label><input id="initial_savings" type="number" value="500000" /></div>
+            <div><label>todays_lifestyle_income</label><input id="todays_lifestyle_income" type="number" value="80000" /></div>
+
+            <div><label>current_income</label><input id="current_income" type="number" value="200000" /></div>
+            <div><label>current_expenses</label><input id="current_expenses" type="number" value="64000" /></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="toggle" onclick="toggleAdvanced()">
+            <div>
+              <strong>Advanced assumptions</strong><br>
+              <span>Inflation, salary growth, stock growth + contribution settings</span>
+            </div>
+            <span class="badge" id="advBadge">Hidden</span>
+          </div>
+
+          <div id="advancedBox" style="display:none; margin-top:12px;">
+            <div class="form-grid">
+              <div><label>inflation (e.g. 0.025)</label><input id="inflation" type="number" step="0.001" value="0.025" /></div>
+              <div><label>average_salary_increase (e.g. 0.035)</label><input id="average_salary_increase" type="number" step="0.001" value="0.035" /></div>
+              <div><label>stock_growth (e.g. 0.06)</label><input id="stock_growth" type="number" step="0.001" value="0.06" /></div>
+              <div><label>stock_yearly_contribution</label><input id="stock_yearly_contribution" type="number" value="20000" /></div>
+              <div><label>starting_stock_value</label><input id="starting_stock_value" type="number" value="35000" /></div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <button class="btn primary" id="runBtn" onclick="runModel()">Run model</button>
+          <div id="inputError" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <h2>property_list (JSON)</h2>
+          <div class="divider"></div>
+          <div class="small" style="margin-bottom:10px;">
+            Paste the JSON array of properties. Next iteration we’ll replace this with a proper editor UI.
+          </div>
+          <textarea id="property_list"></textarea>
+          <div class="small">Tip: Keep keys exactly like your API expects.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" class="page">
+      <div class="card">
+        <h2>Results</h2>
+        <div class="divider"></div>
+
+        <div class="kpis" id="kpiRow"></div>
+
+        <div class="divider"></div>
+
+        <div class="grid" style="grid-template-columns: 1fr;">
+          <div class="card" style="background: rgba(10,12,18,.35);">
+            <div class="toolbar">
+              <div class="left">
+                <div class="status" id="resultStatus">No results yet.</div>
+              </div>
+              <div class="right">
+                <button class="btn" onclick="downloadCSV()">Download CSV</button>
+                <button class="btn" onclick="go('inputs')">Edit inputs</button>
+              </div>
+            </div>
+            <canvas id="chart" height="120"></canvas>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3 style="margin:0 0 10px 0;">Summary table</h3>
+        <div class="small" style="margin-bottom:10px;">Key columns only (clean view).</div>
+        <div class="table-wrap">
+          <table id="summaryTable"></table>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3 style="margin:0 0 10px 0;">Full output table</h3>
+        <div class="toolbar">
+          <div class="left">
+            <input id="search" placeholder="Search rows (any field)…" oninput="renderFullTable()" style="max-width:320px;" />
+            <div class="small" id="rowCount"></div>
+          </div>
+          <div class="right">
+            <select id="rowLimit" onchange="renderFullTable()">
+              <option value="50">Show 50</option>
+              <option value="100" selected>Show 100</option>
+              <option value="200">Show 200</option>
+              <option value="999999">Show all</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="fullTable"></table>
+        </div>
+
+        <div class="divider"></div>
+
+        <details>
+          <summary>Raw API response (debug)</summary>
+          <pre id="debug"></pre>
+        </details>
+      </div>
+    </section>
+
+    <div class="foot">Built for your Render API + Netlify frontend. Next: property editor UI + better charts.</div>
   </div>
 
-  <h3>property_list (paste JSON array)</h3>
-  <textarea id="property_list">[
-  {
-    "id": 1,
-    "name": "Apartment",
-    "purchase_price": 400000,
-    "current_value": 640000,
-    "original_loan": 325000,
-    "loan_balance_current": 215000,
-    "purchase_fees": 20000,
-    "monthly_rent": 2400,
-    "strata_quarterly": 1200,
-    "rates_quarterly": 900,
-    "other_costs_monthly": 200,
-    "interest_rate": 0.055,
-    "property_growth": 0.03,
-    "rental_growth": 0.03,
-    "year_bought": 2021,
-    "loan_term_years": 30,
-    "use_offset": true,
-    "is_owner_occupied": false
-  },
-  {
-    "id": 2,
-    "name": "House",
-    "purchase_price": 750000,
-    "current_value": 820000,
-    "original_loan": 600000,
-    "loan_balance_current": 540000,
-    "purchase_fees": 35000,
-    "monthly_rent": 3200,
-    "strata_quarterly": 1200,
-    "rates_quarterly": 900,
-    "other_costs_monthly": 200,
-    "interest_rate": 0.055,
-    "property_growth": 0.03,
-    "rental_growth": 0.03,
-    "year_bought": 2028,
-    "loan_term_years": 30,
-    "use_offset": true,
-    "is_owner_occupied": false
-  },
-  {
-    "id": 3,
-    "name": "PPOR",
-    "purchase_price": 1200000,
-    "current_value": 1200000,
-    "original_loan": 900000,
-    "loan_balance_current": 0,
-    "purchase_fees": 40000,
-    "monthly_rent": 0,
-    "strata_quarterly": 0,
-    "rates_quarterly": 900,
-    "other_costs_monthly": 300,
-    "interest_rate": 0.055,
-    "property_growth": 0.03,
-    "rental_growth": 0.0,
-    "year_bought": 2027,
-    "loan_term_years": 30,
-    "use_offset": true,
-    "is_owner_occupied": true
-  }
-]</textarea>
-
-  <button onclick="calculate()">Run Model</button>
-
-  <p id="result"></p>
-
-  <canvas id="chart"></canvas>
-
-  <h3>Raw API Response (debug)</h3>
-  <pre id="debug"></pre>
-
   <script>
-    let chart;
+    // ------------------------
+    // STATE
+    // ------------------------
+    let lastResponse = null;
+    let chart = null;
+    let sortState = { table: "full", key: null, dir: 1 };
 
-    function getNum(id) {
-      return Number(document.getElementById(id).value);
+    const DEFAULT_PROPERTIES = [
+      {
+        "id": 1,
+        "name": "Apartment",
+        "purchase_price": 400000,
+        "current_value": 640000,
+        "original_loan": 325000,
+        "loan_balance_current": 215000,
+        "purchase_fees": 20000,
+        "monthly_rent": 2400,
+        "strata_quarterly": 1200,
+        "rates_quarterly": 900,
+        "other_costs_monthly": 200,
+        "interest_rate": 0.055,
+        "property_growth": 0.03,
+        "rental_growth": 0.03,
+        "year_bought": 2021,
+        "loan_term_years": 30,
+        "use_offset": true,
+        "is_owner_occupied": false
+      },
+      {
+        "id": 2,
+        "name": "House",
+        "purchase_price": 750000,
+        "current_value": 820000,
+        "original_loan": 600000,
+        "loan_balance_current": 540000,
+        "purchase_fees": 35000,
+        "monthly_rent": 3200,
+        "strata_quarterly": 1200,
+        "rates_quarterly": 900,
+        "other_costs_monthly": 200,
+        "interest_rate": 0.055,
+        "property_growth": 0.03,
+        "rental_growth": 0.03,
+        "year_bought": 2028,
+        "loan_term_years": 30,
+        "use_offset": true,
+        "is_owner_occupied": false
+      },
+      {
+        "id": 3,
+        "name": "PPOR",
+        "purchase_price": 1200000,
+        "current_value": 1200000,
+        "original_loan": 900000,
+        "loan_balance_current": 0,
+        "purchase_fees": 40000,
+        "monthly_rent": 0,
+        "strata_quarterly": 0,
+        "rates_quarterly": 900,
+        "other_costs_monthly": 300,
+        "interest_rate": 0.055,
+        "property_growth": 0.03,
+        "rental_growth": 0.0,
+        "year_bought": 2027,
+        "loan_term_years": 30,
+        "use_offset": true,
+        "is_owner_occupied": true
+      }
+    ];
+
+    // ------------------------
+    // NAV
+    // ------------------------
+    function go(page){
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(page).classList.add("active");
+
+      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+      document.querySelector(`.pill[data-nav="${page}"]`)?.classList.add("active");
     }
-    function getBoolText(id) {
-      return String(document.getElementById(id).value).trim().toLowerCase() === "true";
+
+    document.querySelectorAll(".pill").forEach(p => {
+      p.addEventListener("click", () => go(p.dataset.nav));
+    });
+
+    // ------------------------
+    // UI helpers
+    // ------------------------
+    function money(x){
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return "-";
+      return "$" + Math.round(Number(x)).toLocaleString();
+    }
+    function num(x){
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return "-";
+      return Math.round(Number(x)).toLocaleString();
+    }
+    function getNum(id){ return Number(document.getElementById(id).value); }
+    function getBool(id){
+      const v = String(document.getElementById(id).value).trim().toLowerCase();
+      return v === "true";
     }
 
-    async function calculate() {
-      const apiUrl = "https://fire-api-wixz.onrender.com/fire";
+    function toggleAdvanced(){
+      const box = document.getElementById("advancedBox");
+      const badge = document.getElementById("advBadge");
+      const isOpen = box.style.display !== "none";
+      box.style.display = isOpen ? "none" : "block";
+      badge.textContent = isOpen ? "Hidden" : "Visible";
+    }
 
-      // Build inputs object exactly like your backend expects
+    // ------------------------
+    // API health
+    // ------------------------
+    async function pingHealth(){
+      const base = document.getElementById("apiBase")?.value || "https://fire-api-wixz.onrender.com";
+      try{
+        const r = await fetch(`${base}/health`);
+        const j = await r.json();
+        const ok = !!j.ok;
+        document.getElementById("apiBadge").textContent = "API: " + (ok ? "ok" : "down");
+        document.getElementById("homeStatus").textContent = ok ? "✅ API healthy" : "❌ API not healthy";
+      }catch(e){
+        document.getElementById("apiBadge").textContent = "API: down";
+        document.getElementById("homeStatus").textContent = "❌ API not reachable";
+      }
+    }
+
+    // ------------------------
+    // Load example
+    // ------------------------
+    function loadExample(){
+      document.getElementById("property_list").value = JSON.stringify(DEFAULT_PROPERTIES, null, 2);
+      document.getElementById("apiBase").value = "https://fire-api-wixz.onrender.com";
+      document.getElementById("apiBaseText").textContent = "https://fire-api-wixz.onrender.com";
+      document.getElementById("apiEndpointText").textContent = "/fire";
+      document.getElementById("homeStatus").textContent = "Example loaded. Go to Inputs → Run model.";
+      go("inputs");
+    }
+
+    // ------------------------
+    // Model run
+    // ------------------------
+    async function runModel(){
+      const errBox = document.getElementById("inputError");
+      errBox.innerHTML = "";
+      const btn = document.getElementById("runBtn");
+      btn.disabled = true;
+      btn.textContent = "Running…";
+
+      const base = document.getElementById("apiBase").value.trim().replace(/\/$/, "");
+      document.getElementById("apiBaseText").textContent = base;
+      document.getElementById("apiEndpointText").textContent = "/fire";
+
+      let property_list;
+      try{
+        property_list = JSON.parse(document.getElementById("property_list").value);
+        if (!Array.isArray(property_list)) throw new Error("property_list must be a JSON array");
+      }catch(e){
+        errBox.innerHTML = `<div class="error">❌ Invalid property_list JSON: ${String(e.message || e)}</div>`;
+        btn.disabled = false;
+        btn.textContent = "Run model";
+        return;
+      }
+
       const inputs = {
         current_age: getNum("current_age"),
         inflation: getNum("inflation"),
@@ -181,67 +638,262 @@
         starting_stock_value: getNum("starting_stock_value")
       };
 
-      // property_list JSON textarea
-      let property_list;
-      try {
-        property_list = JSON.parse(document.getElementById("property_list").value);
-      } catch (e) {
-        document.getElementById("result").innerText = "❌ property_list JSON is invalid. Fix the JSON then retry.";
-        document.getElementById("debug").textContent = String(e);
-        return;
-      }
-
       const payload = {
         inputs,
         property_list,
-        display_month: getBoolText("display_month")
+        display_month: getBool("display_month")
       };
 
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      try{
+        const res = await fetch(`${base}/fire`, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
 
-      const data = await res.json();
-      document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
+        document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
 
-      if (!res.ok) {
-        document.getElementById("result").innerText = `❌ API Error (${res.status}). See debug below.`;
-        return;
+        if (!res.ok){
+          errBox.innerHTML = `<div class="error">❌ API Error (${res.status}). See debug on Results page.</div>`;
+          lastResponse = data;
+          go("results");
+          btn.disabled = false;
+          btn.textContent = "Run model";
+          return;
+        }
+
+        lastResponse = data;
+        renderResults(data);
+        go("results");
+      }catch(e){
+        errBox.innerHTML = `<div class="error">❌ Request failed: ${String(e.message || e)}</div>`;
+      }finally{
+        btn.disabled = false;
+        btn.textContent = "Run model";
       }
+    }
 
-      document.getElementById("result").innerText = `✅ Model ran. Rows returned: ${data.rows.length} (${data.mode})`;
+    // ------------------------
+    // Results rendering
+    // ------------------------
+    function renderResults(api){
+      const rows = api.rows || [];
+      const mode = api.mode || "unknown";
+      document.getElementById("resultStatus").textContent = `✅ ${rows.length} rows returned (${mode}).`;
 
-      // Chart yearly cash balance if yearly, else chart monthly
-      const isYearly = data.mode === "yearly";
-      const labels = data.rows.map(r => isYearly ? r.Year : r.Date);
-      const cash = data.rows.map(r => r.Cash_Balance_End);
+      // KPI cards (based on last row)
+      const last = rows[rows.length - 1] || {};
+      const first = rows[0] || {};
+
+      // Try to read yearly-renamed columns if present, else monthly originals
+      const cashKey = last.Cumulative_Savings !== undefined ? "Cumulative_Savings" : "Cash_Balance_End";
+      const stockKey = last.Total_Stock_Balance !== undefined ? "Total_Stock_Balance" : "Stock_Balance_End";
+
+      const cashEnd = Number(last[cashKey] ?? 0);
+      const stockEnd = Number(last[stockKey] ?? 0);
+      const cashStart = Number(first[cashKey] ?? 0);
+      const stockStart = Number(first[stockKey] ?? 0);
+      const netEnd = cashEnd + stockEnd;
+      const netStart = cashStart + stockStart;
+
+      const kpis = [
+        { label:"Cash (end)", value: money(cashEnd) },
+        { label:"Stocks (end)", value: money(stockEnd) },
+        { label:"Net worth (end)", value: money(netEnd) },
+        { label:"Net worth (start)", value: money(netStart) },
+      ];
+      document.getElementById("kpiRow").innerHTML = kpis.map(k => `
+        <div class="kpi">
+          <div class="label">${k.label}</div>
+          <div class="value">${k.value}</div>
+        </div>
+      `).join("");
+
+      // Chart cash + stock
+      const labels = rows.map(r => mode === "yearly" ? r.Year : r.Date);
+      const cashSeries = rows.map(r => Number(r[cashKey] ?? 0));
+      const stockSeries = rows.map(r => Number(r[stockKey] ?? 0));
 
       if (chart) chart.destroy();
-
       chart = new Chart(document.getElementById("chart"), {
-        type: "line",
-        data: {
+        type:"line",
+        data:{
           labels,
-          datasets: [{
-            label: isYearly ? "Cash Balance (End of Year)" : "Cash Balance (End of Month)",
-            data: cash,
-            borderWidth: 2
-          }]
+          datasets:[
+            { label:"Cash", data: cashSeries, borderWidth:2 },
+            { label:"Stocks", data: stockSeries, borderWidth:2 }
+          ]
         },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              ticks: {
-                callback: v => "$" + Number(v).toLocaleString()
-              }
-            }
+        options:{
+          responsive:true,
+          interaction:{ mode:"index", intersect:false },
+          scales:{
+            y:{ ticks:{ callback:v => "$" + Number(v).toLocaleString() } }
           }
         }
       });
+
+      // Summary table
+      renderSummaryTable(rows, mode);
+
+      // Full table
+      sortState = { table:"full", key:null, dir:1 };
+      document.getElementById("search").value = "";
+      document.getElementById("rowLimit").value = "100";
+      renderFullTable();
     }
+
+    function renderSummaryTable(rows, mode){
+      // Choose a sane set of columns
+      const sample = rows[0] || {};
+      const hasYearlyRename = ("Cumulative_Savings" in sample) || ("Total_Stock_Balance" in sample);
+
+      const cols = mode === "yearly"
+        ? (hasYearlyRename
+            ? ["Year","Age","Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Payable_Paid","Cumulative_Savings","Total_Stock_Balance"]
+            : ["Year","Age","Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid","Cash_Balance_End","Stock_Balance_End"])
+        : ["Date","Age","Salary_Monthly","Expenses_Monthly","Total_Net_Rent","Tax_Paid","Cash_Balance_End","Stock_Balance_End"];
+
+      const table = document.getElementById("summaryTable");
+      table.innerHTML = "";
+
+      table.insertAdjacentHTML("beforeend", `
+        <thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              ${cols.map(c => `<td>${formatCell(c, r[c])}</td>`).join("")}
+            </tr>
+          `).join("")}
+        </tbody>
+      `);
+    }
+
+    function formatCell(key, val){
+      if (val === null || val === undefined) return "-";
+      // money-ish columns
+      const moneyish = /(Cash|Savings|Stock|Salary|Expenses|Rent|Mortgage|Value|Tax|Contribution|Net_Rent)/i.test(key);
+      if (typeof val === "number"){
+        if (moneyish) return money(val);
+        return num(val);
+      }
+      return String(val);
+    }
+
+    function getFilteredRows(){
+      if (!lastResponse || !lastResponse.rows) return [];
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      let rows = lastResponse.rows;
+
+      if (q){
+        rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(q));
+      }
+      return rows;
+    }
+
+    function renderFullTable(){
+      const rows = getFilteredRows();
+      const limit = Number(document.getElementById("rowLimit").value || 100);
+      document.getElementById("rowCount").textContent = `${rows.length.toLocaleString()} rows (filtered)`;
+
+      const table = document.getElementById("fullTable");
+      table.innerHTML = "";
+
+      if (!rows.length){
+        table.insertAdjacentHTML("beforeend", `<thead><tr><th>No rows</th></tr></thead>`);
+        return;
+      }
+
+      // Columns: use API columns order if provided
+      const cols = lastResponse.columns && lastResponse.columns.length
+        ? lastResponse.columns
+        : Object.keys(rows[0]);
+
+      // Sorting
+      let displayRows = rows.slice();
+      if (sortState.key){
+        const k = sortState.key;
+        const dir = sortState.dir;
+        displayRows.sort((a,b) => {
+          const av = a[k]; const bv = b[k];
+          const an = typeof av === "number" ? av : Number(av);
+          const bn = typeof bv === "number" ? bv : Number(bv);
+          const bothNum = !Number.isNaN(an) && !Number.isNaN(bn);
+          if (bothNum) return (an - bn) * dir;
+          return String(av ?? "").localeCompare(String(bv ?? "")) * dir;
+        });
+      }
+
+      displayRows = displayRows.slice(0, limit);
+
+      table.insertAdjacentHTML("beforeend", `
+        <thead><tr>
+          ${cols.map(c => `<th onclick="sortBy('${escapeQuotes(c)}')">${c}${sortState.key===c ? (sortState.dir===1 ? " ▲" : " ▼") : ""}</th>`).join("")}
+        </tr></thead>
+        <tbody>
+          ${displayRows.map(r => `
+            <tr>${cols.map(c => `<td>${formatCell(c, r[c])}</td>`).join("")}</tr>
+          `).join("")}
+        </tbody>
+      `);
+    }
+
+    function escapeQuotes(s){ return String(s).replace(/'/g, "\\'"); }
+    function sortBy(key){
+      if (sortState.key === key){
+        sortState.dir *= -1;
+      } else {
+        sortState.key = key;
+        sortState.dir = 1;
+      }
+      renderFullTable();
+    }
+
+    // ------------------------
+    // CSV download
+    // ------------------------
+    function downloadCSV(){
+      if (!lastResponse || !lastResponse.rows) return;
+
+      const rows = lastResponse.rows;
+      const cols = lastResponse.columns && lastResponse.columns.length
+        ? lastResponse.columns
+        : Object.keys(rows[0] || {});
+
+      const csv = [
+        cols.join(","),
+        ...rows.map(r => cols.map(c => {
+          const v = r[c];
+          if (v === null || v === undefined) return "";
+          const s = String(v);
+          if (s.includes(",") || s.includes('"') || s.includes("\n")){
+            return `"${s.replace(/"/g,'""')}"`;
+          }
+          return s;
+        }).join(","))
+      ].join("\n");
+
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fire_${lastResponse.mode || "output"}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ------------------------
+    // Init
+    // ------------------------
+    (function init(){
+      document.getElementById("property_list").value = JSON.stringify(DEFAULT_PROPERTIES, null, 2);
+      document.getElementById("apiBaseText").textContent = "https://fire-api-wixz.onrender.com";
+      document.getElementById("apiEndpointText").textContent = "/fire";
+      pingHealth();
+    })();
   </script>
 </body>
 </html>
