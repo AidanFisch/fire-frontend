@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
+      max-width: 700px;
       margin: 40px auto;
     }
     input, button {
@@ -24,53 +24,100 @@
       border: none;
       cursor: pointer;
     }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>FIRE Calculator</h2>
+<h2>FIRE Calculator (API-connected)</h2>
 
-<input id="assets" placeholder="Current Assets">
-<input id="savings" placeholder="Annual Savings">
-<input id="expenses" placeholder="Annual Expenses">
+<input id="assets" placeholder="Current Assets (e.g. 500000)">
+<input id="income" placeholder="Current Annual Income (e.g. 200000)">
+<input id="expenses" placeholder="Annual Expenses (e.g. 64000)">
 
-<button onclick="calculate()">Calculate</button>
+<button onclick="calculate()">Run Model</button>
 
 <p id="result"></p>
 
 <canvas id="chart"></canvas>
 
+<h3>Raw API Response (debug)</h3>
+<pre id="debug"></pre>
+
 <script>
+let chart;
+
 async function calculate() {
+  const assets = Number(document.getElementById("assets").value);
+  const income = Number(document.getElementById("income").value);
+  const expenses = Number(document.getElementById("expenses").value);
+
   const response = await fetch(
     "https://fire-api-wixz.onrender.com/fire",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        current_assets: Number(assets.value),
-        annual_savings: Number(savings.value),
-        annual_expenses: Number(expenses.value)
+        inputs: {
+          current_age: 25,
+          inflation: 0.025,
+          todays_lifestyle_income: expenses,
+          initial_savings: assets,
+          current_income: income,
+          current_expenses: expenses,
+          average_salary_increase: 0.035,
+          end_age: 60,
+          stock_growth: 0.06,
+          stock_yearly_contribution: 20000,
+          starting_stock_value: 35000
+        },
+        property_list: [],
+        display_month: false
       })
     }
   );
 
   const data = await response.json();
 
-  document.getElementById("result").innerText =
-    `FIRE Number: $${Math.round(data.fire_number).toLocaleString()}
-     | Years to FIRE: ${data.years_to_fire.toFixed(1)}`;
+  // Debug output
+  document.getElementById("debug").textContent =
+    JSON.stringify(data, null, 2);
 
-  new Chart(document.getElementById("chart"), {
+  // Basic sanity result
+  document.getElementById("result").innerText =
+    `Model ran successfully. Years returned: ${data.rows.length}`;
+
+  // ---- Chart (Cash Balance over time) ----
+  const labels = data.rows.map(r => r.Year);
+  const cash = data.rows.map(r => r.Cash_Balance_End);
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
     type: "line",
     data: {
-      labels: data.projection.map((_, i) => `Year ${i}`),
+      labels,
       datasets: [{
-        label: "Net Worth Projection",
-        data: data.projection,
+        label: "Cash Balance (End of Year)",
+        data: cash,
         borderWidth: 2
       }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          ticks: {
+            callback: value =>
+              "$" + value.toLocaleString()
+          }
+        }
+      }
     }
   });
 }
