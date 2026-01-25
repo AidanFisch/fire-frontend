@@ -1340,9 +1340,33 @@ function hydrateUI(){
   }
 }
 function toNumber(v){
+  if (v === null || v === undefined) return 0;
+
+  // already a number
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+
+  // strings: strip commas, currency symbols, spaces, etc.
+  if (typeof v === "string") {
+    const s = v.trim();
+
+    // handle empty / dash
+    if (!s || s === "—" || s === "-") return 0;
+
+    // remove common formatting: commas, currency symbols, spaces
+    const cleaned = s
+      .replace(/[$€£¥]/g, "")
+      .replace(/,/g, "")
+      .replace(/\s+/g, "");
+
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // fallback
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
+
 function fmtMoney(n){
   const x = Number(n);
   if(!Number.isFinite(x)) return "—";
