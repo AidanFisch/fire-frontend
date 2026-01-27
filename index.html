@@ -1159,35 +1159,51 @@ function renderResults(result){
 function renderSummaryTable(result, propPrefixes){
   const rows = result.rows || [];
   const cols = result.columns || [];
-  const mode = result.mode || "yearly";
 
-  const yearKey = findKey(cols, ["Year"]);
-  const ageKey = findKey(cols, ["Age"]);
+  const yearKey   = findKey(cols, ["Year"]);
+  const ageKey    = findKey(cols, ["Age"]);
   const salaryKey = findKey(cols, ["Salary_Annual"]);
-  const expKey = findKey(cols, ["Expenses_Annual"]);
-  const taxKey = findKey(cols, ["Tax_Paid","Tax_Payable_Paid"]);
-  const netRentKey = findKey(cols, ["Total_Net_Rent"]);
-  const cashKey = findKey(cols, ["Cash_Balance_End","Cumulative_Savings"]);
-  const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance"]);
+  const expKey    = findKey(cols, ["Expenses_Annual"]);
+  const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid"]);
+  const netRentKey= findKey(cols, ["Total_Net_Rent"]);
+  const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings"]);
+  const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance"]);
 
-  const summaryRows = rows.map(r=>{
-    const totals = computePropertyTotals(r, propPrefixes);
-    const cash = toNumber(r[cashKey]);
+  // ✅ backend totals (prefer these when present)
+  const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
+  const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
+  const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
+
+  const summaryRows = rows.map(r => {
+    const cash   = toNumber(r[cashKey]);
     const stocks = toNumber(r[stockKey]);
-    const equity = totals.totalEquity;
-    const netWorth = cash + stocks + equity;
+
+    // fallback totals from per-property columns
+    const computed = computePropertyTotals(r, propPrefixes);
+
+    // use backend totals if they exist (and are >0), else fallback
+    const backendPropValue = toNumber(r[propValueTotalKey]);
+    const backendMortBal   = toNumber(r[mortBalTotalKey]);
+    const backendEquity    = toNumber(r[equityTotalKey]);
+
+    const propValueTotal = backendPropValue > 0 ? backendPropValue : computed.totalValue;
+    const mortBalTotal   = backendMortBal   > 0 ? backendMortBal   : computed.totalMortgage;
+    const equityTotal    = backendEquity    > 0 ? backendEquity    : Math.max(propValueTotal - mortBalTotal, 0);
+
+    const netWorth = cash + stocks + equityTotal;
+
     return {
       [yearKey || "Year"]: r[yearKey] ?? "",
-      [ageKey || "Age"]: r[ageKey] ?? "",
+      [ageKey  || "Age"] : r[ageKey] ?? "",
       Salary_Annual: r[salaryKey] ?? "",
       Expenses_Annual: r[expKey] ?? "",
       Total_Net_Rent: r[netRentKey] ?? "",
       Tax_Paid: r[taxKey] ?? "",
       Cash_End: cash,
       Stocks_End: stocks,
-      Property_Value_Total: totals.totalValue,
-      Mortgage_Balance_Total: totals.totalMortgage,
-      Property_Equity_Total: equity,
+      Property_Value_Total: propValueTotal,
+      Mortgage_Balance_Total: mortBalTotal,
+      Property_Equity_Total: equityTotal,
       Net_Worth: netWorth
     };
   });
@@ -1206,9 +1222,14 @@ function renderSummaryTable(result, propPrefixes){
       Property_Equity_Total: fmtMoney,
       Net_Worth: fmtMoney
     },
-    rightAlign: new Set(["Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid","Cash_End","Stocks_End","Property_Value_Total","Mortgage_Balance_Total","Property_Equity_Total","Net_Worth"])
+    rightAlign: new Set([
+      "Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid",
+      "Cash_End","Stocks_End","Property_Value_Total","Mortgage_Balance_Total",
+      "Property_Equity_Total","Net_Worth"
+    ])
   });
 }
+
 
 function renderPropertyEndTable(lastRow, propPrefixes){
   const rows = propPrefixes.map(prefix=>{
