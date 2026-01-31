@@ -1031,35 +1031,44 @@ function buildPayload(){
 }
 
 async function callPath(base, path, payload){
-  // Cache-bust even on POST (some proxies/CDNs can still behave weirdly)
   const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
 
-  const r = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type":"application/json",
-      "Cache-Control":"no-store",
-      "Pragma":"no-cache",
-      "X-Client-Nonce": String(Date.now()) // helps debug server logs too
-    },
-    cache: "no-store",
-    body: JSON.stringify(payload)
-  });
+  let r, text;
+  try {
+    r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Cache-Control":"no-store",
+        "Pragma":"no-cache"
+      },
+      cache: "no-store",
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    // This is the big one: CORS / network / SSL / blocked request
+    throw new Error(`FETCH_FAILED @ ${path}: ${e.message || e}`);
+  }
 
-  const text = await r.text(); // read raw first
+  text = await r.text();
+
+  // Try JSON, but don't assume it
   let j = null;
   try { j = JSON.parse(text); } catch(e) {}
 
   if(!r.ok){
-    const msg = j ? JSON.stringify(j) : text;
-    throw new Error(`HTTP ${r.status} @ ${path}: ${msg}`);
+    // Show body even if it's HTML
+    throw new Error(`HTTP_${r.status} @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
   }
 
-  // Attach rawText so we can hash response deterministically
-  if (j && typeof j === "object") j.__rawText = text;
+  if(!j){
+    // 200 OK but not JSON (often HTML error page)
+    throw new Error(`NON_JSON_200 @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
+  }
 
   return j;
 }
+
 
 
 
