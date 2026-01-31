@@ -740,6 +740,8 @@ function copyPayload(){
 /** ---------------------------
  *  Inputs binding
  *  --------------------------*/
+let pingTimer = null;
+
 function bindCoreInputs(){
   // API fields
   document.getElementById("apiBase").value = state.apiBase || "";
@@ -756,10 +758,12 @@ function bindCoreInputs(){
     };
   }
 
+  // Debounced ping so we don't spam /health while typing
   document.getElementById("apiBase").oninput = (e)=>{
     state.apiBase = e.target.value.trim();
     saveState();
-    pingAPI();
+    clearTimeout(pingTimer);
+    pingTimer = setTimeout(pingAPI, 400);
   };
   document.getElementById("apiPath").oninput = (e)=>{
     state.apiPath = e.target.value.trim();
@@ -917,8 +921,6 @@ function renderProperties(){
         const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
         if(!prop) return;
         prop[key] = (type==="number") ? toNumber(el.value) : el.value;
-        // if they mark it owner-occupied, enforce rent/growth
-        if(key === "name") { /* nothing */ }
         saveState();
         syncRawJsonFromCards();
       };
@@ -992,9 +994,7 @@ function setApiStatus(ok, text){
  *  Build payload + run
  *  --------------------------*/
 function buildPayload(){
-  // IMPORTANT:
   // Backend expects: { inputs: {...}, property_list: [...], display_month: bool }
-  // Your UI mode: yearly => display_month false; monthly => true
   return {
     inputs: state.inputs,
     property_list: state.property_list,
@@ -1018,7 +1018,7 @@ async function callPath(base, path, payload){
   return j;
 }
 
-// If apiPath is blank, try common endpoints (so you don’t have to remember)
+// If apiPath is blank, try common endpoints
 async function runModel(){
   saveState();
   const base = (state.apiBase || "").replace(/\/+$/,"");
@@ -1090,21 +1090,21 @@ function renderResults(result){
 
   if(!n) return;
 
-  const first = rows[0];
+  const cols = result.columns || Object.keys(rows[0] || {});
   const last = rows[n-1];
 
-  // Determine column keys present (we support both monthly and yearly output)
-  const cashKey = findKey(result.columns, ["Cash_Balance_End","Cumulative_Savings"]);
-  const stockKey = findKey(result.columns, ["Stock_Balance_End","Total_Stock_Balance"]);
-  const yearKey = findKey(result.columns, ["Year"]);
-  const ageKey = findKey(result.columns, ["Age"]);
+  // More resilient key matching
+  const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
+  const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+  const yearKey  = findKey(cols, ["Year"]);
+  const ageKey   = findKey(cols, ["Age"]);
 
-  // Property totals from dynamic prefixes
-  const propPrefixes = detectPropertyPrefixes(result.columns);
-  const totals = computePropertyTotals(last, propPrefixes);
+  // Property totals from dynamic prefixes (supports multiple schemas)
+  const propPrefixes = detectPropertyPrefixes(cols);
+  const totals = computePropertyTotals(last, propPrefixes, cols);
 
-  const cashEnd = toNumber(last[cashKey]);
-  const stocksEnd = toNumber(last[stockKey]);
+  const cashEnd = getFirstNumber(last, [cashKey]);
+  const stocksEnd = getFirstNumber(last, [stockKey]);
   const equityEnd = totals.totalEquity;
   const netWorthEnd = cashEnd + stocksEnd + equityEnd;
 
@@ -1113,11 +1113,11 @@ function renderResults(result){
   document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
   document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
 
-  // Chart: Cash vs Stocks vs Equity (if any)
-  const labels = rows.map(r => (yearKey ? String(r[yearKey]) : "") + (mode==="monthly" ? "" : ""));
-  const cashSeries = rows.map(r => toNumber(r[cashKey]));
-  const stockSeries = rows.map(r => toNumber(r[stockKey]));
-  const equitySeries = rows.map(r => computePropertyTotals(r, propPrefixes).totalEquity);
+  // Chart: Cash vs Stocks vs Equity
+  const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
+  const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
+  const stockSeries = rows.map(r => getFirstNumber(r, [stockKey]));
+  const equitySeries = rows.map(r => computePropertyTotals(r, propPrefixes, cols).totalEquity);
 
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
@@ -1146,59 +1146,61 @@ function renderResults(result){
     }
   });
 
-  // Summary table (curated)
   renderSummaryTable(result, propPrefixes);
-
-  // Property end breakdown table
   renderPropertyEndTable(last, propPrefixes);
-
-  // Full table (optional)
   renderFullTable();
 }
 
 function renderSummaryTable(result, propPrefixes){
   const rows = result.rows || [];
-  const cols = result.columns || [];
+  const cols = result.columns || (rows[0] ? Object.keys(rows[0]) : []);
 
   const yearKey   = findKey(cols, ["Year"]);
   const ageKey    = findKey(cols, ["Age"]);
-  const salaryKey = findKey(cols, ["Salary_Annual"]);
-  const expKey    = findKey(cols, ["Expenses_Annual"]);
-  const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid"]);
-  const netRentKey= findKey(cols, ["Total_Net_Rent"]);
-  const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings"]);
-  const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance"]);
 
-  // ✅ backend totals (prefer these when present)
+  // Support both your "Annual" schema and your older "(Increase Inc.)" schema
+  const salaryKey = findKey(cols, ["Salary_Annual", "Salary (Increase Inc.)", "Salary"]);
+  const expKey    = findKey(cols, ["Expenses_Annual", "Living Expenses (Increase Inc.)", "Expenses"]);
+  const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
+  const netRentKey= findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Total Net Rent"]);
+
+  const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
+  const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+
+  // Backend totals (if provided)
   const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
   const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
   const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
 
   const summaryRows = rows.map(r => {
-    const cash   = toNumber(r[cashKey]);
-    const stocks = toNumber(r[stockKey]);
+    const cash   = getFirstNumber(r, [cashKey]);
+    const stocks = getFirstNumber(r, [stockKey]);
 
-    // fallback totals from per-property columns
-    const computed = computePropertyTotals(r, propPrefixes);
+    // computed fallback
+    const computed = computePropertyTotals(r, propPrefixes, cols);
 
-    // use backend totals if they exist (and are >0), else fallback
-    const backendPropValue = toNumber(r[propValueTotalKey]);
-    const backendMortBal   = toNumber(r[mortBalTotalKey]);
-    const backendEquity    = toNumber(r[equityTotalKey]);
+    // Prefer backend totals if the column exists (even if it's 0)
+    const propValueTotal = (propValueTotalKey && Object.prototype.hasOwnProperty.call(r, propValueTotalKey))
+      ? toNumber(r[propValueTotalKey])
+      : computed.totalValue;
 
-    const propValueTotal = backendPropValue > 0 ? backendPropValue : computed.totalValue;
-    const mortBalTotal   = backendMortBal   > 0 ? backendMortBal   : computed.totalMortgage;
-    const equityTotal    = backendEquity    > 0 ? backendEquity    : Math.max(propValueTotal - mortBalTotal, 0);
+    const mortBalTotal = (mortBalTotalKey && Object.prototype.hasOwnProperty.call(r, mortBalTotalKey))
+      ? toNumber(r[mortBalTotalKey])
+      : computed.totalMortgage;
+
+    const equityTotal = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
+      ? toNumber(r[equityTotalKey])
+      : Math.max(propValueTotal - mortBalTotal, 0);
 
     const netWorth = cash + stocks + equityTotal;
 
     return {
-      [yearKey || "Year"]: r[yearKey] ?? "",
-      [ageKey  || "Age"] : r[ageKey] ?? "",
-      Salary_Annual: r[salaryKey] ?? "",
-      Expenses_Annual: r[expKey] ?? "",
-      Total_Net_Rent: r[netRentKey] ?? "",
-      Tax_Paid: r[taxKey] ?? "",
+      [(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
+      [(ageKey  || "Age")]:  ageKey  ? (r[ageKey] ?? "")  : "",
+      Salary_Annual: salaryKey ? (r[salaryKey] ?? "") : "",
+      Expenses_Annual: expKey ? (r[expKey] ?? "") : "",
+      Total_Net_Rent: netRentKey ? (r[netRentKey] ?? "") : "",
+      Tax_Paid: taxKey ? (r[taxKey] ?? "") : "",
       Cash_End: cash,
       Stocks_End: stocks,
       Property_Value_Total: propValueTotal,
@@ -1230,23 +1232,18 @@ function renderSummaryTable(result, propPrefixes){
   });
 }
 
-
 function renderPropertyEndTable(lastRow, propPrefixes){
-  const rows = propPrefixes.map(prefix=>{
-    const val = toNumber(lastRow[`${prefix}_Property_Value`]);
-    const mort = toNumber(lastRow[`${prefix}_Mortgage_Balance`]);
-    const equity = Math.max(val - mort, 0);
-    const rent = toNumber(lastRow[`${prefix}_Rent_Income`]);
-    const netRent = toNumber(lastRow[`${prefix}_Net_Rent`]);
-    const isPPOR = !!toNumber(lastRow[`${prefix}_Is_PPOR`]);
+  const colsAll = state.lastResult?.columns || Object.keys(lastRow || {});
+  const rows = propPrefixes.map(prefix => {
+    const snap = getPropertySnapshot(lastRow, prefix, colsAll);
     return {
       Property: prefix,
-      Type: isPPOR ? "PPOR" : "Investment",
-      Property_Value: val,
-      Mortgage_Balance: mort,
-      Equity: equity,
-      Rent_Monthly: rent,
-      Net_Rent_Monthly: netRent
+      Type: snap.isPPOR ? "PPOR" : "Investment",
+      Property_Value: snap.value,
+      Mortgage_Balance: snap.mortgage,
+      Equity: snap.equity,
+      Rent_Monthly: snap.rent,
+      Net_Rent_Monthly: snap.netRent
     };
   });
 
@@ -1282,7 +1279,6 @@ function renderFullTable(){
   const rows = res.rows || [];
   const cols = res.columns || Object.keys(rows[0]||{});
 
-  // If search query, filter rows that contain it in any cell or column name
   let filtered = rows;
   if(q){
     filtered = rows.filter(r=>{
@@ -1295,7 +1291,6 @@ function renderFullTable(){
     });
   }
   box.innerHTML = buildTableHTML(filtered.slice(0, 500), cols, {
-    // no heavy formatting here; it’s raw debug
     rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest/i.test(c)))
   }) + (filtered.length > 500 ? `<div class="small" style="padding:10px;">Showing first 500 rows of ${filtered.length}. Use Yearly mode or add search to narrow.</div>` : "");
 }
@@ -1360,20 +1355,16 @@ function hydrateUI(){
       `Last run loaded from browser storage (${new Date().toLocaleString()}).`;
   }
 }
+
 function toNumber(v){
   if (v === null || v === undefined) return 0;
 
-  // already a number
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
 
-  // strings: strip commas, currency symbols, spaces, etc.
   if (typeof v === "string") {
     const s = v.trim();
-
-    // handle empty / dash
     if (!s || s === "—" || s === "-") return 0;
 
-    // remove common formatting: commas, currency symbols, spaces
     const cleaned = s
       .replace(/[$€£¥]/g, "")
       .replace(/,/g, "")
@@ -1383,7 +1374,6 @@ function toNumber(v){
     return Number.isFinite(n) ? n : 0;
   }
 
-  // fallback
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
@@ -1403,27 +1393,142 @@ function moneyAxis(v){
 function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
 }
+
+/**
+ * UPDATED findKey: more resilient matching
+ * - exact
+ * - case-insensitive exact
+ * - case-insensitive contains
+ * Returns null if not found.
+ */
 function findKey(cols, candidates){
-  for(const c of candidates){
-    if(cols.includes(c)) return c;
+  if(!Array.isArray(cols)) return null;
+
+  // 1) exact match
+  for (const cand of candidates){
+    if (cols.includes(cand)) return cand;
   }
-  return candidates[0]; // fallback
+
+  // 2) case-insensitive exact match
+  const lowerMap = new Map(cols.map(c => [String(c).toLowerCase(), c]));
+  for (const cand of candidates){
+    const hit = lowerMap.get(String(cand).toLowerCase());
+    if (hit) return hit;
+  }
+
+  // 3) case-insensitive contains match
+  const colsLower = cols.map(c => String(c).toLowerCase());
+  for (const cand of candidates){
+    const needle = String(cand).toLowerCase();
+    const idx = colsLower.findIndex(c => c.includes(needle));
+    if (idx >= 0) return cols[idx];
+  }
+
+  return null;
 }
+
+/**
+ * UPDATED detectPropertyPrefixes: supports multiple backend schemas
+ */
 function detectPropertyPrefixes(cols){
-  // We assume model outputs: {Prefix}_Property_Value and {Prefix}_Mortgage_Balance etc.
-  // Prefix is whatever your backend used (p["name"].replace(" ", "_"))
   const set = new Set();
+  if(!Array.isArray(cols)) return [];
+
+  const patterns = [
+    /^(.+)_Property_Value$/i,
+    /^(.+)_Property_Projected_Value$/i,
+    /^(.+)_Mortgage_Balance$/i,
+    /^(.+)_Mortgage_Balance_Projected$/i,
+    /^(.+)_Property_Projected_Rental_Income$/i,
+    /^(.+)_Rent_Income$/i
+  ];
+
   cols.forEach(c=>{
-    const m = String(c).match(/^(.+)_Property_Value$/);
-    if(m) set.add(m[1]);
+    const s = String(c);
+    for(const re of patterns){
+      const m = s.match(re);
+      if(m){ set.add(m[1]); break; }
+    }
   });
+
   return Array.from(set);
 }
-function computePropertyTotals(row, propPrefixes){
+
+/**
+ * Helper: return first numeric value for existing key (allows 0 as valid)
+ */
+function getFirstNumber(row, keys){
+  for(const k of keys){
+    if(!k) continue;
+    if(Object.prototype.hasOwnProperty.call(row, k)) return toNumber(row[k]);
+  }
+  return 0;
+}
+
+/**
+ * Helper: choose best column for a property metric (schema-flexible)
+ */
+function propCol(prefix, kind, cols){
+  const candidatesByKind = {
+    value: [
+      `${prefix}_Property_Value`,
+      `${prefix}_Property_Projected_Value`
+    ],
+    mortgage: [
+      `${prefix}_Mortgage_Balance`,
+      `${prefix}_Mortgage_Balance_Projected`
+    ],
+    rentMonthly: [
+      `${prefix}_Rent_Income`,
+      `${prefix}_Property_Projected_Rental_Income`
+    ],
+    netRentMonthly: [
+      `${prefix}_Net_Rent`,
+      `${prefix}_Net_Rent_Monthly`,
+      `${prefix}_Property_Net_Rent`
+    ],
+    isPPOR: [
+      `${prefix}_Is_PPOR`,
+      `${prefix}_is_owner_occupied`,
+      `${prefix}_Is_Owner_Occupied`
+    ]
+  };
+
+  const cands = candidatesByKind[kind] || [];
+  return findKey(cols, cands);
+}
+
+/**
+ * Helper: read a property snapshot for a row
+ */
+function getPropertySnapshot(row, prefix, cols){
+  const valueKey   = propCol(prefix, "value", cols);
+  const mortKey    = propCol(prefix, "mortgage", cols);
+  const rentKey    = propCol(prefix, "rentMonthly", cols);
+  const netRentKey = propCol(prefix, "netRentMonthly", cols);
+  const isPPORKey  = propCol(prefix, "isPPOR", cols);
+
+  const value = getFirstNumber(row, [valueKey]);
+  const mortgage = getFirstNumber(row, [mortKey]);
+  const equity = Math.max(value - mortgage, 0);
+
+  const rent = getFirstNumber(row, [rentKey]);
+  const netRent = getFirstNumber(row, [netRentKey]);
+
+  const isPPOR = isPPORKey ? !!toNumber(row[isPPORKey]) : false;
+
+  return { value, mortgage, equity, rent, netRent, isPPOR };
+}
+
+/**
+ * UPDATED computePropertyTotals: uses schema-flexible snapshot helper
+ */
+function computePropertyTotals(row, propPrefixes, cols){
   let totalValue = 0, totalMortgage = 0;
   for(const prefix of propPrefixes){
-    totalValue += toNumber(row[`${prefix}_Property_Value`]);
-    totalMortgage += toNumber(row[`${prefix}_Mortgage_Balance`]);
+    const snap = getPropertySnapshot(row, prefix, cols);
+    totalValue += snap.value;
+    totalMortgage += snap.mortgage;
   }
   return {
     totalValue,
@@ -1431,6 +1536,7 @@ function computePropertyTotals(row, propPrefixes){
     totalEquity: Math.max(totalValue - totalMortgage, 0)
   };
 }
+
 function buildTableHTML(rows, cols, {formatters = {}, rightAlign = new Set()} = {}){
   if(!rows || !rows.length){
     return `<div style="padding:12px;" class="muted">No rows.</div>`;
