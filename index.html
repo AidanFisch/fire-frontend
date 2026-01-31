@@ -782,10 +782,13 @@ function bindCoreInputs(){
     const el = document.getElementById(k);
     if(!el) continue;
     el.value = state.inputs[k];
-    el.oninput = () => {
-      state.inputs[k] = toNumber(el.value);
-      saveState();
-    };
+	const handler = () => {
+	  state.inputs[k] = toNumber(el.value);
+	  saveState();
+	};
+	el.addEventListener("input", handler);
+	el.addEventListener("change", handler);
+
   }
 
   document.getElementById("apiBase").oninput = (e)=>{
@@ -1029,11 +1032,17 @@ function buildPayload(){
 
 async function callPath(base, path, payload){
   const url = base + path;
+
   const r = await fetch(url, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
+    headers: {
+      "Content-Type":"application/json",
+      "Cache-Control":"no-store"
+    },
+    cache: "no-store",
     body: JSON.stringify(payload)
   });
+
   const j = await r.json().catch(()=>null);
   if(!r.ok){
     const msg = j ? JSON.stringify(j) : (await r.text());
@@ -1042,8 +1051,10 @@ async function callPath(base, path, payload){
   return j;
 }
 
+
 async function runModel(){
   saveState();
+  syncInputsFromUI();
   const base = (state.apiBase || "").replace(/\/+$/,"");
   if(!base){
     alert("Set API Base URL first.");
@@ -1051,6 +1062,14 @@ async function runModel(){
   }
 
   const payload = buildPayload();
+  const payloadStr = JSON.stringify(payload);
+  const fp = hashString(payloadStr);
+
+  document.getElementById("lastRunMeta").textContent =
+    `Running… | payload hash=${fp} | mode=${state.mode} | apiPath=${state.apiPath || "(auto)"}`;
+
+  console.log("RUN payload hash:", fp, payload);
+
   const explicit = (state.apiPath || "").trim();
 
   const candidates = explicit
@@ -1501,6 +1520,38 @@ function downloadText(text, filename, type){
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+function syncInputsFromUI(){
+  // Pull current values directly from the DOM so "Run" always uses what you see on screen
+  for (const k of Object.keys(state.inputs)){
+    const el = document.getElementById(k);
+    if (!el) continue;
+    state.inputs[k] = toNumber(el.value);
+  }
+  // Keep API fields in sync too
+  const baseEl = document.getElementById("apiBase");
+  const pathEl = document.getElementById("apiPath");
+  if (baseEl) state.apiBase = baseEl.value.trim();
+  if (pathEl) state.apiPath = pathEl.value.trim();
+
+  saveState();
+}
+
+function stableStringify(obj){
+  // stable-ish stringify for quick fingerprinting (good enough for debugging)
+  return JSON.stringify(obj, Object.keys(obj).sort(), 0);
+}
+
+function hashString(s){
+  // tiny non-crypto hash for fingerprints
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
 
 /** ---------------------------
  *  Utilities
