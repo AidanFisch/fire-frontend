@@ -536,22 +536,7 @@
         <div class="card" style="padding:14px; background: rgba(0,0,0,.18); border-radius: var(--r2); border-color: rgba(255,255,255,.08);">
           <div class="row">
             <div class="badge" id="rowsBadge"><span class="no"></span><span>No rows yet</span></div>
-
-            <!-- Chart presets -->
-            <div class="chips" style="margin-top:0;">
-              <div class="chip" onclick="setChartPreset('key')">Key only</div>
-              <div class="chip" onclick="setChartPreset('all')">All</div>
-              <div class="chip" onclick="setChartPreset('none')">None</div>
-            </div>
           </div>
-
-          <!-- Toggle chips injected here -->
-          <div class="chips" id="chartChips"></div>
-
-          <div class="sub" style="margin-top:6px;">
-            Left axis = balances (net worth/cash/stocks/equity). Right axis = monthly cashflow (FIRE target/proxy, rent/tax if available).
-          </div>
-
           <div style="margin-top:12px;">
             <canvas id="chartMain"></canvas>
           </div>
@@ -664,16 +649,6 @@ let state = {
       is_owner_occupied: true
     }
   ],
-  chartToggles: {
-    netWorth: true,
-    cash: true,
-    stocks: true,
-    propertyEquity: true,
-    fireTarget: true,
-    fireIncomeProxy: true,
-    netRent: false,
-    taxPaid: false
-  },
   lastResult: null
 };
 
@@ -688,16 +663,8 @@ function loadState(){
       state = {...state, ...parsed};
       state.inputs = {...state.inputs, ...(parsed.inputs || {})};
       state.property_list = parsed.property_list || state.property_list;
-      state.chartToggles = { ...(state.chartToggles || {}), ...(parsed.chartToggles || {}) };
     }
   }catch(e){}
-  // ensure toggle map exists
-  if(!state.chartToggles || typeof state.chartToggles !== "object"){
-    state.chartToggles = {
-      netWorth: true, cash: true, stocks: true, propertyEquity: true,
-      fireTarget: true, fireIncomeProxy: true, netRent: false, taxPaid: false
-    };
-  }
 }
 
 /** ---------------------------
@@ -757,6 +724,7 @@ function applyRawJson(){
   }
 }
 function repairJson(){
+  // ultra-basic “repair” for the common copy/paste issues: smart quotes + trailing commas
   let s = document.getElementById("property_json").value;
   s = s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'");
   s = s.replace(/,\s*([}\]])/g, "$1");
@@ -775,22 +743,22 @@ function copyPayload(){
 let pingTimer = null;
 
 function bindCoreInputs(){
+  // API fields
   document.getElementById("apiBase").value = state.apiBase || "";
   document.getElementById("apiPath").value = state.apiPath || "";
 
+  // Core inputs
   for(const k of Object.keys(state.inputs)){
     const el = document.getElementById(k);
     if(!el) continue;
     el.value = state.inputs[k];
-	const handler = () => {
-	  state.inputs[k] = toNumber(el.value);
-	  saveState();
-	};
-	el.addEventListener("input", handler);
-	el.addEventListener("change", handler);
-
+    el.oninput = () => {
+      state.inputs[k] = toNumber(el.value);
+      saveState();
+    };
   }
 
+  // Debounced ping so we don't spam /health while typing
   document.getElementById("apiBase").oninput = (e)=>{
     state.apiBase = e.target.value.trim();
     saveState();
@@ -923,6 +891,7 @@ function renderProperties(){
       g.appendChild(d);
     });
 
+    // toggles
     const toggles = document.createElement("div");
     toggles.style.gridColumn = "1 / -1";
     toggles.style.display = "flex";
@@ -944,6 +913,7 @@ function renderProperties(){
     card.appendChild(g);
     wrap.appendChild(card);
 
+    // set values + listeners
     fields.forEach(([key, type])=>{
       const el = document.getElementById(`p_${p.id}_${key}`);
       el.value = (p[key] ?? "");
@@ -970,11 +940,12 @@ function renderProperties(){
       const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
       prop.is_owner_occupied = !!occEl.checked;
       if(prop.is_owner_occupied){
+        // enforce PPOR requirements
         prop.monthly_rent = 0;
         prop.rental_growth = 0;
       }
       saveState();
-      renderProperties();
+      renderProperties(); // re-render to update tags + values
     };
   });
 
@@ -1023,6 +994,7 @@ function setApiStatus(ok, text){
  *  Build payload + run
  *  --------------------------*/
 function buildPayload(){
+  // Backend expects: { inputs: {...}, property_list: [...], display_month: bool }
   return {
     inputs: state.inputs,
     property_list: state.property_list,
@@ -1030,19 +1002,14 @@ function buildPayload(){
   };
 }
 
+// Try a single path, return JSON or throw
 async function callPath(base, path, payload){
   const url = base + path;
-
   const r = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type":"application/json",
-      "Cache-Control":"no-store"
-    },
-    cache: "no-store",
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify(payload)
   });
-
   const j = await r.json().catch(()=>null);
   if(!r.ok){
     const msg = j ? JSON.stringify(j) : (await r.text());
@@ -1051,10 +1018,9 @@ async function callPath(base, path, payload){
   return j;
 }
 
-
+// If apiPath is blank, try common endpoints
 async function runModel(){
   saveState();
-  syncInputsFromUI();
   const base = (state.apiBase || "").replace(/\/+$/,"");
   if(!base){
     alert("Set API Base URL first.");
@@ -1062,14 +1028,6 @@ async function runModel(){
   }
 
   const payload = buildPayload();
-  const payloadStr = JSON.stringify(payload);
-  const fp = hashString(payloadStr);
-
-  document.getElementById("lastRunMeta").textContent =
-    `Running… | payload hash=${fp} | mode=${state.mode} | apiPath=${state.apiPath || "(auto)"}`;
-
-  console.log("RUN payload hash:", fp, payload);
-
   const explicit = (state.apiPath || "").trim();
 
   const candidates = explicit
@@ -1114,7 +1072,6 @@ async function runModel(){
  *  Results rendering
  *  --------------------------*/
 let chart = null;
-let lastMetricsRegistry = [];
 
 function renderResults(result){
   document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
@@ -1136,154 +1093,55 @@ function renderResults(result){
   const cols = result.columns || Object.keys(rows[0] || {});
   const last = rows[n-1];
 
-  // Core keys
-  const yearKey  = findKey(cols, ["Year"]);
-  const ageKey   = findKey(cols, ["Age"]);
+  // More resilient key matching
   const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
   const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+  const yearKey  = findKey(cols, ["Year"]);
+  const ageKey   = findKey(cols, ["Age"]);
 
-  // Prefer backend totals/net-worth if present
-  const equityTotalKey = findKey(cols, ["Property_Equity_Total","Total_Property_Equity","Total_Equity"]);
-  const nwKey = findKey(cols, [
-    "Net_Worth_Incl_PPOR",
-    "Net_Worth_Ex_PPOR",
-    "Net_Worth",
-    "Net_Worth_Incl_Super_Incl_PPOR",
-    "Net_Worth_Incl_Super_Ex_PPOR"
-  ]);
-
-  // Cashflow/FIRE keys (optional)
-  const fireTargetKey = findKey(cols, [
-    "Fire_Target_Monthly",
-    "FIRE_Target_Monthly",
-    "Target_Monthly_Infl_Adj",
-    "FIRE_Target"
-  ]);
-  const fireIncomeProxyKey = findKey(cols, [
-    "FIRE_Income_Monthly",
-    "Fire_Replacement_Cashflow_Monthly",
-    "Passive_Income_Monthly",
-    "Passive_Income_Proxy_Monthly"
-  ]);
-
-  // Debug series (optional)
-  const netRentKey = findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Net_Rent_Total"]);
-  const taxKey = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
-
-  // Property totals fallback using prefixes
+  // Property totals from dynamic prefixes (supports multiple schemas)
   const propPrefixes = detectPropertyPrefixes(cols);
+  const totals = computePropertyTotals(last, propPrefixes, cols);
 
-  // KPI end row
-  const cashEnd   = getFirstNumber(last, [cashKey]);
+  const cashEnd = getFirstNumber(last, [cashKey]);
   const stocksEnd = getFirstNumber(last, [stockKey]);
-  const equityEnd = (equityTotalKey && Object.prototype.hasOwnProperty.call(last, equityTotalKey))
-    ? toNumber(last[equityTotalKey])
-    : computePropertyTotals(last, propPrefixes, cols).totalEquity;
-
-  const netWorthEnd = (nwKey && Object.prototype.hasOwnProperty.call(last, nwKey))
-    ? toNumber(last[nwKey])
-    : (cashEnd + stocksEnd + equityEnd);
+  const equityEnd = totals.totalEquity;
+  const netWorthEnd = cashEnd + stocksEnd + equityEnd;
 
   document.getElementById("kpiCashEnd").textContent = fmtMoney(cashEnd);
   document.getElementById("kpiStocksEnd").textContent = fmtMoney(stocksEnd);
   document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
   document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
 
-  // Build labels + series
+  // Chart: Cash vs Stocks vs Equity
   const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
-
-  const seriesFromKey = (key) => rows.map(r => getFirstNumber(r, [key]));
-
-  const cashSeries   = seriesFromKey(cashKey);
-  const stockSeries  = seriesFromKey(stockKey);
-
-  const equitySeries = rows.map(r => {
-    if (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey)) return toNumber(r[equityTotalKey]);
-    return computePropertyTotals(r, propPrefixes, cols).totalEquity;
-  });
-
-  const netWorthSeries = rows.map(r => {
-    if (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey)) return toNumber(r[nwKey]);
-    const c = getFirstNumber(r, [cashKey]);
-    const s = getFirstNumber(r, [stockKey]);
-    const e = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
-      ? toNumber(r[equityTotalKey])
-      : computePropertyTotals(r, propPrefixes, cols).totalEquity;
-    return c + s + e;
-  });
-
-  const fireTargetSeries = fireTargetKey ? seriesFromKey(fireTargetKey) : null;
-  const fireIncomeProxySeries = fireIncomeProxyKey ? seriesFromKey(fireIncomeProxyKey) : null;
-  const netRentSeries = netRentKey ? seriesFromKey(netRentKey) : null;
-  const taxSeries = taxKey ? seriesFromKey(taxKey) : null;
-
-  // Registry of possible chart datasets
-  const METRICS = [
-    { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
-    { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
-    { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
-    { id:"propertyEquity", label:"Property equity", axis:"y", data: equitySeries, defaultOn:true },
-
-    ...(fireIncomeProxySeries ? [{ id:"fireIncomeProxy", label:"Passive income proxy (monthly)", axis:"y2", data: fireIncomeProxySeries, defaultOn:true }] : []),
-    ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
-
-    ...(netRentSeries ? [{ id:"netRent", label:"Net rent", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
-    ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : [])
-  ];
-
-  lastMetricsRegistry = METRICS;
-
-  // Ensure toggle values exist (but keep user’s saved preferences)
-  for(const m of METRICS){
-    if(typeof state.chartToggles[m.id] !== "boolean"){
-      state.chartToggles[m.id] = !!m.defaultOn;
-    }
-  }
-  saveState();
-  renderChartChips(METRICS);
-
-  // Build chart datasets from toggles
-  const datasets = METRICS
-    .filter(m => state.chartToggles[m.id])
-    .map((m) => ({
-      label: m.label,
-      data: m.data,
-      yAxisID: m.axis,
-      borderWidth: 2,
-      tension: .25,
-      pointRadius: (mode === "monthly" ? 0 : 2),
-      pointHoverRadius: (mode === "monthly" ? 2 : 4)
-    }));
+  const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
+  const stockSeries = rows.map(r => getFirstNumber(r, [stockKey]));
+  const equitySeries = rows.map(r => computePropertyTotals(r, propPrefixes, cols).totalEquity);
 
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
-
   chart = new Chart(ctx, {
     type: "line",
-    data: { labels, datasets },
+    data: {
+      labels,
+      datasets: [
+        { label:"Cash", data: cashSeries, borderWidth: 2, tension: .25, pointRadius: 2 },
+        { label:"Stocks", data: stockSeries, borderWidth: 2, tension: .25, pointRadius: 2 },
+        ...(propPrefixes.length ? [{ label:"Property equity", data: equitySeries, borderWidth: 2, tension: .25, pointRadius: 2 }] : [])
+      ]
+    },
     options: {
-      responsive: true,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: false }, // chips are the legend
-        tooltip: {
-          callbacks: {
-            label: (c)=> `${c.dataset.label}: ${fmtMoney(c.parsed.y)}`
-          }
-        }
+      responsive:true,
+      plugins:{
+        legend:{ labels:{ color:"rgba(255,255,255,.70)" } },
+        tooltip:{ callbacks:{
+          label: (ctx)=> `${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}`
+        }}
       },
-      scales: {
-        x: { ticks:{ color:"rgba(255,255,255,.55)" }, grid:{ color:"rgba(255,255,255,.06)" } },
-        y: {
-          position: "left",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ color:"rgba(255,255,255,.06)" }
-        },
-        y2: {
-          position: "right",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ drawOnChartArea:false }
-        }
+      scales:{
+        x:{ ticks:{ color:"rgba(255,255,255,.55)" }, grid:{ color:"rgba(255,255,255,.06)" } },
+        y:{ ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) }, grid:{ color:"rgba(255,255,255,.06)" } }
       }
     }
   });
@@ -1293,53 +1151,6 @@ function renderResults(result){
   renderFullTable();
 }
 
-/** ---------------------------
- *  Chart chips + presets
- *  --------------------------*/
-function renderChartChips(METRICS){
-  const wrap = document.getElementById("chartChips");
-  if(!wrap) return;
-
-  wrap.innerHTML = "";
-  METRICS.forEach(m => {
-    const chip = document.createElement("div");
-    chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
-    chip.textContent = m.label;
-    chip.onclick = () => {
-      state.chartToggles[m.id] = !state.chartToggles[m.id];
-      saveState();
-      if(state.lastResult) renderResults(state.lastResult);
-    };
-    wrap.appendChild(chip);
-  });
-}
-
-function setChartPreset(which){
-  const METRICS = lastMetricsRegistry || [];
-  if(!METRICS.length){
-    if(state.lastResult) renderResults(state.lastResult);
-    return;
-  }
-
-  const ids = METRICS.map(m => m.id);
-
-  if(which === "none"){
-    for(const id of ids) state.chartToggles[id] = false;
-  } else if(which === "all"){
-    for(const id of ids) state.chartToggles[id] = true;
-  } else {
-    // key
-    const keySet = new Set(["netWorth","cash","stocks","propertyEquity","fireTarget","fireIncomeProxy"]);
-    for(const id of ids) state.chartToggles[id] = keySet.has(id);
-  }
-
-  saveState();
-  if(state.lastResult) renderResults(state.lastResult);
-}
-
-/** ---------------------------
- *  Summary + tables
- *  --------------------------*/
 function renderSummaryTable(result, propPrefixes){
   const rows = result.rows || [];
   const cols = result.columns || (rows[0] ? Object.keys(rows[0]) : []);
@@ -1347,6 +1158,7 @@ function renderSummaryTable(result, propPrefixes){
   const yearKey   = findKey(cols, ["Year"]);
   const ageKey    = findKey(cols, ["Age"]);
 
+  // Support both your "Annual" schema and your older "(Increase Inc.)" schema
   const salaryKey = findKey(cols, ["Salary_Annual", "Salary (Increase Inc.)", "Salary"]);
   const expKey    = findKey(cols, ["Expenses_Annual", "Living Expenses (Increase Inc.)", "Expenses"]);
   const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
@@ -1355,24 +1167,19 @@ function renderSummaryTable(result, propPrefixes){
   const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
   const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
 
+  // Backend totals (if provided)
   const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
   const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
   const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
-
-  const nwKey = findKey(cols, [
-    "Net_Worth_Incl_PPOR",
-    "Net_Worth_Ex_PPOR",
-    "Net_Worth",
-    "Net_Worth_Incl_Super_Incl_PPOR",
-    "Net_Worth_Incl_Super_Ex_PPOR"
-  ]);
 
   const summaryRows = rows.map(r => {
     const cash   = getFirstNumber(r, [cashKey]);
     const stocks = getFirstNumber(r, [stockKey]);
 
+    // computed fallback
     const computed = computePropertyTotals(r, propPrefixes, cols);
 
+    // Prefer backend totals if the column exists (even if it's 0)
     const propValueTotal = (propValueTotalKey && Object.prototype.hasOwnProperty.call(r, propValueTotalKey))
       ? toNumber(r[propValueTotalKey])
       : computed.totalValue;
@@ -1385,9 +1192,7 @@ function renderSummaryTable(result, propPrefixes){
       ? toNumber(r[equityTotalKey])
       : Math.max(propValueTotal - mortBalTotal, 0);
 
-    const netWorth = (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey))
-      ? toNumber(r[nwKey])
-      : (cash + stocks + equityTotal);
+    const netWorth = cash + stocks + equityTotal;
 
     return {
       [(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
@@ -1486,7 +1291,7 @@ function renderFullTable(){
     });
   }
   box.innerHTML = buildTableHTML(filtered.slice(0, 500), cols, {
-    rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest|equity|worth/i.test(c)))
+    rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest/i.test(c)))
   }) + (filtered.length > 500 ? `<div class="small" style="padding:10px;">Showing first 500 rows of ${filtered.length}. Use Yearly mode or add search to narrow.</div>` : "");
 }
 
@@ -1520,38 +1325,6 @@ function downloadText(text, filename, type){
   a.remove();
   URL.revokeObjectURL(url);
 }
-
-function syncInputsFromUI(){
-  // Pull current values directly from the DOM so "Run" always uses what you see on screen
-  for (const k of Object.keys(state.inputs)){
-    const el = document.getElementById(k);
-    if (!el) continue;
-    state.inputs[k] = toNumber(el.value);
-  }
-  // Keep API fields in sync too
-  const baseEl = document.getElementById("apiBase");
-  const pathEl = document.getElementById("apiPath");
-  if (baseEl) state.apiBase = baseEl.value.trim();
-  if (pathEl) state.apiPath = pathEl.value.trim();
-
-  saveState();
-}
-
-function stableStringify(obj){
-  // stable-ish stringify for quick fingerprinting (good enough for debugging)
-  return JSON.stringify(obj, Object.keys(obj).sort(), 0);
-}
-
-function hashString(s){
-  // tiny non-crypto hash for fingerprints
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++){
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(16);
-}
-
 
 /** ---------------------------
  *  Utilities
@@ -1621,19 +1394,29 @@ function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
 }
 
+/**
+ * UPDATED findKey: more resilient matching
+ * - exact
+ * - case-insensitive exact
+ * - case-insensitive contains
+ * Returns null if not found.
+ */
 function findKey(cols, candidates){
   if(!Array.isArray(cols)) return null;
 
+  // 1) exact match
   for (const cand of candidates){
     if (cols.includes(cand)) return cand;
   }
 
+  // 2) case-insensitive exact match
   const lowerMap = new Map(cols.map(c => [String(c).toLowerCase(), c]));
   for (const cand of candidates){
     const hit = lowerMap.get(String(cand).toLowerCase());
     if (hit) return hit;
   }
 
+  // 3) case-insensitive contains match
   const colsLower = cols.map(c => String(c).toLowerCase());
   for (const cand of candidates){
     const needle = String(cand).toLowerCase();
@@ -1644,6 +1427,9 @@ function findKey(cols, candidates){
   return null;
 }
 
+/**
+ * UPDATED detectPropertyPrefixes: supports multiple backend schemas
+ */
 function detectPropertyPrefixes(cols){
   const set = new Set();
   if(!Array.isArray(cols)) return [];
@@ -1668,6 +1454,9 @@ function detectPropertyPrefixes(cols){
   return Array.from(set);
 }
 
+/**
+ * Helper: return first numeric value for existing key (allows 0 as valid)
+ */
 function getFirstNumber(row, keys){
   for(const k of keys){
     if(!k) continue;
@@ -1676,6 +1465,9 @@ function getFirstNumber(row, keys){
   return 0;
 }
 
+/**
+ * Helper: choose best column for a property metric (schema-flexible)
+ */
 function propCol(prefix, kind, cols){
   const candidatesByKind = {
     value: [
@@ -1706,6 +1498,9 @@ function propCol(prefix, kind, cols){
   return findKey(cols, cands);
 }
 
+/**
+ * Helper: read a property snapshot for a row
+ */
 function getPropertySnapshot(row, prefix, cols){
   const valueKey   = propCol(prefix, "value", cols);
   const mortKey    = propCol(prefix, "mortgage", cols);
@@ -1725,6 +1520,9 @@ function getPropertySnapshot(row, prefix, cols){
   return { value, mortgage, equity, rent, netRent, isPPOR };
 }
 
+/**
+ * UPDATED computePropertyTotals: uses schema-flexible snapshot helper
+ */
 function computePropertyTotals(row, propPrefixes, cols){
   let totalValue = 0, totalMortgage = 0;
   for(const prefix of propPrefixes){
