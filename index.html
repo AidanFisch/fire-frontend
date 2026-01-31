@@ -122,6 +122,7 @@
       box-shadow: var(--shadow);
       padding: 18px;
       backdrop-filter: blur(10px);
+      overflow: hidden; /* keep tables/inner blocks within card */
     }
     .card h2, .card h3{
       margin:0 0 10px 0;
@@ -218,6 +219,7 @@
       background: rgba(0,0,0,.18);
       border-radius: var(--r);
       padding: 14px 16px;
+      min-width: 0;
     }
     .kpi .k{
       color: var(--muted);
@@ -235,15 +237,19 @@
 
     /* tables */
     .tablewrap{
-      overflow:auto;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;       /* ✅ side scroller */
+      overflow-y: hidden;
       border: 1px solid var(--stroke);
       border-radius: var(--r);
       background: rgba(0,0,0,.18);
+      -webkit-overflow-scrolling: touch;
     }
     table{
       width: 100%;
       border-collapse: collapse;
-      min-width: 820px;
+      min-width: 820px;       /* ✅ ensures horizontal scroll instead of crushing */
       font-size: 13px;
     }
     th, td{
@@ -260,12 +266,14 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: .08em;
+      z-index: 2;
     }
     tr:hover td{ background: rgba(255,255,255,.03); }
 
     .muted{color: var(--muted)}
     .mono{font-family: var(--mono)}
     .right{text-align:right}
+
     .chips{
       display:flex; gap:8px; flex-wrap:wrap;
       margin-top: 10px;
@@ -306,6 +314,107 @@
       border: 1px solid var(--stroke);
       background: rgba(0,0,0,.18);
       color: var(--muted);
+    }
+
+    /* ✅ collapsible sections */
+    .collapsible{
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.16);
+      border-radius: var(--r2);
+      overflow: hidden;
+    }
+    .collapsibleHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .collapsibleHeader .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 0;
+    }
+    .collapsibleHeader .title .h{
+      font-weight: 850;
+      letter-spacing:.2px;
+    }
+    .collapsibleHeader .title .s{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70ch;
+    }
+    .caret{
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,.04);
+      flex: 0 0 auto;
+      transition: transform .18s ease;
+    }
+    .collapsible.open .caret{ transform: rotate(180deg); }
+    .collapsibleBody{
+      display:none;
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .collapsible.open .collapsibleBody{ display:block; }
+
+    /* ✅ chart legend controls */
+    .legendPanel{
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.16);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .legendItem{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      cursor:pointer;
+      user-select:none;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legendItem.active{
+      color: var(--txt);
+      border-color: rgba(34,211,238,.45);
+      background: rgba(34,211,238,.10);
+    }
+    .swatch{
+      width:10px;height:10px;border-radius:99px;
+      background: rgba(255,255,255,.65);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+      flex:0 0 auto;
+    }
+    .legendActions{
+      margin-left:auto;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    @media (max-width: 680px){
+      .legendActions{ width:100%; margin-left:0; }
     }
   </style>
 </head>
@@ -536,7 +645,25 @@
         <div class="card" style="padding:14px; background: rgba(0,0,0,.18); border-radius: var(--r2); border-color: rgba(255,255,255,.08);">
           <div class="row">
             <div class="badge" id="rowsBadge"><span class="no"></span><span>No rows yet</span></div>
+            <div class="badge" id="fireBadge" style="display:none;"><span class="ok"></span><span>FIRE reached</span></div>
           </div>
+
+          <div class="hr" style="margin:12px 0;"></div>
+
+          <!-- ✅ Toggleable graph metrics -->
+          <div class="legendPanel" id="legendPanel">
+            <!-- items injected -->
+            <div class="legendActions">
+              <button class="btn" onclick="setChartPreset('key')">Key only</button>
+              <button class="btn" onclick="setChartPreset('all')">All</button>
+              <button class="btn ghost" onclick="setChartPreset('none')">None</button>
+            </div>
+          </div>
+
+          <div class="sub" style="margin-top:10px;">
+            Left axis = balances (net worth/cash/stocks/equity). Right axis = monthly cashflow (passive income proxy + FIRE target).
+          </div>
+
           <div style="margin-top:12px;">
             <canvas id="chartMain"></canvas>
           </div>
@@ -544,42 +671,71 @@
 
         <div class="hr"></div>
 
-        <div class="grid cols2">
-          <div>
-            <h3 style="margin:0 0 8px 0;">Summary table</h3>
-            <div class="sub">Clean, “actually useful” columns (cash/stocks/property/net worth).</div>
-            <div class="hr"></div>
+        <!-- ✅ collapsible summary -->
+        <div class="collapsible open" id="secSummary">
+          <div class="collapsibleHeader" onclick="toggleSection('secSummary')">
+            <div class="title">
+              <div class="h">Summary table</div>
+              <div class="s">Clean, “actually useful” columns (cash/stocks/property/net worth + FIRE).</div>
+            </div>
+            <div class="caret">▾</div>
+          </div>
+          <div class="collapsibleBody">
             <div class="tablewrap" id="summaryTableWrap"></div>
           </div>
-          <div>
-            <h3 style="margin:0 0 8px 0;">Property breakdown (end row)</h3>
-            <div class="sub">Per-property values + mortgage + equity at the final timestep.</div>
-            <div class="hr"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- ✅ collapsible property breakdown -->
+        <div class="collapsible open" id="secPropEnd">
+          <div class="collapsibleHeader" onclick="toggleSection('secPropEnd')">
+            <div class="title">
+              <div class="h">Property breakdown (end row)</div>
+              <div class="s">Per-property values + mortgage + equity at the final timestep.</div>
+            </div>
+            <div class="caret">▾</div>
+          </div>
+          <div class="collapsibleBody">
             <div class="tablewrap" id="propEndTableWrap"></div>
           </div>
         </div>
 
         <div class="hr"></div>
 
-        <div class="row">
-          <h3 style="margin:0;">Full table</h3>
-          <div class="row" style="gap:10px;">
-            <input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
-            <button class="btn" onclick="toggleFullTable()">Toggle full table</button>
+        <!-- ✅ collapsible full table -->
+        <div class="collapsible" id="secFull">
+          <div class="collapsibleHeader" onclick="toggleSection('secFull')">
+            <div class="title">
+              <div class="h">Full table</div>
+              <div class="s">Raw API output (searchable). Good for debugging.</div>
+            </div>
+            <div class="caret">▾</div>
+          </div>
+          <div class="collapsibleBody">
+            <div class="row" style="gap:10px; margin-bottom:10px;">
+              <input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
+              <button class="btn" onclick="renderFullTable()">Refresh</button>
+            </div>
+            <div class="tablewrap" id="fullTableWrap"></div>
           </div>
         </div>
-        <div class="sub" style="margin-top:6px;">This is the raw API table (filter/searchable). Good for debugging.</div>
 
-        <div id="fullTableBox" style="display:none; margin-top:12px;">
-          <div class="tablewrap" id="fullTableWrap"></div>
+        <div class="hr"></div>
+
+        <div class="collapsible" id="secRaw">
+          <div class="collapsibleHeader" onclick="toggleSection('secRaw')">
+            <div class="title">
+              <div class="h">Raw API response</div>
+              <div class="s">If something breaks, this shows exactly what the backend returned.</div>
+            </div>
+            <div class="caret">▾</div>
+          </div>
+          <div class="collapsibleBody">
+            <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
+          </div>
         </div>
 
-        <div class="hr"></div>
-
-        <h3 style="margin:0 0 8px 0;">Raw API response (debug)</h3>
-        <div class="sub">If something breaks, this helps you see exactly what the backend returned.</div>
-        <div class="hr"></div>
-        <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
       </div>
     </section>
 
@@ -589,7 +745,7 @@
 /** ---------------------------
  *  State + Defaults
  *  --------------------------*/
-const LS_KEY = "fire_frontend_state_v3";
+const LS_KEY = "fire_frontend_state_v4";
 let state = {
   apiBase: "https://fire-api-wixz.onrender.com",
   apiPath: "", // optional
@@ -649,7 +805,27 @@ let state = {
       is_owner_occupied: true
     }
   ],
-  lastResult: null
+  lastResult: null,
+  chartToggles: {
+    // balances (left axis) - key on by default
+    netWorth: true,
+    cash: true,
+    stocks: true,
+    propertyEquity: true,
+
+    // cashflow (right axis) - key on by default
+    passiveIncomeProxy: true,   // FIRE_Income_Monthly / Fire_Replacement_Cashflow_Monthly
+    fireTarget: true,           // Fire_Target_Monthly (preferred) / Target_Monthly_Infl_Adj
+
+    // optional / off by default
+    netRent: false,
+    taxPaid: false,
+    stockDraw: false,
+    superDraw: false,
+    superBalance: false,
+    fireGap: false,
+    fireEligible: false
+  }
 };
 
 function saveState(){
@@ -663,6 +839,7 @@ function loadState(){
       state = {...state, ...parsed};
       state.inputs = {...state.inputs, ...(parsed.inputs || {})};
       state.property_list = parsed.property_list || state.property_list;
+      state.chartToggles = {...state.chartToggles, ...(parsed.chartToggles || {})};
     }
   }catch(e){}
 }
@@ -678,11 +855,21 @@ function showTab(name){
 }
 
 /** ---------------------------
+ *  Collapsible sections
+ *  --------------------------*/
+function toggleSection(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle("open");
+}
+
+/** ---------------------------
  *  Mode
  *  --------------------------*/
 function setMode(mode){
   state.mode = mode;
-  document.getElementById("modeSelect").value = mode;
+  const ms = document.getElementById("modeSelect");
+  if(ms) ms.value = mode;
   document.getElementById("chipModeYearly").classList.toggle("active", mode==="yearly");
   document.getElementById("chipModeMonthly").classList.toggle("active", mode==="monthly");
   saveState();
@@ -709,6 +896,7 @@ function toggleRawJson(){
 }
 function syncRawJsonFromCards(){
   const ta = document.getElementById("property_json");
+  if(!ta) return;
   ta.value = JSON.stringify(state.property_list, null, 2);
 }
 function applyRawJson(){
@@ -724,7 +912,6 @@ function applyRawJson(){
   }
 }
 function repairJson(){
-  // ultra-basic “repair” for the common copy/paste issues: smart quotes + trailing commas
   let s = document.getElementById("property_json").value;
   s = s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'");
   s = s.replace(/,\s*([}\]])/g, "$1");
@@ -740,14 +927,10 @@ function copyPayload(){
 /** ---------------------------
  *  Inputs binding
  *  --------------------------*/
-let pingTimer = null;
-
 function bindCoreInputs(){
-  // API fields
   document.getElementById("apiBase").value = state.apiBase || "";
   document.getElementById("apiPath").value = state.apiPath || "";
 
-  // Core inputs
   for(const k of Object.keys(state.inputs)){
     const el = document.getElementById(k);
     if(!el) continue;
@@ -758,12 +941,10 @@ function bindCoreInputs(){
     };
   }
 
-  // Debounced ping so we don't spam /health while typing
   document.getElementById("apiBase").oninput = (e)=>{
     state.apiBase = e.target.value.trim();
     saveState();
-    clearTimeout(pingTimer);
-    pingTimer = setTimeout(pingAPI, 400);
+    pingAPI();
   };
   document.getElementById("apiPath").oninput = (e)=>{
     state.apiPath = e.target.value.trim();
@@ -891,7 +1072,6 @@ function renderProperties(){
       g.appendChild(d);
     });
 
-    // toggles
     const toggles = document.createElement("div");
     toggles.style.gridColumn = "1 / -1";
     toggles.style.display = "flex";
@@ -913,7 +1093,6 @@ function renderProperties(){
     card.appendChild(g);
     wrap.appendChild(card);
 
-    // set values + listeners
     fields.forEach(([key, type])=>{
       const el = document.getElementById(`p_${p.id}_${key}`);
       el.value = (p[key] ?? "");
@@ -940,12 +1119,11 @@ function renderProperties(){
       const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
       prop.is_owner_occupied = !!occEl.checked;
       if(prop.is_owner_occupied){
-        // enforce PPOR requirements
         prop.monthly_rent = 0;
         prop.rental_growth = 0;
       }
       saveState();
-      renderProperties(); // re-render to update tags + values
+      renderProperties();
     };
   });
 
@@ -994,7 +1172,6 @@ function setApiStatus(ok, text){
  *  Build payload + run
  *  --------------------------*/
 function buildPayload(){
-  // Backend expects: { inputs: {...}, property_list: [...], display_month: bool }
   return {
     inputs: state.inputs,
     property_list: state.property_list,
@@ -1002,7 +1179,6 @@ function buildPayload(){
   };
 }
 
-// Try a single path, return JSON or throw
 async function callPath(base, path, payload){
   const url = base + path;
   const r = await fetch(url, {
@@ -1018,7 +1194,6 @@ async function callPath(base, path, payload){
   return j;
 }
 
-// If apiPath is blank, try common endpoints
 async function runModel(){
   saveState();
   const base = (state.apiBase || "").replace(/\/+$/,"");
@@ -1073,10 +1248,35 @@ async function runModel(){
  *  --------------------------*/
 let chart = null;
 
+// Metric definitions for chart toggles
+const CHART_METRICS = [
+  // balances (left axis)
+  { id:"netWorth", label:"Net worth", axis:"y", group:"Balances", keyCandidates:["Net_Worth_Incl_PPOR","Net_Worth_Incl_Super_Incl_PPOR","Net_Worth_Incl_Super_Ex_PPOR","Net_Worth_Ex_PPOR"], fmt:"money", defaultOn:true },
+  { id:"cash", label:"Cash", axis:"y", group:"Balances", keyCandidates:["Cash_Balance_End","Cumulative_Savings"], fmt:"money", defaultOn:true },
+  { id:"stocks", label:"Stocks", axis:"y", group:"Balances", keyCandidates:["Stock_Balance_End","Total_Stock_Balance"], fmt:"money", defaultOn:true },
+  { id:"propertyEquity", label:"Property equity", axis:"y", group:"Balances", keyCandidates:["Total_Property_Equity","Property_Equity_Total","Total_Property_Equity_Ex_PPOR"], fmt:"money", defaultOn:true },
+  { id:"superBalance", label:"Super balance", axis:"y", group:"Balances", keyCandidates:["Super_Balance_End","Super_Balance"], fmt:"money", defaultOn:false },
+
+  // cashflow (right axis)
+  { id:"passiveIncomeProxy", label:"Passive income proxy (monthly)", axis:"y2", group:"FIRE Cashflow", keyCandidates:["FIRE_Income_Monthly","Fire_Replacement_Cashflow_Monthly"], fmt:"money", defaultOn:true },
+  { id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", group:"FIRE Cashflow", keyCandidates:["Fire_Target_Monthly","Target_Monthly_Infl_Adj"], fmt:"money", defaultOn:true },
+  { id:"fireGap", label:"FIRE gap (monthly)", axis:"y2", group:"FIRE Cashflow", keyCandidates:["Fire_Gap_Monthly"], fmt:"money", defaultOn:false },
+
+  // optional flows
+  { id:"netRent", label:"Net rent (monthly/annual)", axis:"y2", group:"Other", keyCandidates:["Total_Net_Rent"], fmt:"money", defaultOn:false },
+  { id:"taxPaid", label:"Tax paid (monthly/annual)", axis:"y2", group:"Other", keyCandidates:["Tax_Paid","Tax_Payable_Paid"], fmt:"money", defaultOn:false },
+  { id:"stockDraw", label:"Stock drawdown (monthly)", axis:"y2", group:"Other", keyCandidates:["Stock_Drawdown_Monthly"], fmt:"money", defaultOn:false },
+  { id:"superDraw", label:"Super drawdown (monthly)", axis:"y2", group:"Other", keyCandidates:["Super_Drawdown_Monthly"], fmt:"money", defaultOn:false },
+
+  // debugging flag
+  { id:"fireEligible", label:"FIRE eligible flag", axis:"y2", group:"Debug", keyCandidates:["FIRE_Eligible"], fmt:"flag", defaultOn:false }
+];
+
 function renderResults(result){
   document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
 
   const rows = result.rows || [];
+  const cols = result.columns || [];
   const mode = result.mode || "yearly";
   const n = rows.length;
 
@@ -1088,125 +1288,297 @@ function renderResults(result){
   document.getElementById("resultsMeta").textContent =
     n ? `Showing ${n} rows (${mode}).` : "No rows to display.";
 
+  // show FIRE badge if last row indicates FIRE reached
+  const fireBadge = document.getElementById("fireBadge");
+  fireBadge.style.display = "none";
+  if(n){
+    const last = rows[n-1];
+    const fireEligibleKey = pickKey(cols, ["FIRE_Eligible"]);
+    if(fireEligibleKey && toNumber(last[fireEligibleKey]) === 1){
+      fireBadge.style.display = "inline-flex";
+      // if FIRE_Age exists, show it
+      const fireAgeKey = pickKey(cols, ["FIRE_Age"]);
+      const ageTxt = fireAgeKey && last[fireAgeKey] ? ` (age ~${Number(last[fireAgeKey]).toFixed(1)})` : "";
+      fireBadge.innerHTML = `<span class="ok"></span><span>FIRE reached${escapeHtml(ageTxt)}</span>`;
+    }
+  }
+
   if(!n) return;
 
-  const cols = result.columns || Object.keys(rows[0] || {});
+  // Determine property prefixes for property end table
+  const propPrefixes = detectPropertyPrefixes(cols);
+
+  // KPIs: use the same keys as chart
   const last = rows[n-1];
 
-  // More resilient key matching
-  const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
-  const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
-  const yearKey  = findKey(cols, ["Year"]);
-  const ageKey   = findKey(cols, ["Age"]);
+  const cashKey = pickKey(cols, ["Cash_Balance_End","Cumulative_Savings"]);
+  const stockKey = pickKey(cols, ["Stock_Balance_End","Total_Stock_Balance"]);
+  const equityKey = pickKey(cols, ["Total_Property_Equity","Property_Equity_Total","Total_Property_Equity_Ex_PPOR"]);
+  const nwKey = pickKey(cols, ["Net_Worth_Incl_PPOR","Net_Worth_Incl_Super_Incl_PPOR","Net_Worth_Incl_Super_Ex_PPOR","Net_Worth_Ex_PPOR"]);
 
-  // Property totals from dynamic prefixes (supports multiple schemas)
-  const propPrefixes = detectPropertyPrefixes(cols);
-  const totals = computePropertyTotals(last, propPrefixes, cols);
-
-  const cashEnd = getFirstNumber(last, [cashKey]);
-  const stocksEnd = getFirstNumber(last, [stockKey]);
-  const equityEnd = totals.totalEquity;
-  const netWorthEnd = cashEnd + stocksEnd + equityEnd;
+  const cashEnd = toNumber(cashKey ? last[cashKey] : 0);
+  const stocksEnd = toNumber(stockKey ? last[stockKey] : 0);
+  const equityEnd = toNumber(equityKey ? last[equityKey] : computePropertyTotals(last, propPrefixes).totalEquity);
+  const netWorthEnd = toNumber(nwKey ? last[nwKey] : (cashEnd + stocksEnd + equityEnd));
 
   document.getElementById("kpiCashEnd").textContent = fmtMoney(cashEnd);
   document.getElementById("kpiStocksEnd").textContent = fmtMoney(stocksEnd);
   document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
   document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
 
-  // Chart: Cash vs Stocks vs Equity
-  const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
-  const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
-  const stockSeries = rows.map(r => getFirstNumber(r, [stockKey]));
-  const equitySeries = rows.map(r => computePropertyTotals(r, propPrefixes, cols).totalEquity);
+  // ✅ chart with toggles driven by backend fields
+  renderChartWithToggles(result);
 
-  const ctx = document.getElementById("chartMain");
-  if(chart){ chart.destroy(); chart = null; }
-  chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        { label:"Cash", data: cashSeries, borderWidth: 2, tension: .25, pointRadius: 2 },
-        { label:"Stocks", data: stockSeries, borderWidth: 2, tension: .25, pointRadius: 2 },
-        ...(propPrefixes.length ? [{ label:"Property equity", data: equitySeries, borderWidth: 2, tension: .25, pointRadius: 2 }] : [])
-      ]
-    },
-    options: {
-      responsive:true,
-      plugins:{
-        legend:{ labels:{ color:"rgba(255,255,255,.70)" } },
-        tooltip:{ callbacks:{
-          label: (ctx)=> `${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}`
-        }}
-      },
-      scales:{
-        x:{ ticks:{ color:"rgba(255,255,255,.55)" }, grid:{ color:"rgba(255,255,255,.06)" } },
-        y:{ ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) }, grid:{ color:"rgba(255,255,255,.06)" } }
-      }
-    }
-  });
-
+  // Summary table (includes FIRE columns)
   renderSummaryTable(result, propPrefixes);
+
+  // Property end breakdown table
   renderPropertyEndTable(last, propPrefixes);
+
+  // Full table initial render (but collapsed by default)
   renderFullTable();
 }
 
+/** ---------------------------
+ *  Chart: toggleable FIRE-style graph
+ *  --------------------------*/
+function renderLegendPanel(metricSeries, swatchColors){
+  const panel = document.getElementById("legendPanel");
+  panel.querySelectorAll(".legendItem").forEach(x => x.remove());
+
+  // Insert items before actions
+  const actions = panel.querySelector(".legendActions");
+
+  for(const m of metricSeries){
+    const on = !!state.chartToggles[m.id];
+    const item = document.createElement("div");
+    item.className = "legendItem" + (on ? " active" : "");
+    item.onclick = ()=>toggleMetric(m.id);
+
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = swatchColors[m.id] || "rgba(255,255,255,.65)";
+
+    const txt = document.createElement("span");
+    txt.textContent = m.label;
+
+    item.appendChild(sw);
+    item.appendChild(txt);
+    panel.insertBefore(item, actions);
+  }
+}
+
+function toggleMetric(id){
+  state.chartToggles[id] = !state.chartToggles[id];
+  saveState();
+  if(state.lastResult) renderChartWithToggles(state.lastResult);
+}
+
+function setChartPreset(which){
+  if(which === "key"){
+    for(const m of CHART_METRICS){
+      state.chartToggles[m.id] = !!m.defaultOn;
+    }
+  }else if(which === "all"){
+    for(const m of CHART_METRICS){
+      state.chartToggles[m.id] = true;
+    }
+  }else if(which === "none"){
+    for(const m of CHART_METRICS){
+      state.chartToggles[m.id] = false;
+    }
+  }
+  saveState();
+  if(state.lastResult) renderChartWithToggles(state.lastResult);
+}
+
+function renderChartWithToggles(result){
+  const rows = result.rows || [];
+  const cols = result.columns || [];
+  const mode = result.mode || "yearly";
+  if(!rows.length) return;
+
+  const yearKey = pickKey(cols, ["Year"]);
+  const labels = rows.map(r => yearKey ? String(r[yearKey]) : "");
+
+  // map each metric to an actual column key (or null if missing)
+  const resolved = CHART_METRICS.map(m => ({
+    ...m,
+    key: pickKey(cols, m.keyCandidates)
+  }));
+
+  // build datasets only for toggled metrics that exist
+  const datasets = [];
+  const swatchColors = {};
+  const metricSeries = resolved.filter(m => m.key); // for legend display
+
+  // generate distinct colors automatically by letting Chart.js pick — but we still need a swatch color.
+  // We'll approximate by using CSS vars rotation, but Chart.js handles actual line colors.
+  // For swatches, use a simple palette.
+  const palette = [
+    "rgba(34,211,238,.85)","rgba(139,92,246,.90)","rgba(46,229,157,.85)","rgba(255,207,92,.85)",
+    "rgba(255,92,122,.85)","rgba(255,255,255,.70)","rgba(120,200,255,.85)","rgba(200,120,255,.85)",
+    "rgba(120,255,200,.85)","rgba(255,180,120,.85)","rgba(180,255,120,.85)","rgba(120,180,255,.85)"
+  ];
+  let pi = 0;
+
+  for(const m of resolved){
+    if(!m.key) continue;
+
+    // build series
+    let series = rows.map(r => toNumber(r[m.key]));
+
+    // If the "fireEligible" flag: keep on 0/1
+    if(m.fmt === "flag"){
+      series = rows.map(r => toNumber(r[m.key]) ? 1 : 0);
+    }
+
+    const isOn = !!state.chartToggles[m.id];
+    if(!isOn) continue;
+
+    const color = palette[pi % palette.length];
+    swatchColors[m.id] = color;
+    pi++;
+
+    datasets.push({
+      label: m.label + (m.key ? ` · ${m.key}` : ""),
+      data: series,
+      borderWidth: 2,
+      tension: .25,
+      pointRadius: (mode === "monthly" ? 0 : 2),
+      yAxisID: m.axis,
+      // Let Chart.js choose default colors; but we can provide a borderColor for consistency
+      borderColor: color,
+      backgroundColor: color,
+      fill: false
+    });
+  }
+
+  // if nothing selected, show a placeholder dataset (so chart isn't blank)
+  if(!datasets.length){
+    datasets.push({
+      label: "Select a metric",
+      data: rows.map(()=>0),
+      borderWidth: 1,
+      tension: .25,
+      pointRadius: 0,
+      yAxisID: "y",
+      borderColor: "rgba(255,255,255,.35)",
+      backgroundColor: "rgba(255,255,255,.35)"
+    });
+  }
+
+  renderLegendPanel(metricSeries, swatchColors);
+
+  const ctx = document.getElementById("chartMain");
+  if(chart){ chart.destroy(); chart = null; }
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }, // ✅ we use our own legend toggles
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const y = ctx.parsed.y;
+              return `${ctx.dataset.label}: ${fmtMoney(y)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color:"rgba(255,255,255,.55)" },
+          grid: { color:"rgba(255,255,255,.06)" }
+        },
+        y: {
+          position: "left",
+          ticks: { color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+          grid: { color:"rgba(255,255,255,.06)" }
+        },
+        y2: {
+          position: "right",
+          ticks: { color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+}
+
+/** ---------------------------
+ *  Tables
+ *  --------------------------*/
 function renderSummaryTable(result, propPrefixes){
   const rows = result.rows || [];
-  const cols = result.columns || (rows[0] ? Object.keys(rows[0]) : []);
+  const cols = result.columns || [];
+  if(!rows.length){
+    document.getElementById("summaryTableWrap").innerHTML = `<div style="padding:12px;" class="muted">No rows.</div>`;
+    return;
+  }
 
-  const yearKey   = findKey(cols, ["Year"]);
-  const ageKey    = findKey(cols, ["Age"]);
+  const yearKey   = pickKey(cols, ["Year"]) || "Year";
+  const ageKey    = pickKey(cols, ["Age"])  || "Age";
+  const salaryKey = pickKey(cols, ["Salary_Annual"]);
+  const expKey    = pickKey(cols, ["Expenses_Annual"]);
+  const taxKey    = pickKey(cols, ["Tax_Paid","Tax_Payable_Paid"]);
+  const netRentKey= pickKey(cols, ["Total_Net_Rent"]);
+  const cashKey   = pickKey(cols, ["Cash_Balance_End","Cumulative_Savings"]);
+  const stockKey  = pickKey(cols, ["Stock_Balance_End","Total_Stock_Balance"]);
 
-  // Support both your "Annual" schema and your older "(Increase Inc.)" schema
-  const salaryKey = findKey(cols, ["Salary_Annual", "Salary (Increase Inc.)", "Salary"]);
-  const expKey    = findKey(cols, ["Expenses_Annual", "Living Expenses (Increase Inc.)", "Expenses"]);
-  const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
-  const netRentKey= findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Total Net Rent"]);
+  // Totals from backend (prefer)
+  const propValueTotalKey = pickKey(cols, ["Property_Value_Total","Total_Property_Value"]);
+  const mortBalTotalKey   = pickKey(cols, ["Mortgage_Balance_Total","Total_Mortgage_Balance"]);
+  const equityTotalKey    = pickKey(cols, ["Property_Equity_Total","Total_Property_Equity"]);
 
-  const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
-  const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+  // FIRE cashflow columns
+  const fireIncomeKey = pickKey(cols, ["FIRE_Income_Monthly","Fire_Replacement_Cashflow_Monthly"]);
+  const fireTargetKey = pickKey(cols, ["Fire_Target_Monthly","Target_Monthly_Infl_Adj"]);
+  const fireGapKey    = pickKey(cols, ["Fire_Gap_Monthly"]);
+  const fireEligKey   = pickKey(cols, ["FIRE_Eligible"]);
+  const fireAgeKey    = pickKey(cols, ["FIRE_Age"]);
 
-  // Backend totals (if provided)
-  const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
-  const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
-  const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
+  // Net worth (prefer incl super if present; else incl ppor; else cash+stocks+equity)
+  const nwKey = pickKey(cols, ["Net_Worth_Incl_Super_Incl_PPOR","Net_Worth_Incl_PPOR","Net_Worth_Incl_Super_Ex_PPOR","Net_Worth_Ex_PPOR"]);
 
   const summaryRows = rows.map(r => {
-    const cash   = getFirstNumber(r, [cashKey]);
-    const stocks = getFirstNumber(r, [stockKey]);
+    const cash   = toNumber(cashKey ? r[cashKey] : 0);
+    const stocks = toNumber(stockKey ? r[stockKey] : 0);
 
-    // computed fallback
-    const computed = computePropertyTotals(r, propPrefixes, cols);
+    const computed = computePropertyTotals(r, propPrefixes);
 
-    // Prefer backend totals if the column exists (even if it's 0)
-    const propValueTotal = (propValueTotalKey && Object.prototype.hasOwnProperty.call(r, propValueTotalKey))
-      ? toNumber(r[propValueTotalKey])
-      : computed.totalValue;
+    const backendPropValue = toNumber(propValueTotalKey ? r[propValueTotalKey] : 0);
+    const backendMortBal   = toNumber(mortBalTotalKey ? r[mortBalTotalKey] : 0);
+    const backendEquity    = toNumber(equityTotalKey ? r[equityTotalKey] : 0);
 
-    const mortBalTotal = (mortBalTotalKey && Object.prototype.hasOwnProperty.call(r, mortBalTotalKey))
-      ? toNumber(r[mortBalTotalKey])
-      : computed.totalMortgage;
+    const propValueTotal = backendPropValue > 0 ? backendPropValue : computed.totalValue;
+    const mortBalTotal   = backendMortBal   > 0 ? backendMortBal   : computed.totalMortgage;
+    const equityTotal    = backendEquity    > 0 ? backendEquity    : Math.max(propValueTotal - mortBalTotal, 0);
 
-    const equityTotal = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
-      ? toNumber(r[equityTotalKey])
-      : Math.max(propValueTotal - mortBalTotal, 0);
-
-    const netWorth = cash + stocks + equityTotal;
+    const netWorth = nwKey ? toNumber(r[nwKey]) : (cash + stocks + equityTotal);
 
     return {
-      [(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
-      [(ageKey  || "Age")]:  ageKey  ? (r[ageKey] ?? "")  : "",
-      Salary_Annual: salaryKey ? (r[salaryKey] ?? "") : "",
-      Expenses_Annual: expKey ? (r[expKey] ?? "") : "",
-      Total_Net_Rent: netRentKey ? (r[netRentKey] ?? "") : "",
-      Tax_Paid: taxKey ? (r[taxKey] ?? "") : "",
+      [yearKey]: r[yearKey] ?? "",
+      [ageKey] : r[ageKey] ?? "",
+      Salary_Annual: salaryKey ? r[salaryKey] : "",
+      Expenses_Annual: expKey ? r[expKey] : "",
+      Total_Net_Rent: netRentKey ? r[netRentKey] : "",
+      Tax_Paid: taxKey ? r[taxKey] : "",
       Cash_End: cash,
       Stocks_End: stocks,
-      Property_Value_Total: propValueTotal,
-      Mortgage_Balance_Total: mortBalTotal,
       Property_Equity_Total: equityTotal,
-      Net_Worth: netWorth
+      Net_Worth: netWorth,
+
+      // ✅ FIRE section
+      Passive_Income_Proxy_Monthly: fireIncomeKey ? r[fireIncomeKey] : "",
+      FIRE_Target_Monthly: fireTargetKey ? r[fireTargetKey] : "",
+      FIRE_Gap_Monthly: fireGapKey ? r[fireGapKey] : "",
+      FIRE_Eligible: fireEligKey ? r[fireEligKey] : "",
+      FIRE_Age: fireAgeKey ? r[fireAgeKey] : ""
     };
   });
 
@@ -1219,31 +1591,36 @@ function renderSummaryTable(result, propPrefixes){
       Tax_Paid: fmtMoney,
       Cash_End: fmtMoney,
       Stocks_End: fmtMoney,
-      Property_Value_Total: fmtMoney,
-      Mortgage_Balance_Total: fmtMoney,
       Property_Equity_Total: fmtMoney,
-      Net_Worth: fmtMoney
+      Net_Worth: fmtMoney,
+      Passive_Income_Proxy_Monthly: fmtMoney,
+      FIRE_Target_Monthly: fmtMoney,
+      FIRE_Gap_Monthly: fmtMoney
     },
     rightAlign: new Set([
       "Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid",
-      "Cash_End","Stocks_End","Property_Value_Total","Mortgage_Balance_Total",
-      "Property_Equity_Total","Net_Worth"
+      "Cash_End","Stocks_End","Property_Equity_Total","Net_Worth",
+      "Passive_Income_Proxy_Monthly","FIRE_Target_Monthly","FIRE_Gap_Monthly"
     ])
   });
 }
 
 function renderPropertyEndTable(lastRow, propPrefixes){
-  const colsAll = state.lastResult?.columns || Object.keys(lastRow || {});
-  const rows = propPrefixes.map(prefix => {
-    const snap = getPropertySnapshot(lastRow, prefix, colsAll);
+  const rows = propPrefixes.map(prefix=>{
+    const val = toNumber(lastRow[`${prefix}_Property_Value`]);
+    const mort = toNumber(lastRow[`${prefix}_Mortgage_Balance`]);
+    const equity = Math.max(val - mort, 0);
+    const rent = toNumber(lastRow[`${prefix}_Rent_Income`]);
+    const netRent = toNumber(lastRow[`${prefix}_Net_Rent`]);
+    const isPPOR = !!toNumber(lastRow[`${prefix}_Is_PPOR`]);
     return {
       Property: prefix,
-      Type: snap.isPPOR ? "PPOR" : "Investment",
-      Property_Value: snap.value,
-      Mortgage_Balance: snap.mortgage,
-      Equity: snap.equity,
-      Rent_Monthly: snap.rent,
-      Net_Rent_Monthly: snap.netRent
+      Type: isPPOR ? "PPOR" : "Investment",
+      Property_Value: val,
+      Mortgage_Balance: mort,
+      Equity: equity,
+      Rent_Monthly: rent,
+      Net_Rent_Monthly: netRent
     };
   });
 
@@ -1260,12 +1637,6 @@ function renderPropertyEndTable(lastRow, propPrefixes){
         rightAlign: new Set(["Property_Value","Mortgage_Balance","Equity","Rent_Monthly","Net_Rent_Monthly"])
       })
     : `<div style="padding:12px;" class="muted">No property columns detected in the API output.</div>`;
-}
-
-function toggleFullTable(){
-  const box = document.getElementById("fullTableBox");
-  box.style.display = (box.style.display==="none") ? "block" : "none";
-  if(box.style.display === "block") renderFullTable();
 }
 
 function renderFullTable(){
@@ -1290,8 +1661,9 @@ function renderFullTable(){
       return false;
     });
   }
+
   box.innerHTML = buildTableHTML(filtered.slice(0, 500), cols, {
-    rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest/i.test(c)))
+    rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest|worth|equity|target|gap|drawdown/i.test(c)))
   }) + (filtered.length > 500 ? `<div class="small" style="padding:10px;">Showing first 500 rows of ${filtered.length}. Use Yearly mode or add search to narrow.</div>` : "");
 }
 
@@ -1349,31 +1721,28 @@ function hydrateUI(){
   renderProperties();
   pingAPI();
 
+  // expand key sections by default, keep full/raw collapsed
+  document.getElementById("secSummary").classList.add("open");
+  document.getElementById("secPropEnd").classList.add("open");
+  document.getElementById("secFull").classList.remove("open");
+  document.getElementById("secRaw").classList.remove("open");
+
   if(state.lastResult){
     renderResults(state.lastResult);
     document.getElementById("lastRunMeta").textContent =
       `Last run loaded from browser storage (${new Date().toLocaleString()}).`;
   }
 }
-
 function toNumber(v){
   if (v === null || v === undefined) return 0;
-
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
-
   if (typeof v === "string") {
     const s = v.trim();
     if (!s || s === "—" || s === "-") return 0;
-
-    const cleaned = s
-      .replace(/[$€£¥]/g, "")
-      .replace(/,/g, "")
-      .replace(/\s+/g, "");
-
+    const cleaned = s.replace(/[$€£¥]/g, "").replace(/,/g, "").replace(/\s+/g, "");
     const n = Number(cleaned);
     return Number.isFinite(n) ? n : 0;
   }
-
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
@@ -1394,141 +1763,28 @@ function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
 }
 
-/**
- * UPDATED findKey: more resilient matching
- * - exact
- * - case-insensitive exact
- * - case-insensitive contains
- * Returns null if not found.
- */
-function findKey(cols, candidates){
-  if(!Array.isArray(cols)) return null;
-
-  // 1) exact match
-  for (const cand of candidates){
-    if (cols.includes(cand)) return cand;
+// ✅ safe key picker: returns null if not found
+function pickKey(cols, candidates){
+  for(const c of candidates){
+    if(cols.includes(c)) return c;
   }
-
-  // 2) case-insensitive exact match
-  const lowerMap = new Map(cols.map(c => [String(c).toLowerCase(), c]));
-  for (const cand of candidates){
-    const hit = lowerMap.get(String(cand).toLowerCase());
-    if (hit) return hit;
-  }
-
-  // 3) case-insensitive contains match
-  const colsLower = cols.map(c => String(c).toLowerCase());
-  for (const cand of candidates){
-    const needle = String(cand).toLowerCase();
-    const idx = colsLower.findIndex(c => c.includes(needle));
-    if (idx >= 0) return cols[idx];
-  }
-
   return null;
 }
 
-/**
- * UPDATED detectPropertyPrefixes: supports multiple backend schemas
- */
 function detectPropertyPrefixes(cols){
   const set = new Set();
-  if(!Array.isArray(cols)) return [];
-
-  const patterns = [
-    /^(.+)_Property_Value$/i,
-    /^(.+)_Property_Projected_Value$/i,
-    /^(.+)_Mortgage_Balance$/i,
-    /^(.+)_Mortgage_Balance_Projected$/i,
-    /^(.+)_Property_Projected_Rental_Income$/i,
-    /^(.+)_Rent_Income$/i
-  ];
-
   cols.forEach(c=>{
-    const s = String(c);
-    for(const re of patterns){
-      const m = s.match(re);
-      if(m){ set.add(m[1]); break; }
-    }
+    const m = String(c).match(/^(.+)_Property_Value$/);
+    if(m) set.add(m[1]);
   });
-
   return Array.from(set);
 }
 
-/**
- * Helper: return first numeric value for existing key (allows 0 as valid)
- */
-function getFirstNumber(row, keys){
-  for(const k of keys){
-    if(!k) continue;
-    if(Object.prototype.hasOwnProperty.call(row, k)) return toNumber(row[k]);
-  }
-  return 0;
-}
-
-/**
- * Helper: choose best column for a property metric (schema-flexible)
- */
-function propCol(prefix, kind, cols){
-  const candidatesByKind = {
-    value: [
-      `${prefix}_Property_Value`,
-      `${prefix}_Property_Projected_Value`
-    ],
-    mortgage: [
-      `${prefix}_Mortgage_Balance`,
-      `${prefix}_Mortgage_Balance_Projected`
-    ],
-    rentMonthly: [
-      `${prefix}_Rent_Income`,
-      `${prefix}_Property_Projected_Rental_Income`
-    ],
-    netRentMonthly: [
-      `${prefix}_Net_Rent`,
-      `${prefix}_Net_Rent_Monthly`,
-      `${prefix}_Property_Net_Rent`
-    ],
-    isPPOR: [
-      `${prefix}_Is_PPOR`,
-      `${prefix}_is_owner_occupied`,
-      `${prefix}_Is_Owner_Occupied`
-    ]
-  };
-
-  const cands = candidatesByKind[kind] || [];
-  return findKey(cols, cands);
-}
-
-/**
- * Helper: read a property snapshot for a row
- */
-function getPropertySnapshot(row, prefix, cols){
-  const valueKey   = propCol(prefix, "value", cols);
-  const mortKey    = propCol(prefix, "mortgage", cols);
-  const rentKey    = propCol(prefix, "rentMonthly", cols);
-  const netRentKey = propCol(prefix, "netRentMonthly", cols);
-  const isPPORKey  = propCol(prefix, "isPPOR", cols);
-
-  const value = getFirstNumber(row, [valueKey]);
-  const mortgage = getFirstNumber(row, [mortKey]);
-  const equity = Math.max(value - mortgage, 0);
-
-  const rent = getFirstNumber(row, [rentKey]);
-  const netRent = getFirstNumber(row, [netRentKey]);
-
-  const isPPOR = isPPORKey ? !!toNumber(row[isPPORKey]) : false;
-
-  return { value, mortgage, equity, rent, netRent, isPPOR };
-}
-
-/**
- * UPDATED computePropertyTotals: uses schema-flexible snapshot helper
- */
-function computePropertyTotals(row, propPrefixes, cols){
+function computePropertyTotals(row, propPrefixes){
   let totalValue = 0, totalMortgage = 0;
   for(const prefix of propPrefixes){
-    const snap = getPropertySnapshot(row, prefix, cols);
-    totalValue += snap.value;
-    totalMortgage += snap.mortgage;
+    totalValue += toNumber(row[`${prefix}_Property_Value`]);
+    totalMortgage += toNumber(row[`${prefix}_Mortgage_Balance`]);
   }
   return {
     totalValue,
