@@ -696,7 +696,16 @@ function loadState(){
       netWorth: true, cash: true, stocks: true, propertyEquity: true,
       fireTarget: true, fireIncomeProxy: true, netRent: false, taxPaid: false
     };
+	
+	}
+	  // hard defaults if localStorage has blanks
+  if (!state.apiBase || !String(state.apiBase).trim()) {
+    state.apiBase = "https://fire-api-wixz.onrender.com";
   }
+  if (!state.apiPath || !String(state.apiPath).trim()) {
+    state.apiPath = "/fire";
+  }
+
 }
 
 /** ---------------------------
@@ -1093,7 +1102,7 @@ async function runModel(){
 
   const candidates = explicit
     ? [explicit.startsWith("/") ? explicit : ("/"+explicit)]
-    : ["/run", "/fire", "/fire-model", "/model", "/run_fire_model", "/fire_model", "/calculate", "/api/run"];
+	: ["/fire", "/fire/", "/run", "/fire-model", "/model", "/run_fire_model", "/fire_model", "/calculate"];
 
   document.getElementById("rawOut").textContent = "Running…";
   document.getElementById("resultsMeta").textContent = "Running…";
