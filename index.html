@@ -780,6 +780,7 @@ function repairJson(){
 }
 function copyPayload(){
   const payload = buildPayload();
+  console.log("payload.inputs (expanded):", JSON.stringify(payload.inputs, null, 2));
   navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
   alert("Copied payload to clipboard.");
 }
