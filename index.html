@@ -1048,19 +1048,23 @@ function buildPayload(){
 
 async function callPath(base, path, payload){
   const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
+  
+    const body = JSON.stringify(payload);
+	console.log("SENDING body:", body);
 
   let r, text;
   try {
-    r = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type":"application/json",
-        "Cache-Control":"no-store",
-        "Pragma":"no-cache"
-      },
-      cache: "no-store",
-      body: JSON.stringify(payload)
-    });
+	r = await fetch(url, {
+	  method: "POST",
+	  headers: {
+		"Content-Type":"application/json",
+		"Cache-Control":"no-store",
+		"Pragma":"no-cache"
+	  },
+	  cache: "no-store",
+	  body
+	});
+
   } catch (e) {
     // This is the big one: CORS / network / SSL / blocked request
     throw new Error(`FETCH_FAILED @ ${path}: ${e.message || e}`);
