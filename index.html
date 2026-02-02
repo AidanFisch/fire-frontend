@@ -686,34 +686,47 @@ let state = {
 function saveState(){
   localStorage.setItem(LS_KEY, JSON.stringify(state));
 }
+function isPlainObject(x){
+  return x && typeof x === "object" && !Array.isArray(x);
+}
+
 function loadState(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      state = {...state, ...parsed};
-      state.inputs = {...state.inputs, ...(parsed.inputs || {})};
-      state.property_list = parsed.property_list || state.property_list;
-      state.chartToggles = { ...(state.chartToggles || {}), ...(parsed.chartToggles || {}) };
+    if(!raw) return;
+
+    const parsed = JSON.parse(raw);
+
+    // merge only safe top-level primitives
+    if (isPlainObject(parsed)) {
+      if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
+      if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
+      if (typeof parsed.mode === "string") state.mode = parsed.mode;
+
+      // IMPORTANT: only merge inputs if it's a real object
+      if (isPlainObject(parsed.inputs)) {
+        state.inputs = { ...state.inputs, ...parsed.inputs };
+      }
+
+      if (Array.isArray(parsed.property_list)) {
+        state.property_list = parsed.property_list;
+      }
+
+      if (isPlainObject(parsed.chartToggles)) {
+        state.chartToggles = { ...state.chartToggles, ...parsed.chartToggles };
+      }
+
+      if (parsed.lastResult) state.lastResult = parsed.lastResult;
     }
-  }catch(e){}
-  // ensure toggle map exists
-  if(!state.chartToggles || typeof state.chartToggles !== "object"){
-    state.chartToggles = {
-      netWorth: true, cash: true, stocks: true, propertyEquity: true,
-      fireTarget: true, fireIncomeProxy: true, netRent: false, taxPaid: false
-    };
-	
-	}
-	  // hard defaults if localStorage has blanks
-  if (!state.apiBase || !String(state.apiBase).trim()) {
-    state.apiBase = "https://fire-api-wixz.onrender.com";
-  }
-  if (!state.apiPath || !String(state.apiPath).trim()) {
-    state.apiPath = "/fire";
+  } catch(e){
+    // ignore bad storage
   }
 
+  // hard defaults if blanks
+  if (!state.apiBase || !String(state.apiBase).trim()) state.apiBase = "https://fire-api-wixz.onrender.com";
+  if (!state.apiPath || !String(state.apiPath).trim()) state.apiPath = "/fire";
 }
+
 
 /** ---------------------------
  *  Tab navigation
