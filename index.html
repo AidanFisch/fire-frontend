@@ -1048,16 +1048,25 @@ function setApiStatus(ok, text){
     : `<span class="no"></span><span>API issue (${escapeHtml(text)})</span>`;
 }
 
+function normalizeInputs(obj){
+  const out = {};
+  for (const [k, v] of Object.entries(obj || {})){
+    out[k] = toNumber(v); // every input becomes a number
+  }
+  return out;
+}
+
 /** ---------------------------
  *  Build payload + run
  *  --------------------------*/
 function buildPayload(){
   return {
-    inputs: state.inputs,
+    inputs: normalizeInputs(state.inputs),  // ✅ normalize ALL inputs, no key list
     property_list: state.property_list,
     display_month: (state.mode === "monthly")
   };
 }
+
 
 async function callPath(base, path, payload){
   const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
@@ -1587,7 +1596,10 @@ function syncInputsFromUI(){
   for (const k of Object.keys(state.inputs)){
     const el = document.getElementById(k);
     if (!el) continue;
-    state.inputs[k] = toNumber(el.value);
+    // Only update if the field isn't blank
+	const raw = String(el.value ?? "").trim();
+	if (raw !== "") state.inputs[k] = toNumber(raw);
+
   }
   // Keep API fields in sync too
   const baseEl = document.getElementById("apiBase");
