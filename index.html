@@ -1094,6 +1094,16 @@ async function callPath(base, path, payload){
 
   text = await r.text();
 
+// If we accidentally hit the frontend (Netlify), we'll get HTML back
+if ((text || "").trim().startsWith("<!DOCTYPE html")) {
+  throw new Error(
+    `HIT_FRONTEND_HTML @ ${path}\n` +
+    `Your apiBase is probably pointing to the Netlify site, not Render.\n` +
+    `apiBase=${base}\n--- body (first 200 chars) ---\n${text.slice(0,200)}`
+  );
+}
+
+
   // Try JSON, but don't assume it
   let j = null;
   try { j = JSON.parse(text); } catch(e) {}
