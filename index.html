@@ -713,6 +713,59 @@ let state = {
   lastResult: null
 };
 
+const FIELD_META = {
+  // ---- core money
+  initial_savings: { type: "money" },
+  todays_lifestyle_income: { type: "money" },
+  current_income: { type: "money" },
+  current_expenses: { type: "money" },
+
+  // ---- core rates (stored as decimal, displayed as %)
+  inflation: { type: "percent" },
+  average_salary_increase: { type: "percent" },
+  stock_growth: { type: "percent" },
+  fire_swr: { type: "percent" },
+  super_sg_rate: { type: "percent" },
+  super_growth: { type: "percent" },
+
+  // ---- integers
+  current_age: { type: "int" },
+  end_age: { type: "int" },
+  super_access_age: { type: "int" },
+
+  // ---- other money
+  stock_yearly_contribution: { type: "money" },
+  starting_stock_value: { type: "money" },
+  super_starting_balance: { type: "money" },
+  super_additional_annual: { type: "money" },
+};
+
+const PROP_FIELD_META = {
+  // money
+  purchase_price: { type: "money" },
+  current_value: { type: "money" },
+  original_loan: { type: "money" },
+  loan_balance_current: { type: "money" },
+  purchase_fees: { type: "money" },
+  monthly_rent: { type: "money" },
+  strata_quarterly: { type: "money" },
+  rates_quarterly: { type: "money" },
+  other_costs_monthly: { type: "money" },
+
+  // rates (decimal in state, % in UI)
+  interest_rate: { type: "percent" },
+  property_growth: { type: "percent" },
+  rental_growth: { type: "percent" },
+
+  // integers
+  year_bought: { type: "int" },
+  loan_term_years: { type: "int" },
+
+  // text
+  name: { type: "text" },
+};
+
+
 function saveState(){
   localStorage.setItem(LS_KEY, JSON.stringify(state));
 }
@@ -837,18 +890,19 @@ function bindCoreInputs(){
   document.getElementById("apiBase").value = state.apiBase || "";
   document.getElementById("apiPath").value = state.apiPath || "";
 
-  for(const k of Object.keys(state.inputs)){
-    const el = document.getElementById(k);
-    if(!el) continue;
-    el.value = state.inputs[k];
-		const handler = () => {
-		  state.inputs[k] = toNumber(el.value);
-		  saveState();
-		};
-		el.addEventListener("input", handler);
-		el.addEventListener("change", handler);
+	for (const k of Object.keys(state.inputs)){
+	  const el = document.getElementById(k);
+	  if (!el) continue;
 
-  }
+	  const meta = FIELD_META[k] || { type: "money" }; // fallback if you missed one
+	  attachUnitInputBehavior(
+		el,
+		meta,
+		() => state.inputs[k],
+		(v) => { state.inputs[k] = v; }
+	  );
+	}
+
 
   document.getElementById("apiBase").oninput = (e)=>{
     state.apiBase = e.target.value.trim();
@@ -1004,15 +1058,28 @@ function renderProperties(){
     wrap.appendChild(card);
 
     fields.forEach(([key, type])=>{
-      const el = document.getElementById(`p_${p.id}_${key}`);
-      el.value = (p[key] ?? "");
-      el.oninput = ()=>{
-        const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-        if(!prop) return;
-        prop[key] = (type==="number") ? toNumber(el.value) : el.value;
-        saveState();
-        syncRawJsonFromCards();
-      };
+		const el = document.getElementById(`p_${p.id}_${key}`);
+
+		const meta = PROP_FIELD_META[key] || {
+		  type: (type === "number" ? "money" : "text")
+		};
+
+		attachUnitInputBehavior(
+		  el,
+		  meta,
+		  () => {
+			const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+			return prop ? prop[key] : (p[key] ?? 0);
+		  },
+		  (v) => {
+			const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+			if(!prop) return;
+			prop[key] = v;
+			saveState();
+			syncRawJsonFromCards();
+		  }
+		);
+
     });
 
     const offEl = document.getElementById(`p_${p.id}_use_offset`);
@@ -1159,7 +1226,6 @@ if ((text || "").trim().startsWith("<!DOCTYPE html")) {
 
 async function runModel(){
   saveState();
-  syncInputsFromUI();
   const base = (state.apiBase || "").replace(/\/+$/,"");
   if(!base){
     alert("Set API Base URL first.");
@@ -1747,11 +1813,92 @@ function toNumber(v){
   return Number.isFinite(n) ? n : 0;
 }
 
+function toNumber(v){
+  if (v === null || v === undefined) return 0;
+
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+
+  if (typeof v === "string") {
+    const s = v.trim();
+    if (!s || s === "—" || s === "-") return 0;
+
+    const cleaned = s
+      .replace(/[$€£¥]/g, "")
+      .replace(/,/g, "")
+      .replace(/\s+/g, "");
+
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/* ✅ PASTE YOUR UNIT HELPERS RIGHT HERE */
+const moneyFmt = new Intl.NumberFormat(undefined, {
+  style: "currency",
+  currency: "AUD",
+  maximumFractionDigits: 0
+});
+
+function formatForUI(value, meta){
+  const n = Number(value);
+  if (!meta || meta.type === "text") return String(value ?? "");
+  if (meta.type === "int") return Number.isFinite(n) ? String(Math.round(n)) : "";
+  if (meta.type === "money") return Number.isFinite(n) ? moneyFmt.format(n) : "";
+  if (meta.type === "percent") return Number.isFinite(n) ? `${(n * 100).toFixed(2).replace(/\.00$/,"")}%` : "";
+  return String(value ?? "");
+}
+
+function parseFromUI(str, meta){
+  if (!meta || meta.type === "text") return String(str ?? "");
+
+  const s = String(str ?? "").trim();
+  if (!s) return 0;
+
+  if (meta.type === "percent"){
+    const cleaned = s.replace(/%/g,"").replace(/,/g,"").trim();
+    const raw = Number(cleaned);
+    if (!Number.isFinite(raw)) return 0;
+    return (raw > 1) ? raw / 100 : raw;
+  }
+
+  const n = toNumber(s);
+  return meta.type === "int" ? Math.round(n) : n;
+}
+
+function attachUnitInputBehavior(el, meta, getVal, setVal){
+  if (!el) return;
+
+  el.value = formatForUI(getVal(), meta);
+
+  el.addEventListener("focus", () => {
+    const v = getVal();
+    if (meta?.type === "percent") el.value = String((Number(v) * 100).toFixed(4)).replace(/0+$/,"").replace(/\.$/,"");
+    else el.value = String(v ?? "");
+  });
+
+  const commit = () => {
+    const parsed = parseFromUI(el.value, meta);
+    setVal(parsed);
+    el.value = formatForUI(parsed, meta);
+    saveState();
+  };
+
+  el.addEventListener("blur", commit);
+  el.addEventListener("change", commit);
+}
+
+
+
 function fmtMoney(n){
   const x = Number(n);
   if(!Number.isFinite(x)) return "—";
-  return x.toLocaleString(undefined, {maximumFractionDigits:0});
+  return moneyFmt.format(x);
 }
+
+
 function moneyAxis(v){
   const x = Number(v);
   if(!Number.isFinite(x)) return v;
