@@ -894,7 +894,17 @@ function bindCoreInputs(){
 	  const el = document.getElementById(k);
 	  if (!el) continue;
 
-	  const meta = FIELD_META[k] || { type: "money" }; // fallback if you missed one
+	  const meta = FIELD_META[k] || { type: "money" };
+
+	  // IMPORTANT: formatted values need text inputs
+	  if (meta.type === "money" || meta.type === "percent"){
+		el.type = "text";
+		el.inputMode = "decimal";
+	  } else if (meta.type === "int"){
+		el.type = "text";        // can stay number, but text avoids any formatting edge cases
+		el.inputMode = "numeric";
+	  }
+
 	  attachUnitInputBehavior(
 		el,
 		meta,
@@ -902,6 +912,7 @@ function bindCoreInputs(){
 		(v) => { state.inputs[k] = v; }
 	  );
 	}
+
 
 
   document.getElementById("apiBase").oninput = (e)=>{
@@ -1060,9 +1071,17 @@ function renderProperties(){
     fields.forEach(([key, type])=>{
 		const el = document.getElementById(`p_${p.id}_${key}`);
 
-		const meta = PROP_FIELD_META[key] || {
-		  type: (type === "number" ? "money" : "text")
-		};
+		const meta = PROP_FIELD_META[key] || { type: (type === "number" ? "money" : "text") };
+
+		
+		if (meta.type === "money" || meta.type === "percent"){
+		  el.type = "text";
+		  el.inputMode = "decimal";
+		} else if (meta.type === "int"){
+		  el.type = "text";
+		  el.inputMode = "numeric";
+		}
+
 
 		attachUnitInputBehavior(
 		  el,
@@ -1846,7 +1865,7 @@ function formatForUI(value, meta){
   const n = Number(value);
   if (!meta || meta.type === "text") return String(value ?? "");
   if (meta.type === "int") return Number.isFinite(n) ? String(Math.round(n)) : "";
-  if (meta.type === "money") return Number.isFinite(n) ? moneyFmt.format(n) : "";
+  if (meta.type === "money") return Number.isFinite(n) ? fmtMoney(n) : "";
   if (meta.type === "percent") return Number.isFinite(n) ? `${(n * 100).toFixed(2).replace(/\.00$/,"")}%` : "";
   return String(value ?? "");
 }
@@ -1892,11 +1911,22 @@ function attachUnitInputBehavior(el, meta, getVal, setVal){
 
 
 
+const moneyFmt = new Intl.NumberFormat("en-AU", {
+  style: "currency",
+  currency: "AUD",
+  currencyDisplay: "narrowSymbol", // usually "$" not "A$"
+  maximumFractionDigits: 0
+});
+
 function fmtMoney(n){
   const x = Number(n);
   if(!Number.isFinite(x)) return "—";
-  return moneyFmt.format(x);
+  return moneyFmt
+    .format(x)
+    .replace(/^A\$/, "$")
+    .replace(/^AU\$/, "$");
 }
+
 
 
 function moneyAxis(v){
