@@ -462,36 +462,6 @@
                 <label>starting_stock_value</label>
                 <input id="starting_stock_value" type="number" step="1"/>
               </div>
-			  <div>
-				  <label>fire_swr</label>
-				  <input id="fire_swr" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>super_access_age</label>
-				  <input id="super_access_age" type="number" step="1" />
-				</div>
-
-				<div>
-				  <label>super_starting_balance</label>
-				  <input id="super_starting_balance" type="number" step="1" />
-				</div>
-
-				<div>
-				  <label>super_sg_rate (e.g. 0.11)</label>
-				  <input id="super_sg_rate" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>super_growth (e.g. 0.065)</label>
-				  <input id="super_growth" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>super_additional_annual</label>
-				  <input id="super_additional_annual" type="number" step="1" />
-				</div>
-
             </div>
           </div>
         </div>
@@ -593,14 +563,6 @@
             <h3 style="margin:0 0 8px 0;">Summary table</h3>
             <div class="sub">Clean, “actually useful” columns (cash/stocks/property/net worth).</div>
             <div class="hr"></div>
-			<div class="row" style="gap:10px; align-items:center; margin-bottom:10px;">
-			  <label class="muted" style="margin:0;">Time columns:</label>
-			  <select id="xMode" style="max-width:220px;">
-				<option value="both" selected>Year + Age</option>
-				<option value="year">Year only</option>
-				<option value="age">Age only</option>
-			  </select>
-			</div>
             <div class="tablewrap" id="summaryTableWrap"></div>
           </div>
           <div>
@@ -641,10 +603,6 @@
 /** ---------------------------
  *  State + Defaults
  *  --------------------------*/
-let summaryTimeMode = "both"; // "both" | "year" | "age"
-let lastSummaryResultForToggle = null;
-let lastPropPrefixesForToggle = null;
- 
 const LS_KEY = "fire_frontend_state_v3";
 let state = {
   apiBase: "https://fire-api-wixz.onrender.com",
@@ -1240,10 +1198,7 @@ let lastMetricsRegistry = [];
 
 function renderResults(result){
   document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
- 
-  lastSummaryResultForToggle = result;
-  lastPropPrefixesForToggle = propPrefixes;
-  
+
   const rows = result.rows || [];
   const mode = result.mode || "yearly";
   const n = rows.length;
@@ -1515,30 +1470,18 @@ function renderSummaryTable(result, propPrefixes){
       : (cash + stocks + equityTotal);
 
     return {
-		const out = {};
-
-		// ✅ Toggle logic
-		if (summaryTimeMode === "both" || summaryTimeMode === "year"){
-		  out[(yearKey || "Year")] = yearKey ? (r[yearKey] ?? "") : "";
-		}
-		if (summaryTimeMode === "both" || summaryTimeMode === "age"){
-		  out[(ageKey || "Age")] = ageKey ? (r[ageKey] ?? "") : "";
-		}
-
-		// Rest of your columns
-		out.Salary_Annual = salaryKey ? (r[salaryKey] ?? "") : "";
-		out.Expenses_Annual = expKey ? (r[expKey] ?? "") : "";
-		out.Total_Net_Rent = netRentKey ? (r[netRentKey] ?? "") : "";
-		out.Tax_Paid = taxKey ? (r[taxKey] ?? "") : "";
-		out.Cash_End = cash;
-		out.Stocks_End = stocks;
-		out.Property_Value_Total = propValueTotal;
-		out.Mortgage_Balance_Total = mortBalTotal;
-		out.Property_Equity_Total = equityTotal;
-		out.Net_Worth = netWorth;
-
-		return out;
-
+      [(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
+      [(ageKey  || "Age")]:  ageKey  ? (r[ageKey] ?? "")  : "",
+      Salary_Annual: salaryKey ? (r[salaryKey] ?? "") : "",
+      Expenses_Annual: expKey ? (r[expKey] ?? "") : "",
+      Total_Net_Rent: netRentKey ? (r[netRentKey] ?? "") : "",
+      Tax_Paid: taxKey ? (r[taxKey] ?? "") : "",
+      Cash_End: cash,
+      Stocks_End: stocks,
+      Property_Value_Total: propValueTotal,
+      Mortgage_Balance_Total: mortBalTotal,
+      Property_Equity_Total: equityTotal,
+      Net_Worth: netWorth
     };
   });
 
@@ -1904,18 +1847,6 @@ loadState();
 window.addEventListener("load", ()=>{
   bindCoreInputs();
   hydrateUI();
-  const xModeEl = document.getElementById("xMode");
-  if (xModeEl){
-    xModeEl.value = summaryTimeMode; // keep current choice
-    xModeEl.addEventListener("change", () => {
-      summaryTimeMode = xModeEl.value;
-
-      // Re-render summary table immediately using last cached data
-      if (lastSummaryResultForToggle){
-        renderSummaryTable(lastSummaryResultForToggle, lastPropPrefixesForToggle);
-      }
-    });
-  }
 });
 </script>
 
