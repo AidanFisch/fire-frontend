@@ -1854,12 +1854,7 @@ function toNumber(v){
   return Number.isFinite(n) ? n : 0;
 }
 
-/* ✅ PASTE YOUR UNIT HELPERS RIGHT HERE */
-const moneyFmt = new Intl.NumberFormat(undefined, {
-  style: "currency",
-  currency: "AUD",
-  maximumFractionDigits: 0
-});
+
 
 function formatForUI(value, meta){
   const n = Number(value);
