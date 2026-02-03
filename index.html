@@ -1304,6 +1304,8 @@ function renderResults(result){
 
   // Build labels + series
   const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
+  const ageLabels = rows.map(r => ageKey ? String(r[ageKey] ?? "") : "");
+
 
   const seriesFromKey = (key) => rows.map(r => getFirstNumber(r, [key]));
 
@@ -1361,6 +1363,7 @@ function renderResults(result){
     .map((m) => ({
       label: m.label,
       data: m.data,
+	  xAxisID: "x",
       yAxisID: m.axis,
       borderWidth: 2,
       tension: .25,
@@ -1373,7 +1376,10 @@ function renderResults(result){
 
   chart = new Chart(ctx, {
     type: "line",
-    data: { labels, datasets },
+    data: { 
+	labels, 
+	datasets 
+	},
     options: {
 	  locale: "en-US",
       responsive: true,
@@ -1387,7 +1393,26 @@ function renderResults(result){
         }
       },
       scales: {
-        x: { ticks:{ color:"rgba(255,255,255,.55)" }, grid:{ color:"rgba(255,255,255,.06)" } },
+        x: {
+			  position: "top",
+			  ticks: {
+				color: "rgba(255,255,255,.75)"
+			  },
+			  grid: {
+				color: "rgba(255,255,255,.06)"
+			  }
+			},
+		xAge: {
+			  position: "bottom",
+			  labels: ageLabels,
+			  ticks: {
+				color: "rgba(255,255,255,.45)"
+			  },
+			  grid: {
+				drawOnChartArea: false
+			  }
+			},
+
         y: {
           position: "left",
           ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
