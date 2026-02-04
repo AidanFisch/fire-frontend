@@ -795,16 +795,7 @@ function renderPropertyChips(propPrefixes){
     return;
   }
 
-  // "None" chip (turn off property series)
-  const noneChip = document.createElement("div");
-  noneChip.className = "chip" + (!state.showPropertySeries ? " active" : "");
-  noneChip.textContent = "Property: None";
-  noneChip.onclick = () => {
-    state.showPropertySeries = false;
-    saveState();
-    if(state.lastResult) renderResults(state.lastResult);
-  };
-  wrap.appendChild(noneChip);
+
 
   // Ensure a valid selection if we’re showing series
   if(state.showPropertySeries){
