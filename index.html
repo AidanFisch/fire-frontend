@@ -708,7 +708,8 @@ let state = {
     fireTarget: true,
     fireIncomeProxy: true,
     netRent: false,
-    taxPaid: false
+    taxPaid: false,
+	properties: false
   },
   lastResult: null
 };
@@ -1371,6 +1372,35 @@ function renderResults(result){
   // Property totals fallback using prefixes
   const propPrefixes = detectPropertyPrefixes(cols);
 
+  // ---------------------------
+// Per-property series (Mortgage, Equity, Net Rent)
+// ---------------------------
+  const propSeriesMetrics = [];
+
+  for (const prefix of propPrefixes){
+	  // locate keys for this property
+	  const valueKey   = propCol(prefix, "value", cols);        // e.g. Apartment_Property_Value
+	  const mortKey    = propCol(prefix, "mortgage", cols);     // e.g. Apartment_Mortgage_Balance
+	  const netRentKey = propCol(prefix, "netRentMonthly", cols); // e.g. Apartment_Net_Rent
+	
+	  // build series
+	  const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
+	  const equitySeries = rows.map(r => {
+	    const v = getFirstNumber(r, [valueKey]);
+	    const m = getFirstNumber(r, [mortKey]);
+	    return Math.max(v - m, 0);
+	  });
+	  const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKey]));
+	
+	  // create metric entries (these become chips)
+	  propSeriesMetrics.push(
+	    { id:`prop_${prefix}_mortgage`, label:`${prefix} — Mortgage`, axis:"y",  data: mortgageSeries, defaultOn:false, group:"properties" },
+	    { id:`prop_${prefix}_equity`,   label:`${prefix} — Equity`,   axis:"y",  data: equitySeries,   defaultOn:false, group:"properties" },
+	    { id:`prop_${prefix}_netrent`,  label:`${prefix} — Net rent`, axis:"y2", data: netRentSeriesP, defaultOn:false, group:"properties" }
+	  );
+	}
+
+	
   // KPI end row
   const cashEnd   = getFirstNumber(last, [cashKey]);
   const stocksEnd = getFirstNumber(last, [stockKey]);
@@ -1418,18 +1448,25 @@ function renderResults(result){
   const taxSeries = taxKey ? seriesFromKey(taxKey) : null;
 
   // Registry of possible chart datasets
+	// Registry of possible chart datasets
   const METRICS = [
-    { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
-    { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
-    { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
-    { id:"propertyEquity", label:"Property equity", axis:"y", data: equitySeries, defaultOn:true },
-
-    ...(fireIncomeProxySeries ? [{ id:"fireIncomeProxy", label:"Passive income proxy (monthly)", axis:"y2", data: fireIncomeProxySeries, defaultOn:true }] : []),
-    ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
-
-    ...(netRentSeries ? [{ id:"netRent", label:"Net rent", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
-    ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : [])
-  ];
+	  { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
+	  { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
+	  { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
+	  { id:"propertyEquity", label:"Property equity (total)", axis:"y", data: equitySeries, defaultOn:true },
+	
+	  ...(fireIncomeProxySeries ? [{ id:"fireIncomeProxy", label:"Passive income (monthly)", axis:"y2", data: fireIncomeProxySeries, defaultOn:true }] : []),
+	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
+	
+	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (total)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
+	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : []),
+	
+	  // ✅ Group toggle chip (not a real dataset)
+	  { id:"properties", label:"Properties (per property)", axis:null, data:null, defaultOn:false, isGroupToggle:true },
+	
+	  // ✅ Per-property datasets
+	  ...propSeriesMetrics
+	];
 
   lastMetricsRegistry = METRICS;
 
@@ -1443,18 +1480,30 @@ function renderResults(result){
   renderChartChips(METRICS);
 
   // Build chart datasets from toggles
-  const datasets = METRICS
-    .filter(m => state.chartToggles[m.id])
-    .map((m) => ({
-      label: m.label,
-      data: m.data,
-	  xAxisID: "x",
-      yAxisID: m.axis,
-      borderWidth: 2,
-      tension: .25,
-      pointRadius: (mode === "monthly" ? 0 : 2),
-      pointHoverRadius: (mode === "monthly" ? 2 : 4)
-    }));
+const propertiesOn = !!state.chartToggles.properties;
+
+const datasets = METRICS
+  .filter(m => {
+    // ignore group-only chip (no data)
+    if (m.isGroupToggle) return false;
+
+    // if this metric belongs to the properties group, require propertiesOn too
+    if (m.group === "properties") {
+      return propertiesOn && state.chartToggles[m.id];
+    }
+
+    // normal metrics
+    return state.chartToggles[m.id];
+  })
+  .map(m => ({
+    label: m.label,
+    data: m.data,
+    yAxisID: m.axis,
+    borderWidth: 2,
+    tension: .25,
+    pointRadius: (mode === "monthly" ? 0 : 2),
+    pointHoverRadius: (mode === "monthly" ? 2 : 4)
+  }));
 
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
@@ -1529,11 +1578,25 @@ function renderChartChips(METRICS){
     const chip = document.createElement("div");
     chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
     chip.textContent = m.label;
-    chip.onclick = () => {
-      state.chartToggles[m.id] = !state.chartToggles[m.id];
-      saveState();
-      if(state.lastResult) renderResults(state.lastResult);
-    };
+	chip.onclick = () => {
+	  // Group toggle: toggle properties and all prop_* toggles together
+	  if (m.isGroupToggle && m.id === "properties") {
+	    const next = !state.chartToggles.properties;
+	    state.chartToggles.properties = next;
+	
+	    // when turning on, enable all per-property series by default
+	    for (const mm of METRICS){
+	      if (mm.group === "properties"){
+	        state.chartToggles[mm.id] = next;   // turn all on/off together
+	      }
+	    }
+	  } else {
+	    state.chartToggles[m.id] = !state.chartToggles[m.id];
+	  }
+	
+	  saveState();
+	  if(state.lastResult) renderResults(state.lastResult);
+	};
     wrap.appendChild(chip);
   });
 }
@@ -2037,6 +2100,13 @@ function getPropertySnapshot(row, prefix, cols){
   const isPPOR = isPPORKey ? !!toNumber(row[isPPORKey]) : false;
 
   return { value, mortgage, equity, rent, netRent, isPPOR };
+}
+
+function seriesFromRowCalc(rows, fn){
+  return rows.map(r => {
+    const v = fn(r);
+    return Number.isFinite(v) ? v : 0;
+  });
 }
 
 function computePropertyTotals(row, propPrefixes, cols){
