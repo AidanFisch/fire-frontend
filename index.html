@@ -711,12 +711,12 @@ let state = {
     fireIncomeProxy: true,
     netRent: false,
     taxPaid: false,
-	properties: false
+	
 
 
   },
-  	activePropPrefix: null,
-	showPropertySeries: false,
+	selectedPropPrefixes: [],
+
   lastResult: null
 };
 
@@ -795,29 +795,35 @@ function renderPropertyChips(propPrefixes){
     return;
   }
 
-
-
-  // Ensure a valid selection if we’re showing series
-  if(state.showPropertySeries){
-    if(!state.activePropPrefix || !propPrefixes.includes(state.activePropPrefix)){
-      state.activePropPrefix = propPrefixes[0];
-    }
-  }
+  // Ensure array exists
+  if(!Array.isArray(state.selectedPropPrefixes)) state.selectedPropPrefixes = [];
 
   propPrefixes.forEach(prefix => {
     const chip = document.createElement("div");
-    const isActive = state.showPropertySeries && state.activePropPrefix === prefix;
+    const isActive = state.selectedPropPrefixes.includes(prefix);
+
     chip.className = "chip" + (isActive ? " active" : "");
     chip.textContent = displayNameForPrefix(prefix);
+
     chip.onclick = () => {
-      state.showPropertySeries = true;
-      state.activePropPrefix = prefix;
+      // toggle prefix in the selection array
+      if(state.selectedPropPrefixes.includes(prefix)){
+        state.selectedPropPrefixes = state.selectedPropPrefixes.filter(p => p !== prefix);
+      } else {
+        state.selectedPropPrefixes = [...state.selectedPropPrefixes, prefix];
+      }
       saveState();
       if(state.lastResult) renderResults(state.lastResult);
     };
+
     wrap.appendChild(chip);
   });
 }
+
+
+
+
+
 
 function saveState(){
   localStorage.setItem(LS_KEY, JSON.stringify(state));
@@ -1502,8 +1508,6 @@ function renderResults(result){
   saveState();
   renderChartChips(METRICS);
 
-  // Build chart datasets from toggles
-const propertiesOn = !!state.chartToggles.properties;
 
 const datasets = METRICS
   .filter(m => state.chartToggles[m.id])
@@ -1518,51 +1522,30 @@ const datasets = METRICS
   }));
 
   
-if(state.showPropertySeries && state.activePropPrefix && propPrefixes.includes(state.activePropPrefix)){
-  const prefix = state.activePropPrefix;
+const selected = Array.isArray(state.selectedPropPrefixes) ? state.selectedPropPrefixes : [];
 
-  const valueKey    = propCol(prefix, "value", cols);
-  const mortKey     = propCol(prefix, "mortgage", cols);
-  const netRentKeyP = propCol(prefix, "netRentMonthly", cols);
+selected
+  .filter(prefix => propPrefixes.includes(prefix))
+  .forEach(prefix => {
+    const valueKey    = propCol(prefix, "value", cols);
+    const mortKey     = propCol(prefix, "mortgage", cols);
+    const netRentKeyP = propCol(prefix, "netRentMonthly", cols);
 
-  const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
-  const equitySeriesP  = rows.map(r => {
-    const v = getFirstNumber(r, [valueKey]);
-    const m = getFirstNumber(r, [mortKey]);
-    return Math.max(v - m, 0);
+    const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
+    const equitySeriesP  = rows.map(r => {
+      const v = getFirstNumber(r, [valueKey]);
+      const m = getFirstNumber(r, [mortKey]);
+      return Math.max(v - m, 0);
+    });
+    const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKeyP]));
+
+    datasets.push(
+      { label: `${prefix} — Mortgage`, data: mortgageSeries, yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
+      { label: `${prefix} — Equity`,   data: equitySeriesP,  yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
+      { label: `${prefix} — Net rent`, data: netRentSeriesP, yAxisID:"y2", borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) }
+    );
   });
-  const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKeyP]));
 
-  datasets.push(
-    {
-      label: `${prefix} — Mortgage`,
-      data: mortgageSeries,
-      yAxisID: "y",
-      borderWidth: 2,
-      tension: .25,
-      pointRadius: (mode === "monthly" ? 0 : 2),
-      pointHoverRadius: (mode === "monthly" ? 2 : 4)
-    },
-    {
-      label: `${prefix} — Equity`,
-      data: equitySeriesP,
-      yAxisID: "y",
-      borderWidth: 2,
-      tension: .25,
-      pointRadius: (mode === "monthly" ? 0 : 2),
-      pointHoverRadius: (mode === "monthly" ? 2 : 4)
-    },
-    {
-      label: `${prefix} — Net rent`,
-      data: netRentSeriesP,
-      yAxisID: "y2",
-      borderWidth: 2,
-      tension: .25,
-      pointRadius: (mode === "monthly" ? 0 : 2),
-      pointHoverRadius: (mode === "monthly" ? 2 : 4)
-    }
-  );
-}
 
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
