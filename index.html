@@ -576,6 +576,8 @@
 
           <!-- Toggle chips injected here -->
           <div class="chips" id="chartChips"></div>
+		  <div class="chips" id="propertyChips"></div>
+
 
           <div class="sub" style="margin-top:6px;">
             Left axis = balances (net worth/cash/stocks/equity). Right axis = monthly cashflow (FIRE target/proxy, rent/tax if available).
@@ -710,7 +712,11 @@ let state = {
     netRent: false,
     taxPaid: false,
 	properties: false
+
+
   },
+  	activePropPrefix: null,
+	showPropertySeries: false,
   lastResult: null
 };
 
@@ -766,6 +772,61 @@ const PROP_FIELD_META = {
   name: { type: "text" },
 };
 
+function normSlug(s){
+  return String(s ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function displayNameForPrefix(prefix){
+  const pfx = normSlug(prefix);
+  const hit = (state.property_list || []).find(p => normSlug(p?.name).includes(pfx));
+  return hit?.name || prefix;
+}
+
+function renderPropertyChips(propPrefixes){
+  const wrap = document.getElementById("propertyChips");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+
+  if(!propPrefixes || !propPrefixes.length){
+    wrap.innerHTML = `<div class="muted">No per-property series detected.</div>`;
+    return;
+  }
+
+  // "None" chip (turn off property series)
+  const noneChip = document.createElement("div");
+  noneChip.className = "chip" + (!state.showPropertySeries ? " active" : "");
+  noneChip.textContent = "Property: None";
+  noneChip.onclick = () => {
+    state.showPropertySeries = false;
+    saveState();
+    if(state.lastResult) renderResults(state.lastResult);
+  };
+  wrap.appendChild(noneChip);
+
+  // Ensure a valid selection if we’re showing series
+  if(state.showPropertySeries){
+    if(!state.activePropPrefix || !propPrefixes.includes(state.activePropPrefix)){
+      state.activePropPrefix = propPrefixes[0];
+    }
+  }
+
+  propPrefixes.forEach(prefix => {
+    const chip = document.createElement("div");
+    const isActive = state.showPropertySeries && state.activePropPrefix === prefix;
+    chip.className = "chip" + (isActive ? " active" : "");
+    chip.textContent = displayNameForPrefix(prefix);
+    chip.onclick = () => {
+      state.showPropertySeries = true;
+      state.activePropPrefix = prefix;
+      saveState();
+      if(state.lastResult) renderResults(state.lastResult);
+    };
+    wrap.appendChild(chip);
+  });
+}
 
 function saveState(){
   localStorage.setItem(LS_KEY, JSON.stringify(state));
@@ -1371,34 +1432,10 @@ function renderResults(result){
 
   // Property totals fallback using prefixes
   const propPrefixes = detectPropertyPrefixes(cols);
+  renderPropertyChips(propPrefixes);
 
-  // ---------------------------
-// Per-property series (Mortgage, Equity, Net Rent)
-// ---------------------------
-  const propSeriesMetrics = [];
 
-  for (const prefix of propPrefixes){
-	  // locate keys for this property
-	  const valueKey   = propCol(prefix, "value", cols);        // e.g. Apartment_Property_Value
-	  const mortKey    = propCol(prefix, "mortgage", cols);     // e.g. Apartment_Mortgage_Balance
-	  const netRentKey = propCol(prefix, "netRentMonthly", cols); // e.g. Apartment_Net_Rent
-	
-	  // build series
-	  const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
-	  const equitySeries = rows.map(r => {
-	    const v = getFirstNumber(r, [valueKey]);
-	    const m = getFirstNumber(r, [mortKey]);
-	    return Math.max(v - m, 0);
-	  });
-	  const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKey]));
-	
-	  // create metric entries (these become chips)
-	  propSeriesMetrics.push(
-	    { id:`prop_${prefix}_mortgage`, label:`${prefix} — Mortgage`, axis:"y",  data: mortgageSeries, defaultOn:false, group:"properties" },
-	    { id:`prop_${prefix}_equity`,   label:`${prefix} — Equity`,   axis:"y",  data: equitySeries,   defaultOn:false, group:"properties" },
-	    { id:`prop_${prefix}_netrent`,  label:`${prefix} — Net rent`, axis:"y2", data: netRentSeriesP, defaultOn:false, group:"properties" }
-	  );
-	}
+
 
 	
   // KPI end row
@@ -1449,24 +1486,19 @@ function renderResults(result){
 
   // Registry of possible chart datasets
 	// Registry of possible chart datasets
-  const METRICS = [
+	const METRICS = [
 	  { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
 	  { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
 	  { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
 	  { id:"propertyEquity", label:"Property equity (total)", axis:"y", data: equitySeries, defaultOn:true },
-	
+
 	  ...(fireIncomeProxySeries ? [{ id:"fireIncomeProxy", label:"Passive income (monthly)", axis:"y2", data: fireIncomeProxySeries, defaultOn:true }] : []),
 	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
-	
+
 	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (total)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
 	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : []),
-	
-	  // ✅ Group toggle chip (not a real dataset)
-	  { id:"properties", label:"Properties (per property)", axis:null, data:null, defaultOn:false, isGroupToggle:true },
-	
-	  // ✅ Per-property datasets
-	  ...propSeriesMetrics
 	];
+
 
   lastMetricsRegistry = METRICS;
 
@@ -1483,18 +1515,7 @@ function renderResults(result){
 const propertiesOn = !!state.chartToggles.properties;
 
 const datasets = METRICS
-  .filter(m => {
-    // ignore group-only chip (no data)
-    if (m.isGroupToggle) return false;
-
-    // if this metric belongs to the properties group, require propertiesOn too
-    if (m.group === "properties") {
-      return propertiesOn && state.chartToggles[m.id];
-    }
-
-    // normal metrics
-    return state.chartToggles[m.id];
-  })
+  .filter(m => state.chartToggles[m.id])
   .map(m => ({
     label: m.label,
     data: m.data,
@@ -1504,6 +1525,53 @@ const datasets = METRICS
     pointRadius: (mode === "monthly" ? 0 : 2),
     pointHoverRadius: (mode === "monthly" ? 2 : 4)
   }));
+
+  
+if(state.showPropertySeries && state.activePropPrefix && propPrefixes.includes(state.activePropPrefix)){
+  const prefix = state.activePropPrefix;
+
+  const valueKey    = propCol(prefix, "value", cols);
+  const mortKey     = propCol(prefix, "mortgage", cols);
+  const netRentKeyP = propCol(prefix, "netRentMonthly", cols);
+
+  const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
+  const equitySeriesP  = rows.map(r => {
+    const v = getFirstNumber(r, [valueKey]);
+    const m = getFirstNumber(r, [mortKey]);
+    return Math.max(v - m, 0);
+  });
+  const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKeyP]));
+
+  datasets.push(
+    {
+      label: `${prefix} — Mortgage`,
+      data: mortgageSeries,
+      yAxisID: "y",
+      borderWidth: 2,
+      tension: .25,
+      pointRadius: (mode === "monthly" ? 0 : 2),
+      pointHoverRadius: (mode === "monthly" ? 2 : 4)
+    },
+    {
+      label: `${prefix} — Equity`,
+      data: equitySeriesP,
+      yAxisID: "y",
+      borderWidth: 2,
+      tension: .25,
+      pointRadius: (mode === "monthly" ? 0 : 2),
+      pointHoverRadius: (mode === "monthly" ? 2 : 4)
+    },
+    {
+      label: `${prefix} — Net rent`,
+      data: netRentSeriesP,
+      yAxisID: "y2",
+      borderWidth: 2,
+      tension: .25,
+      pointRadius: (mode === "monthly" ? 0 : 2),
+      pointHoverRadius: (mode === "monthly" ? 2 : 4)
+    }
+  );
+}
 
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
@@ -1579,24 +1647,11 @@ function renderChartChips(METRICS){
     chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
     chip.textContent = m.label;
 	chip.onclick = () => {
-	  // Group toggle: toggle properties and all prop_* toggles together
-	  if (m.isGroupToggle && m.id === "properties") {
-	    const next = !state.chartToggles.properties;
-	    state.chartToggles.properties = next;
-	
-	    // when turning on, enable all per-property series by default
-	    for (const mm of METRICS){
-	      if (mm.group === "properties"){
-	        state.chartToggles[mm.id] = next;   // turn all on/off together
-	      }
-	    }
-	  } else {
-	    state.chartToggles[m.id] = !state.chartToggles[m.id];
-	  }
-	
+	  state.chartToggles[m.id] = !state.chartToggles[m.id];
 	  saveState();
 	  if(state.lastResult) renderResults(state.lastResult);
 	};
+
     wrap.appendChild(chip);
   });
 }
