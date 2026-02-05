@@ -1381,6 +1381,75 @@ async function runModel(){
   showTab("results");
 }
 
+// Draw a vertical "FIRE" marker line on the chart
+const fireMarkerPlugin = {
+  id: "fireMarker",
+  afterDraw(chart, args, pluginOptions) {
+    const { ctx, chartArea, scales } = chart;
+    const xScale = scales.x;
+    if (!xScale || !chartArea) return;
+
+    const idx = pluginOptions?.index;
+    if (idx === null || idx === undefined || idx < 0) return;
+
+    // Category scale: get pixel by index
+    const x = xScale.getPixelForValue(idx);
+    if (!Number.isFinite(x)) return;
+
+    ctx.save();
+
+    // Line styling (adjust to taste)
+    ctx.strokeStyle = pluginOptions?.color || "rgba(139,92,246,.95)";
+    ctx.lineWidth = pluginOptions?.lineWidth || 2;
+    ctx.setLineDash(pluginOptions?.dash || [6, 6]);
+
+    // Vertical line
+    ctx.beginPath();
+    ctx.moveTo(x, chartArea.top);
+    ctx.lineTo(x, chartArea.bottom);
+    ctx.stroke();
+
+    // Optional label
+    const label = pluginOptions?.label || "FIRE";
+    ctx.setLineDash([]);
+    ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
+    ctx.font = pluginOptions?.font || "600 12px ui-sans-serif, system-ui, -apple-system, Segoe UI";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    // Small label box background (optional)
+    const padX = 8, padY = 6;
+    const textW = ctx.measureText(label).width;
+    const boxW = textW + padX * 2;
+    const boxH = 22;
+
+    const bx = Math.min(x + 8, chartArea.right - boxW);
+    const by = chartArea.top + 8;
+
+    ctx.fillStyle = pluginOptions?.boxBg || "rgba(0,0,0,.45)";
+    ctx.strokeStyle = pluginOptions?.boxBorder || "rgba(255,255,255,.15)";
+    ctx.lineWidth = 1;
+
+    // Rounded rect
+    const r = 10;
+    ctx.beginPath();
+    ctx.moveTo(bx + r, by);
+    ctx.arcTo(bx + boxW, by, bx + boxW, by + boxH, r);
+    ctx.arcTo(bx + boxW, by + boxH, bx, by + boxH, r);
+    ctx.arcTo(bx, by + boxH, bx, by, r);
+    ctx.arcTo(bx, by, bx + boxW, by, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Label text
+    ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
+    ctx.fillText(label, bx + padX, by + 5);
+
+    ctx.restore();
+  }
+};
+	
 /** ---------------------------
  *  Results rendering
  *  --------------------------*/
@@ -1407,9 +1476,34 @@ function renderResults(result){
   const cols = result.columns || Object.keys(rows[0] || {});
   const last = rows[n-1];
 
-  // Core keys
   const yearKey  = findKey(cols, ["Year"]);
   const ageKey   = findKey(cols, ["Age"]);
+
+	const fireEligibleKey = findKey(cols, ["FIRE_Eligible", "fire_eligible"]);
+	let fireIndex = -1;
+	
+	if (fireEligibleKey) {
+	  // first row where FIRE_Eligible becomes 1
+	  fireIndex = rows.findIndex(r => toNumber(r[fireEligibleKey]) === 1);
+}
+
+	let fireLabel = "FIRE";
+if (fireIndex >= 0) {
+  const fireRow = rows[fireIndex];
+  const fireAge = ageKey ? toNumber(fireRow[ageKey]) : null;
+
+  // Use year label if available
+  const fireYear = yearKey ? fireRow[yearKey] : null;
+
+  if (Number.isFinite(fireAge) && fireAge > 0) {
+    fireLabel = `FIRE @ ${fireAge.toFixed(1)}`;
+  } else if (fireYear !== null && fireYear !== undefined) {
+    fireLabel = `FIRE (${fireYear})`;
+  }
+}
+
+
+  // Core keys
   const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
   const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
   const superKey = findKey(cols, ["Super_Balance", "Super_Balance_End", "Super"]);
@@ -1627,6 +1721,7 @@ selected
 	labels, 
 	datasets 
 	},
+    plugins: [fireMarkerPlugin],
     options: {
 	  locale: "en-US",
       responsive: true,
@@ -1637,7 +1732,15 @@ selected
           callbacks: {
             label: (c)=> `${c.dataset.label}: ${fmtMoney(c.parsed.y)}`
           }
-        }
+        },		
+      fireMarker: {
+        index: fireIndex,
+        label: fireLabel,
+        color: "rgba(139,92,246,.95)",
+        dash: [6, 6],
+        lineWidth: 2,
+        boxBg: "rgba(0,0,0,.45)"
+      }
       },
       scales: {
         x: {
