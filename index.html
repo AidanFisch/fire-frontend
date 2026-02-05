@@ -955,43 +955,48 @@ function copyPayload(){
 let pingTimer = null;
 
 function bindCoreInputs(){
+  // API fields
   document.getElementById("apiBase").value = state.apiBase || "";
   document.getElementById("apiPath").value = state.apiPath || "";
 
-// Don't overwrite formatted fields.
-// bindCoreInputs() already attaches formatting & initializes values via attachUnitInputBehavior.
+  // ✅ Attach formatting behavior to ALL core+advanced input fields
+  for (const k of Object.keys(state.inputs)){
+    const el = document.getElementById(k);
+    if (!el) continue;
 
-	  const meta = FIELD_META[k] || { type: "money" };
+    const meta = FIELD_META[k] || { type: "money" };
 
-	  // IMPORTANT: formatted values need text inputs
-	  if (meta.type === "money" || meta.type === "percent"){
-		el.type = "text";
-		el.inputMode = "decimal";
-	  } else if (meta.type === "int"){
-		el.type = "text";        // can stay number, but text avoids any formatting edge cases
-		el.inputMode = "numeric";
-	  }
+    // Use text inputs so we can display formatted values like "$500,000" or "2.5%"
+    if (meta.type === "money" || meta.type === "percent"){
+      el.type = "text";
+      el.inputMode = "decimal";
+    } else if (meta.type === "int"){
+      el.type = "text";
+      el.inputMode = "numeric";
+    }
 
-	  attachUnitInputBehavior(
-		el,
-		meta,
-		() => state.inputs[k],
-		(v) => { state.inputs[k] = v; }
-	  );
-	}
+    attachUnitInputBehavior(
+      el,
+      meta,
+      () => state.inputs[k],
+      (v) => { state.inputs[k] = v; }
+    );
+  }
 
-
-
+  // API listeners
   document.getElementById("apiBase").oninput = (e)=>{
     state.apiBase = e.target.value.trim();
     saveState();
     clearTimeout(pingTimer);
     pingTimer = setTimeout(pingAPI, 400);
   };
+
   document.getElementById("apiPath").oninput = (e)=>{
     state.apiPath = e.target.value.trim();
     saveState();
   };
+}
+
 
 
 /** ---------------------------
@@ -1939,8 +1944,8 @@ function hydrateUI(){
   document.getElementById("modeSelect").value = state.mode || "yearly";
   setMode(state.mode || "yearly");
 
-// Don't overwrite formatted fields.
-// bindCoreInputs() already attaches formatting & initializes values via attachUnitInputBehavior.
+  // ✅ DO NOT do: el.value = state.inputs[k]
+  // bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
 
   renderProperties();
   pingAPI();
