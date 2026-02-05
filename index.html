@@ -1492,7 +1492,13 @@ const passiveIncomeSeries = fireIncomeProxyKey
     })
   : null;
 
-	const cashDrawKey = findKey(cols, ["Cash_Drawdown_Paid", "Cash_Drawdown_Total"]);
+	
+const cashDrawKey = findKey(cols, [
+  "Cash_Drawdown_Monthly",   // NEW yearly “last month” metric
+  "Cash_Drawdown_Paid",
+  "Cash_Drawdown_Total"
+]);
+
 
 const cashDrawSeries = cashDrawKey
   ? seriesFromKey(cashDrawKey).map(v => (cashDrawKey === "Cash_Drawdown_Total" ? v / 12 : v))
