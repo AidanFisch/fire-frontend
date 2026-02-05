@@ -1494,7 +1494,12 @@ const passiveIncomeSeries = fireIncomeProxyKey
 
   const fireTargetSeries = fireTargetKey ? seriesFromKey(fireTargetKey) : null;
   
-  const netRentSeries = netRentKey ? seriesFromKey(netRentKey) : null;
+  const netRentSeries = netRentKey
+  ? seriesFromKey(netRentKey).map(v => {
+      // Yearly mode returns annual net rent, so convert to monthly
+      return (mode === "yearly" ? v / 12 : v);
+    })
+  : null;
   const taxSeries = taxKey ? seriesFromKey(taxKey) : null;
 
 	
@@ -1515,7 +1520,7 @@ const passiveIncomeSeries = fireIncomeProxyKey
 
 	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
 
-	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (total)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
+	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
 	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : []),
 		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:true}] : []),		
 	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
