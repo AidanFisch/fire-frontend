@@ -714,11 +714,13 @@ let state = {
     stocks: true,
     propertyEquity: true,
     fireTarget: true,
-    passiveIncome: true,
+    passiveIncome: fault,
     netRent: false,
     taxPaid: false,
 	superBalance: false,
 	cashDrawdown: false,
+	fireIncome: true,
+	fireIncomeWithCash: true,
 	
 
 
@@ -1450,6 +1452,11 @@ function renderResults(result){
   const propPrefixes = detectPropertyPrefixes(cols);
   renderPropertyChips(propPrefixes);
 
+	const fireIncomeKey = findKey(cols, [
+  "FIRE_Income_Monthly",
+  "Fire_Replacement_Cashflow_Monthly"
+]);
+
 
 
 
@@ -1523,6 +1530,14 @@ const cashDrawSeries = cashDrawKey
   ? seriesFromKey(taxKey).map(v => (mode === "yearly" ? v / 12 : v))
   : null;
 
+	const fireIncomeSeries = fireIncomeKey ? seriesFromKey(fireIncomeKey) : null;
+	
+const fireIncomeWithCashSeries =
+  (fireIncomeSeries && cashDrawSeries && fireIncomeSeries.length === cashDrawSeries.length)
+    ? fireIncomeSeries.map((v, idx) => v + cashDrawSeries[idx])
+    : null;
+
+
 	
 	const withdrawalsKey = findKey(cols, ["Withdrawals_Total","Withdrawals_Monthly"]);
 	const withdrawalsSeries = withdrawalsKey
@@ -1543,10 +1558,12 @@ const cashDrawSeries = cashDrawKey
 
 	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
 	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
-		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:true}] : []),		
+		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
 	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
 		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
 		...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
+		...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true}] : []),
+		...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash",  label:"FIRE income + cash (monthly)",  axis:"y2",  data: fireIncomeWithCashSeries,  defaultOn:true}] : []),
 
 	];
 
@@ -1702,7 +1719,7 @@ function setChartPreset(which){
     for(const id of ids) state.chartToggles[id] = true;
   } else {
     // key
-    const keySet = new Set(["netWorth","cash","stocks","superBalance","propertyEquity","fireTarget","passiveIncome"]);
+    const keySet = new Set(["netWorth","cash","stocks","superBalance","propertyEquity","fireTarget","fireIncome","fireIncomeWithCash"]);
     for(const id of ids) state.chartToggles[id] = keySet.has(id);
   }
 
