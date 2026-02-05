@@ -958,9 +958,8 @@ function bindCoreInputs(){
   document.getElementById("apiBase").value = state.apiBase || "";
   document.getElementById("apiPath").value = state.apiPath || "";
 
-	for (const k of Object.keys(state.inputs)){
-	  const el = document.getElementById(k);
-	  if (!el) continue;
+// Don't overwrite formatted fields.
+// bindCoreInputs() already attaches formatting & initializes values via attachUnitInputBehavior.
 
 	  const meta = FIELD_META[k] || { type: "money" };
 
@@ -1940,10 +1939,8 @@ function hydrateUI(){
   document.getElementById("modeSelect").value = state.mode || "yearly";
   setMode(state.mode || "yearly");
 
-  for(const k of Object.keys(state.inputs)){
-    const el = document.getElementById(k);
-    if(el) el.value = state.inputs[k];
-  }
+// Don't overwrite formatted fields.
+// bindCoreInputs() already attaches formatting & initializes values via attachUnitInputBehavior.
 
   renderProperties();
   pingAPI();
