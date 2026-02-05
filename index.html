@@ -718,6 +718,7 @@ let state = {
     netRent: false,
     taxPaid: false,
 	superBalance: false,
+	cashDrawdown: false,
 	
 
 
@@ -1481,7 +1482,11 @@ const passiveIncomeSeries = fireIncomeProxyKey
     })
   : null;
 
+	const cashDrawKey = findKey(cols, ["Cash_Drawdown_Paid", "Cash_Drawdown_Total"]);
 
+const cashDrawSeries = cashDrawKey
+  ? seriesFromKey(cashDrawKey).map(v => (cashDrawKey === "Cash_Drawdown_Total" ? v / 12 : v))
+  : null;
 
   const cashSeries   = seriesFromKey(cashKey);
   const stockSeries  = seriesFromKey(stockKey);
@@ -1510,7 +1515,9 @@ const passiveIncomeSeries = fireIncomeProxyKey
       return (mode === "yearly" ? v / 12 : v);
     })
   : null;
-  const taxSeries = taxKey ? seriesFromKey(taxKey) : null;
+  const taxSeries = taxKey
+  ? seriesFromKey(taxKey).map(v => (mode === "yearly" ? v / 12 : v))
+  : null;
 
 	
 	const withdrawalsKey = findKey(cols, ["Withdrawals_Total","Withdrawals_Monthly"]);
@@ -1531,10 +1538,11 @@ const passiveIncomeSeries = fireIncomeProxyKey
 	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
 
 	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
-	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : []),
+	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
 		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:true}] : []),		
 	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
 		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
+		...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
 
 	];
 
@@ -1579,12 +1587,15 @@ selected
       const m = getFirstNumber(r, [mortKey]);
       return Math.max(v - m, 0);
     });
-    const netRentSeriesP = rows.map(r => getFirstNumber(r, [netRentKeyP]));
+    const netRentSeriesP = rows.map(r => {
+  const v = getFirstNumber(r, [netRentKeyP]);
+  return (mode === "yearly" ? v / 12 : v);
+});
 
     datasets.push(
       { label: `${prefix} — Mortgage`, data: mortgageSeries, yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
       { label: `${prefix} — Equity`,   data: equitySeriesP,  yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
-      { label: `${prefix} — Net rent`, data: netRentSeriesP, yAxisID:"y2", borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) }
+      { label: `${prefix} — Net rent (monthly)`, data: netRentSeriesP, yAxisID:"y2", borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) }
     );
   });
 
