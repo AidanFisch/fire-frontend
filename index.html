@@ -714,7 +714,6 @@ let state = {
     stocks: true,
     propertyEquity: true,
     fireTarget: true,
-    passiveIncome: false,
     netRent: false,
     taxPaid: false,
 	superBalance: false,
@@ -1432,11 +1431,11 @@ function renderResults(result){
     "Target_Monthly_Infl_Adj",
     "FIRE_Target"
   ]);
-	// Prefer REAL passive income series from backend
-	const passiveKey = findKey(cols, [
-	  "Passive_Income_Monthly",  // prefer true monthly if present
-	  "Passive_Income_Total"     // fallback if only yearly exists
-	]);
+	// // Prefer REAL passive income series from backend
+	// const passiveKey = findKey(cols, [
+	//   "Passive_Income_Monthly",  // prefer true monthly if present
+	//   "Passive_Income_Total"     // fallback if only yearly exists
+	// ]);
 	
 	// Keep FIRE proxy as fallback only
 	const fireIncomeProxyKey = passiveKey || findKey(cols, [
@@ -1558,7 +1557,7 @@ const fireIncomeWithCashSeries =
 
 	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
 	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
-		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
+		// ...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
 	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
 		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
 		...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
