@@ -1431,11 +1431,11 @@ function renderResults(result){
     "Target_Monthly_Infl_Adj",
     "FIRE_Target"
   ]);
-	// // Prefer REAL passive income series from backend
-	// const passiveKey = findKey(cols, [
-	//   "Passive_Income_Monthly",  // prefer true monthly if present
-	//   "Passive_Income_Total"     // fallback if only yearly exists
-	// ]);
+	// Prefer REAL passive income series from backend
+	const passiveKey = findKey(cols, [
+	  "Passive_Income_Monthly",  // prefer true monthly if present
+	  "Passive_Income_Total"     // fallback if only yearly exists
+	]);
 	
 	// Keep FIRE proxy as fallback only
 	const fireIncomeProxyKey = passiveKey || findKey(cols, [
