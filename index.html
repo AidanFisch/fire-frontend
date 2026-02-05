@@ -462,9 +462,14 @@
                 <label>starting_stock_value</label>
                 <input id="starting_stock_value" type="number" step="1"/>
               </div>
-			  <div>
-				  <label>fire_swr</label>
-				  <input id="fire_swr" type="number" step="0.001" />
+				<div>
+				  <label>stock_swr</label>
+				  <input id="stock_swr" type="number" step="0.001" />
+				</div>
+				
+				<div>
+				  <label>super_swr</label>
+				  <input id="super_swr" type="number" step="0.001" />
 				</div>
 
 				<div>
@@ -653,7 +658,8 @@ let state = {
     stock_yearly_contribution: 20000,
     starting_stock_value: 35000,
 	
-	fire_swr: 0.04,
+	stock_swr: 0.04,
+	super_swr: 0.04,
     super_access_age: 60,
     super_starting_balance: 120000,
     super_sg_rate: 0.11,
@@ -711,6 +717,7 @@ let state = {
     passiveIncome: true,
     netRent: false,
     taxPaid: false,
+	superBalance: false,
 	
 
 
@@ -731,7 +738,8 @@ const FIELD_META = {
   inflation: { type: "percent" },
   average_salary_increase: { type: "percent" },
   stock_growth: { type: "percent" },
-  fire_swr: { type: "percent" },
+  stock_swr: { type: "percent" },
+  super_swr: { type: "percent" },
   super_sg_rate: { type: "percent" },
   super_growth: { type: "percent" },
 
@@ -1398,6 +1406,7 @@ function renderResults(result){
   const ageKey   = findKey(cols, ["Age"]);
   const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
   const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+  const superKey = findKey(cols, ["Super_Balance", "Super_Balance_End", "Super"]);
 
   // Prefer backend totals/net-worth if present
   const equityTotalKey = findKey(cols, ["Property_Equity_Total","Total_Property_Equity","Total_Equity"]);
@@ -1476,6 +1485,7 @@ const passiveIncomeSeries = fireIncomeProxyKey
 
   const cashSeries   = seriesFromKey(cashKey);
   const stockSeries  = seriesFromKey(stockKey);
+  const superSeries = superKey ? seriesFromKey(superKey) : null;
 
   const equitySeries = rows.map(r => {
     if (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey)) return toNumber(r[equityTotalKey]);
@@ -1524,6 +1534,7 @@ const passiveIncomeSeries = fireIncomeProxyKey
 	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid", axis:"y2", data: taxSeries, defaultOn:false }] : []),
 		...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:true}] : []),		
 	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
+		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
 
 	];
 
@@ -1676,7 +1687,7 @@ function setChartPreset(which){
     for(const id of ids) state.chartToggles[id] = true;
   } else {
     // key
-    const keySet = new Set(["netWorth","cash","stocks","propertyEquity","fireTarget","passiveIncome"]);
+    const keySet = new Set(["netWorth","cash","stocks","superBalance","propertyEquity","fireTarget","passiveIncome"]);
     for(const id of ids) state.chartToggles[id] = keySet.has(id);
   }
 
