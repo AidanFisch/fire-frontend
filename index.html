@@ -1424,23 +1424,18 @@ function renderResults(result){
     "Net_Worth_Incl_Super_Ex_PPOR"
   ]);
 
-  // Cashflow/FIRE keys (optional)
-  const fireTargetKey = findKey(cols, [
-    "Fire_Target_Monthly",
-    "FIRE_Target_Monthly",
-    "Target_Monthly_Infl_Adj",
-    "FIRE_Target"
-  ]);
-	// Prefer REAL passive income series from backend
-	const passiveKey = findKey(cols, [
-	  "Passive_Income_Monthly",  // prefer true monthly if present
-	  "Passive_Income_Total"     // fallback if only yearly exists
+	// Cashflow/FIRE keys (optional)
+	const fireTargetKey = findKey(cols, [
+	  "Fire_Target_Monthly",
+	  "FIRE_Target_Monthly",
+	  "Target_Monthly_Infl_Adj",
+	  "FIRE_Target"
 	]);
 	
-	// Keep FIRE proxy as fallback only
-	const fireIncomeProxyKey = passiveKey || findKey(cols, [
-	  "Fire_Replacement_Cashflow_Monthly",
-	  "FIRE_Income_Monthly"
+	// You only want FIRE income series (no passive income series)
+	const fireIncomeKey = findKey(cols, [
+	  "FIRE_Income_Monthly",
+	  "Fire_Replacement_Cashflow_Monthly"
 	]);
 
   // Debug series (optional)
@@ -1451,10 +1446,7 @@ function renderResults(result){
   const propPrefixes = detectPropertyPrefixes(cols);
   renderPropertyChips(propPrefixes);
 
-	const fireIncomeKey = findKey(cols, [
-  "FIRE_Income_Monthly",
-  "Fire_Replacement_Cashflow_Monthly"
-]);
+
 
 
 
@@ -1486,11 +1478,11 @@ function renderResults(result){
 
 // ✅ Always plot monthly units on the chart.
 // If yearly backend gives an annual total, convert to monthly.
-const passiveIncomeSeries = fireIncomeProxyKey
-  ? seriesFromKey(fireIncomeProxyKey).map(v => {
-      return (fireIncomeProxyKey === "Passive_Income_Total") ? (v / 12) : v;
-    })
-  : null;
+// const passiveIncomeSeries = fireIncomeProxyKey
+//   ? seriesFromKey(fireIncomeProxyKey).map(v => {
+//       return (fireIncomeProxyKey === "Passive_Income_Total") ? (v / 12) : v;
+//     })
+//   : null;
 
 	
 const cashDrawKey = findKey(cols, [
