@@ -1,1135 +1,976 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>FIRE Model</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FIRE Model</title>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    :root{
-      --bg0:#070A12;
-      --bg1:#0B0F1B;
-      --card: rgba(255,255,255,.04);
-      --card2: rgba(255,255,255,.06);
-      --stroke: rgba(255,255,255,.10);
-      --stroke2: rgba(255,255,255,.16);
-      --txt: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.62);
-      --muted2: rgba(255,255,255,.48);
-      --good:#2ee59d;
-      --warn:#ffcf5c;
-      --bad:#ff5c7a;
-      --accent:#8b5cf6;
-      --accent2:#22d3ee;
-      --shadow: 0 18px 50px rgba(0,0,0,.55);
-      --r:18px;
-      --r2:26px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: var(--sans);
-      color: var(--txt);
-      background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(139,92,246,.22), transparent 55%),
-        radial-gradient(900px 550px at 90% 30%, rgba(34,211,238,.18), transparent 60%),
-        radial-gradient(900px 700px at 60% 95%, rgba(46,229,157,.10), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
-    }
-    a{color:inherit}
-    .wrap{
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 22px 18px 42px;
-    }
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      padding: 16px 18px;
-      border: 1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border-radius: 999px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 12px;
-      z-index: 40;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      font-weight:800;
-      letter-spacing:.2px;
-    }
-    .dot{
-      width:12px;height:12px;border-radius:99px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 0 6px rgba(139,92,246,.18);
-    }
-    .pill{
-      font-size:12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid var(--stroke);
-      color: var(--muted);
-      background: rgba(0,0,0,.2);
-      margin-left: 8px;
-    }
-    .nav{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      border:1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      padding: 6px;
-      border-radius: 999px;
-    }
-    .nav button{
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 999px;
-      cursor:pointer;
-      font-size: 14px;
-    }
-    .nav button.active{
-      color: var(--txt);
-      border-color: rgba(139,92,246,.50);
-      background: linear-gradient(135deg, rgba(139,92,246,.22), rgba(34,211,238,.10));
-    }
-    .grid{
-      display:grid;
-      gap: 16px;
-    }
-	.grid.cols1{ grid-template-columns: 1fr; }
-    .grid.cols2{ grid-template-columns: 1fr 1fr; }
-    .grid.cols3{ grid-template-columns: 1fr 1fr 1fr; }
-    .grid.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
-    @media (max-width: 980px){ .grid.cols2, .grid.cols3, .grid.cols4{grid-template-columns:1fr} }
-    .card{
-      border: 1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border-radius: var(--r2);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      backdrop-filter: blur(10px);
-    }
-    .card h2, .card h3{
-      margin:0 0 10px 0;
-      letter-spacing:.2px;
-    }
-    .sub{
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-      margin-top: -2px;
-    }
-    .hr{
-      height:1px;
-      background: var(--stroke);
-      margin: 14px 0;
-    }
-
-    .fieldgrid{
-      display:grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr;
-    }
-	/* Core inputs gets more columns when full width */
-	.coregrid{
-	  grid-template-columns: 1fr 1fr 1fr;
-	}
-	@media (max-width: 980px){
-	  .coregrid{ grid-template-columns: 1fr; }
-	}
-
-    @media (max-width: 980px){ .fieldgrid{grid-template-columns:1fr} }
-
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    input, select, textarea{
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--stroke);
-      background: rgba(0,0,0,.25);
-      color: var(--txt);
-      outline: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-    }
-    textarea{ min-height: 240px; font-family: var(--mono); font-size: 12px; line-height: 1.35; }
-    input:focus, select:focus, textarea:focus{
-      border-color: rgba(139,92,246,.55);
-      box-shadow: 0 0 0 4px rgba(139,92,246,.14);
-    }
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      border: 1px solid var(--stroke);
-      background: rgba(255,255,255,.06);
-      color: var(--txt);
-      padding: 10px 14px;
-      border-radius: 999px;
-      cursor:pointer;
-      font-weight: 650;
-      letter-spacing:.2px;
-    }
-    .btn.primary{
-      border-color: transparent;
-      background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(34,211,238,.75));
-      box-shadow: 0 12px 30px rgba(139,92,246,.18);
-    }
-    .btn.ghost{
-      background: transparent;
-    }
-    .btn.danger{
-      border-color: rgba(255,92,122,.35);
-      background: rgba(255,92,122,.08);
-    }
-    .small{
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 14px;
-      border: 1px solid var(--stroke);
-      background: rgba(0,0,0,.16);
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .badge .ok{ width:10px;height:10px;border-radius:99px;background: var(--good); }
-    .badge .no{ width:10px;height:10px;border-radius:99px;background: var(--bad); }
-    .kpi{
-      border:1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      border-radius: var(--r);
-      padding: 14px 16px;
-    }
-    .kpi .k{
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-    .kpi .v{
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: .2px;
-    }
-
-    .tabs{display:none}
-    .tabs.active{display:block}
-	
-	.subnav{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    border:1px solid var(--stroke);
-    background: rgba(0,0,0,.14);
-    padding: 6px;
-    border-radius: 999px;
-  }
-  .subnav button{
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--muted);
-    padding: 8px 14px;
-    border-radius: 999px;
-    cursor:pointer;
-    font-size: 14px;
-  }
-  .subnav button.active{
-    color: var(--txt);
-    border-color: rgba(34,211,238,.50);
-    background: rgba(34,211,238,.10);
-  }
-  .subtabs{display:none}
-  .subtabs.active{display:block}
-
-/* --- Collapsible cards --- */
-.collapseHeader{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  cursor:pointer;
-  user-select:none;
+<style>
+:root{
+--bg0:#070A12;
+--bg1:#0B0F1B;
+--card: rgba(255,255,255,.04);
+--card2: rgba(255,255,255,.06);
+--stroke: rgba(255,255,255,.10);
+--stroke2: rgba(255,255,255,.16);
+--txt: rgba(255,255,255,.92);
+--muted: rgba(255,255,255,.62);
+--muted2: rgba(255,255,255,.48);
+--good:#2ee59d;
+--warn:#ffcf5c;
+--bad:#ff5c7a;
+--accent:#8b5cf6;
+--accent2:#22d3ee;
+--shadow: 0 18px 50px rgba(0,0,0,.55);
+--r:18px;
+--r2:26px;
+--mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+--sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
 }
-.collapseBody{ margin-top: 12px; }
-.collapseBody.hidden{ display:none; }
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family: var(--sans);
+color: var(--txt);
+background:
+radial-gradient(1200px 700px at 20% 10%, rgba(139,92,246,.22), transparent 55%),
+radial-gradient(900px 550px at 90% 30%, rgba(34,211,238,.18), transparent 60%),
+radial-gradient(900px 700px at 60% 95%, rgba(46,229,157,.10), transparent 60%),
+linear-gradient(180deg, var(--bg0), var(--bg1));
+min-height:100vh;
+}
+a{color:inherit}
+.wrap{
+max-width: 1180px;
+margin: 0 auto;
+padding: 22px 18px 42px;
+}
+.topbar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:14px;
+padding: 16px 18px;
+border: 1px solid var(--stroke);
+background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+border-radius: 999px;
+box-shadow: var(--shadow);
+backdrop-filter: blur(10px);
+position: sticky;
+top: 12px;
+z-index: 40;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+font-weight:800;
+letter-spacing:.2px;
+}
+.dot{
+width:12px;height:12px;border-radius:99px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+box-shadow: 0 0 0 6px rgba(139,92,246,.18);
+}
+.pill{
+font-size:12px;
+padding: 6px 10px;
+border-radius: 999px;
+border:1px solid var(--stroke);
+color: var(--muted);
+background: rgba(0,0,0,.2);
+margin-left: 8px;
+}
+.nav{
+display:flex;
+gap:8px;
+align-items:center;
+border:1px solid var(--stroke);
+background: rgba(0,0,0,.18);
+padding: 6px;
+border-radius: 999px;
+}
+.nav button{
+border: 1px solid transparent;
+background: transparent;
+color: var(--muted);
+padding: 8px 14px;
+border-radius: 999px;
+cursor:pointer;
+font-size: 14px;
+}
+.nav button.active{
+color: var(--txt);
+border-color: rgba(139,92,246,.50);
+background: linear-gradient(135deg, rgba(139,92,246,.22), rgba(34,211,238,.10));
+}
+.grid{
+display:grid;
+gap: 16px;
+}
+.grid.cols1{ grid-template-columns: 1fr; }
+.grid.cols2{ grid-template-columns: 1fr 1fr; }
+.grid.cols3{ grid-template-columns: 1fr 1fr 1fr; }
+.grid.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
+@media (max-width: 980px){ .grid.cols2, .grid.cols3, .grid.cols4{grid-template-columns:1fr} }
+.card{
+border: 1px solid var(--stroke);
+background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+border-radius: var(--r2);
+box-shadow: var(--shadow);
+padding: 18px;
+backdrop-filter: blur(10px);
+}
+.card h2, .card h3{
+margin:0 0 10px 0;
+letter-spacing:.2px;
+}
+.sub{
+color: var(--muted);
+font-size: 13px;
+line-height: 1.35;
+margin-top: -2px;
+}
+.hr{
+height:1px;
+background: var(--stroke);
+margin: 14px 0;
+}
 
+.fieldgrid{
+display:grid;
+gap: 12px;
+grid-template-columns: 1fr 1fr;
+}
+/* Core inputs gets more columns when full width */
+.coregrid{
+grid-template-columns: 1fr 1fr 1fr;
+}
+@media (max-width: 980px){
+.coregrid{ grid-template-columns: 1fr; }
+}
 
-    /* tables */
-    .tablewrap{
-      overflow:auto;
-      border: 1px solid var(--stroke);
-      border-radius: var(--r);
-      background: rgba(0,0,0,.18);
-    }
-    table{
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 820px;
-      font-size: 13px;
-    }
-    th, td{
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      white-space: nowrap;
-    }
-    th{
-      position: sticky;
-      top: 0;
-      background: rgba(10,13,24,.85);
-      backdrop-filter: blur(8px);
-      color: rgba(255,255,255,.78);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    tr:hover td{ background: rgba(255,255,255,.03); }
+@media (max-width: 980px){ .fieldgrid{grid-template-columns:1fr} }
 
-    .muted{color: var(--muted)}
-    .mono{font-family: var(--mono)}
-    .right{text-align:right}
-    .chips{
-      display:flex; gap:8px; flex-wrap:wrap;
-      margin-top: 10px;
-    }
-    .chip{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      color: var(--muted);
-      cursor:pointer;
-      user-select:none;
-    }
-    .chip.active{
-      color: var(--txt);
-      border-color: rgba(34,211,238,.50);
-      background: rgba(34,211,238,.10);
-    }
+label{
+display:block;
+font-size: 12px;
+color: var(--muted);
+margin-bottom: 6px;
+}
+input, select, textarea{
+width: 100%;
+padding: 12px 12px;
+border-radius: 14px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.25);
+color: var(--txt);
+outline: none;
+box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+}
+textarea{ min-height: 240px; font-family: var(--mono); font-size: 12px; line-height: 1.35; }
+input:focus, select:focus, textarea:focus{
+border-color: rgba(139,92,246,.55);
+box-shadow: 0 0 0 4px rgba(139,92,246,.14);
+}
+.row{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+flex-wrap:wrap;
+}
+.btn{
+border: 1px solid var(--stroke);
+background: rgba(255,255,255,.06);
+color: var(--txt);
+padding: 10px 14px;
+border-radius: 999px;
+cursor:pointer;
+font-weight: 650;
+letter-spacing:.2px;
+}
+.btn.primary{
+border-color: transparent;
+background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(34,211,238,.75));
+box-shadow: 0 12px 30px rgba(139,92,246,.18);
+}
+.btn.ghost{
+background: transparent;
+}
+.btn.danger{
+border-color: rgba(255,92,122,.35);
+background: rgba(255,92,122,.08);
+}
+.small{
+font-size: 12px;
+color: var(--muted);
+}
+.badge{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding: 8px 10px;
+border-radius: 14px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.16);
+color: var(--muted);
+font-size: 13px;
+}
+.badge .ok{ width:10px;height:10px;border-radius:99px;background: var(--good); }
+.badge .no{ width:10px;height:10px;border-radius:99px;background: var(--bad); }
+.kpi{
+border:1px solid var(--stroke);
+background: rgba(0,0,0,.18);
+border-radius: var(--r);
+padding: 14px 16px;
+}
+.kpi .k{
+color: var(--muted);
+font-size: 12px;
+margin-bottom: 6px;
+}
+.kpi .v{
+font-size: 22px;
+font-weight: 800;
+letter-spacing: .2px;
+}
 
-    .propHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom: 10px;
-    }
-    .propTitle{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight: 850;
-    }
-    .propTag{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      color: var(--muted);
-    }
-	  /* --- Property accordion --- */
-	  .propCardHeader{
-		display:flex;
-		align-items:center;
-		justify-content:space-between;
-		gap:10px;
-		cursor:pointer;
-		user-select:none;
-	  }
+.tabs{display:none}
+.tabs.active{display:block}
 
-	  .propCardHeaderLeft{
-		display:flex;
-		flex-direction:column;
-		gap:6px;
-	  }
+/* tables */
+.tablewrap{
+overflow:auto;
+border: 1px solid var(--stroke);
+border-radius: var(--r);
+background: rgba(0,0,0,.18);
+}
+table{
+width: 100%;
+border-collapse: collapse;
+min-width: 820px;
+font-size: 13px;
+}
+th, td{
+padding: 10px 10px;
+border-bottom: 1px solid rgba(255,255,255,.08);
+white-space: nowrap;
+}
+th{
+position: sticky;
+top: 0;
+background: rgba(10,13,24,.85);
+backdrop-filter: blur(8px);
+color: rgba(255,255,255,.78);
+font-size: 12px;
+text-transform: uppercase;
+letter-spacing: .08em;
+}
+tr:hover td{ background: rgba(255,255,255,.03); }
 
-	  .propSummaryRow{
-		display:flex;
-		gap:10px;
-		flex-wrap:wrap;
-		color: rgba(255,255,255,.72);
-		font-size: 12px;
-	  }
+.muted{color: var(--muted)}
+.mono{font-family: var(--mono)}
+.right{text-align:right}
+.chips{
+display:flex; gap:8px; flex-wrap:wrap;
+margin-top: 10px;
+}
+.chip{
+font-size: 12px;
+padding: 6px 10px;
+border-radius: 999px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.18);
+color: var(--muted);
+cursor:pointer;
+user-select:none;
+}
+.chip.active{
+color: var(--txt);
+border-color: rgba(34,211,238,.50);
+background: rgba(34,211,238,.10);
+}
 
-	  .propSummaryPill{
-		display:inline-flex;
-		align-items:center;
-		gap:6px;
-		padding: 6px 10px;
-		border-radius: 999px;
-		border: 1px solid var(--stroke);
-		background: rgba(0,0,0,.16);
-	  }
+.propHeader{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+margin-bottom: 10px;
+}
+.propTitle{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight: 850;
+}
+.propTag{
+font-size: 12px;
+padding: 6px 10px;
+border-radius: 999px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.18);
+color: var(--muted);
+}
+/* --- Property accordion --- */
+.propCardHeader{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+cursor:pointer;
+user-select:none;
+}
 
-	  .propChevron{
-		font-size: 14px;
-		opacity:.7;
-		padding: 8px 10px;
-		border-radius: 999px;
-		border: 1px solid var(--stroke);
-		background: rgba(0,0,0,.14);
-	  }
+.propCardHeaderLeft{
+display:flex;
+flex-direction:column;
+gap:6px;
+}
 
-	  .propBody{
-		margin-top: 12px;
-	  }
+.propSummaryRow{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+color: rgba(255,255,255,.72);
+font-size: 12px;
+}
 
-	  .hidden{
-		display:none !important;
-	  }
-	  
-	  /* --- Toast --- */
-	.toast{
-	  position: fixed;
-	  right: 18px;
-	  bottom: 18px;
-	  z-index: 9999;
-	  display: flex;
-	  align-items: flex-start;
-	  gap: 10px;
-	  max-width: 420px;
+.propSummaryPill{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding: 6px 10px;
+border-radius: 999px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.16);
+}
 
-	  padding: 12px 14px;
-	  border-radius: 16px;
-	  border: 1px solid rgba(255,255,255,.14);
-	  background: rgba(10,13,24,.82);
-	  backdrop-filter: blur(10px);
-	  box-shadow: 0 18px 50px rgba(0,0,0,.55);
+.propChevron{
+font-size: 14px;
+opacity:.7;
+padding: 8px 10px;
+border-radius: 999px;
+border: 1px solid var(--stroke);
+background: rgba(0,0,0,.14);
+}
 
-	  transform: translateY(12px);
-	  opacity: 0;
-	  pointer-events: none;
-	  transition: 180ms ease;
-	}
-	.toast.show{
-	  transform: translateY(0);
-	  opacity: 1;
-	  pointer-events: auto;
-	}
-	.toast .icon{
-	  width: 10px; height: 10px; border-radius: 99px;
-	  margin-top: 6px;
-	  background: var(--warn);
-	  box-shadow: 0 0 0 6px rgba(255,207,92,.12);
-	  flex: 0 0 auto;
-	}
-	.toast .t{
-	  font-weight: 800;
-	  letter-spacing: .2px;
-	  margin: 0;
-	  line-height: 1.2;
-	}
-	.toast .m{
-	  margin: 4px 0 0 0;
-	  color: rgba(255,255,255,.70);
-	  font-size: 13px;
-	  line-height: 1.35;
-	}
-	.toast .x{
-	  margin-left: auto;
-	  border: 1px solid rgba(255,255,255,.12);
-	  background: rgba(255,255,255,.06);
-	  color: rgba(255,255,255,.85);
-	  border-radius: 999px;
-	  padding: 6px 10px;
-	  cursor: pointer;
-	  font-weight: 700;
-	}
+.propBody{
+margin-top: 12px;
+}
 
-	  
+.hidden{
+display:none !important;
+}
 
-  </style>
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <span class="dot"></span>
-        <span>FIRE Model</span>
-        <span class="pill" id="apiPill">API: …</span>
-      </div>
-      <div class="nav">
-        <button id="btnHome" class="active" onclick="showTab('home')">Home</button>
-        <button id="btnInputs" onclick="showTab('inputs')">Setup</button>
-        <button id="btnResults" onclick="showTab('results')">Results</button>
-      </div>
-    </div>
-
-    <!-- HOME -->
- <!-- HOME -->
-	<section id="tab-home" class="tabs active" style="margin-top:18px;">
-	  <div class="grid cols1">
-
-		<!-- What this does (FULL WIDTH) -->
-		<div class="card">
-		  <h2>What this does</h2>
-		  <div class="sub">
-			This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
-			and you get charts + tables to see when (or if) your plan becomes self-funding.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <h3 style="margin:0 0 8px 0;">How to use it</h3>
-		  <div class="sub">
-			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
-			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
-			<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
-		  <div class="sub" style="line-height:1.55;">
-			<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
-			Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
-
-			<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
-			It can be negative (negative gearing) or positive.<br/><br/>
-
-			<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
-
-			<b>FIRE income</b>: the model estimates income after FIRE mainly from:
-			investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="sub">
-			Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="row">
-			<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
-			<button class="btn" onclick="showTab('results')">Go to Results</button>
-		  </div>
-		</div>
-
-		<!-- Status (FULL WIDTH, BELOW) -->
-		<div class="card">
-		  <div class="row">
-			<div>
-			  <h2>Status</h2>
-			  <div class="sub">Backend health and last run details.</div>
-			</div>
-			<div class="row" style="gap:8px;">
-			  <button class="btn" onclick="pingAPI()">Re-check API</button>
-			</div>
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="row" style="margin-bottom:10px;">
-			<div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
-		  </div>
-
-		  <div class="fieldgrid coregrid">
-
-			<div>
-			  <label>API Base URL</label>
-			  <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
-			  <div class="small">Must include <span class="mono">https://</span></div>
-			</div>
-			<div>
-			  <label>Endpoint path</label>
-			  <input id="apiPath" value="/fire" />
-			</div>
-		  </div>
-
-		  <div class="hr"></div>
-		  <div class="sub mono" id="lastRunMeta">No run yet.</div>
-		</div>
-
-	  </div>
-	</section>
-
-
-    <!-- INPUTS -->
-    <section id="tab-inputs" class="tabs" style="margin-top:18px;">
-      <div class="grid">
-        <!-- Core -->
-        <div class="card">
-		<div id="coreBody" class="collapseBody">
-		  <div>
-			<h2 style="margin-bottom:4px;">Core</h2>
-			<div class="sub">The settings you change most often.</div>
-		  </div>
-		  <div class="row" style="gap:10px;">
-			<select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
-			  <option value="yearly">Yearly (recommended)</option>
-			  <option value="monthly">Monthly (debug)</option>
-			</select>
-			<span class="collapseChevron">▾</span>
-		  </div>
+<div class="wrap">
+<div class="topbar">
+<div class="brand">
+<span class="dot"></span>
+<span>FIRE Model</span>
+<span class="pill" id="apiPill">API: …</span>
+</div>
+<div class="nav">
+<button id="btnHome" class="active" onclick="showTab('home')">Home</button>
+<button id="btnInputs" onclick="showTab('inputs')">Inputs</button>
+<button id="btnResults" onclick="showTab('results')">Results</button>
+</div>
 </div>
 
-          <div class="hr"></div>
+<!-- HOME -->
+<!-- HOME -->
+<section id="tab-home" class="tabs active" style="margin-top:18px;">
+<div class="grid cols1">
 
-          <div class="fieldgrid coregrid">
-            <div>
-              <label>Current Age</label>
-              <input id="current_age" type="number" step="1" />
-            </div>
-            <div>
-              <label>End Age</label>
-              <input id="end_age" type="number" step="1" />
-            </div>
-
-            <div>
-              <label>Initial Savings</label>
-              <input id="initial_savings" type="number" step="1" />
-            </div>
-            <div>
-              <label>Todays Lifestyle Income</label>
-              <input id="todays_lifestyle_income" type="number" step="1" />
-            </div>
-
-            <div>
-              <label>Current Income</label>
-              <input id="current_income" type="number" step="1" />
-            </div>
-            <div>
-              <label>Current Expenses</label>
-              <input id="current_expenses" type="number" step="1" />
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="row">
-            <button class="btn" onclick="toggleAdvanced()">Advanced assumptions <span class="pill" id="advPill">Hidden</span></button>
-            <div class="row" style="gap:8px;">
-              <button class="btn" onclick="resetDefaults()">Reset defaults</button>
-              <button class="btn primary" onclick="runModel()">Run model</button>
-            </div>
-          </div>
-
-          <div id="advancedBox" style="display:none; margin-top:14px;">
-            <div class="hr"></div>
-            <h3 style="margin:0 0 10px 0;">Advanced assumptions</h3>
-            <div class="sub">Inflation, salary growth, stock growth + contribution settings.</div>
-            <div class="hr"></div>
-
-            <div class="fieldgrid">
-              <div>
-                <label>Inflation</label>
-                <input id="inflation" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Average Salary Increase</label>
-                <input id="average_salary_increase" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Stock Growth</label>
-                <input id="stock_growth" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Stock Yearly Contribution</label>
-                <input id="stock_yearly_contribution" type="number" step="1"/>
-              </div>
-              <div>
-                <label>Starting Stock Value</label>
-                <input id="starting_stock_value" type="number" step="1"/>
-              </div>
-				<div>
-				  <label>Stock Drawdown Per Year</label>
-				  <input id="stock_swr" type="number" step="0.001" />
-				</div>
-				
-				<div>
-				  <label>Super Drawdown Per Year</label>
-				  <input id="super_swr" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>Super Access Age</label>
-				  <input id="super_access_age" type="number" step="1" />
-				</div>
-
-				<div>
-				  <label>Super Starting Balance</label>
-				  <input id="super_starting_balance" type="number" step="1" />
-				</div>
-
-				<div>
-				  <label>Super Employee Contribution Rate</label>
-				  <input id="super_sg_rate" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>Super Growth</label>
-				  <input id="super_growth" type="number" step="0.001" />
-				</div>
-
-				<div>
-				  <label>Super Additional Contributions</label>
-				  <input id="super_additional_annual" type="number" step="1" />
-				</div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Properties -->
-        <div class="card">
-          <div class="row">
-            <div>
-              <h2 style="margin-bottom:4px;">Properties</h2>
-              <div class="sub">
-                Each property is its own card (PPOR / Investment 1 / Investment 2 …).
-                This replaces the big JSON textarea.
-              </div>
-            </div>
-			<div class="row" style="gap:8px;">
-			  <button class="btn" onclick="addProperty()">+ Add property</button>
-			</div>
-
-          </div>
-
-          <div class="hr"></div>
-
-          <div id="propsContainer"></div>
-
-          <div class="hr"></div>
-
-          <div class="row">
-            <button class="btn ghost" onclick="toggleRawJson()">Raw JSON (debug)</button>
-            <button class="btn" onclick="copyPayload()">Copy API payload</button>
-          </div>
-
-          <div id="rawJsonBox" style="display:none; margin-top:12px;">
-            <label class="muted">property_list (JSON) — generated from the cards above</label>
-            <textarea id="property_json" spellcheck="false"></textarea>
-            <div class="small">If you edit this, click “Apply JSON → cards”.</div>
-            <div class="row" style="margin-top:10px;">
-              <button class="btn" onclick="applyRawJson()">Apply JSON → cards</button>
-              <button class="btn danger" onclick="repairJson()">Repair common JSON issues</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- RESULTS -->
-    <section id="tab-results" class="tabs" style="margin-top:18px;">
-      <div class="card">
-        <div class="row">
-          <div>
-            <h2 style="margin-bottom:4px;">Results</h2>
-            <div class="sub" id="resultsMeta">Run the model to see charts + tables.</div>
-          </div>
-          <div class="row" style="gap:10px;">
-            <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-            <button class="btn" onclick="showTab('inputs')">Edit inputs</button>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="grid cols4" id="kpiRow">
-          <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
-          <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
-          <div class="kpi"><div class="k">Property equity (end)</div><div class="v" id="kpiEquityEnd">—</div></div>
-          <div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="card" style="padding:14px; background: rgba(0,0,0,.18); border-radius: var(--r2); border-color: rgba(255,255,255,.08);">
-          <div class="row">
-            <div class="badge" id="rowsBadge"><span class="no"></span><span>No rows yet</span></div>
-
-            <!-- Chart presets -->
-            <div class="chips" style="margin-top:0;">
-              <div class="chip" onclick="setChartPreset('key')">Key only</div>
-              <div class="chip" onclick="setChartPreset('all')">All</div>
-              <div class="chip" onclick="setChartPreset('none')">None</div>
-            </div>
-          </div>
-
-          <!-- Toggle chips injected here -->
-          <div class="chips" id="chartChips"></div>
-		  <div class="chips" id="propertyChips"></div>
-
-
-          <div class="sub" style="margin-top:6px;">
-            Left axis = balances (net worth/cash/stocks/equity). Right axis = monthly cashflow (FIRE target/proxy, rent/tax if available).
-          </div>
-
-          <div style="margin-top:12px;">
-            <canvas id="chartMain"></canvas>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="grid cols2">
-          <div>
-            <h3 style="margin:0 0 8px 0;">Summary table</h3>
-            <div class="sub">Clean, “actually useful” columns (cash/stocks/property/net worth).</div>
-            <div class="hr"></div>
-            <div class="tablewrap" id="summaryTableWrap"></div>
-          </div>
-          <div>
-            <h3 style="margin:0 0 8px 0;">Property breakdown (end row)</h3>
-            <div class="sub">Per-property values + mortgage + equity at the final timestep.</div>
-            <div class="hr"></div>
-            <div class="tablewrap" id="propEndTableWrap"></div>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="row">
-          <h3 style="margin:0;">Full table</h3>
-          <div class="row" style="gap:10px;">
-            <input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
-            <button class="btn" onclick="toggleFullTable()">Toggle full table</button>
-          </div>
-        </div>
-        <div class="sub" style="margin-top:6px;">This is the raw API table (filter/searchable). Good for debugging.</div>
-
-        <div id="fullTableBox" style="display:none; margin-top:12px;">
-          <div class="tablewrap" id="fullTableWrap"></div>
-        </div>
-
-        <div class="hr"></div>
-
-        <h3 style="margin:0 0 8px 0;">Raw API response (debug)</h3>
-        <div class="sub">If something breaks, this helps you see exactly what the backend returned.</div>
-        <div class="hr"></div>
-        <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
-      </div>
-    </section>
-
-  </div>
-  
-  
-  <!-- Toast -->
-<div id="toast" class="toast" aria-live="polite" aria-atomic="true">
-  <div class="icon"></div>
-  <div style="min-width:0;">
-    <p class="t" id="toastTitle">Notice</p>
-    <p class="m" id="toastMsg">…</p>
-  </div>
-  <button class="x" onclick="hideToast()">Close</button>
+<!-- What this does (FULL WIDTH) -->
+<div class="card">
+<h2>What this does</h2>
+<div class="sub">
+This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
+and you get charts + tables to see when (or if) your plan becomes self-funding.
 </div>
 
+<div class="hr"></div>
+
+<h3 style="margin:0 0 8px 0;">How to use it</h3>
+<div class="sub">
+<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
+<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
+<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
+</div>
+
+<div class="hr"></div>
+
+<h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
+<div class="sub" style="line-height:1.55;">
+<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
+Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
+
+<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
+It can be negative (negative gearing) or positive.<br/><br/>
+
+<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
+
+<b>FIRE income</b>: the model estimates income after FIRE mainly from:
+investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
+</div>
+
+<div class="hr"></div>
+
+<div class="sub">
+Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
+</div>
+
+<div class="hr"></div>
+
+<div class="row">
+<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
+<button class="btn" onclick="showTab('results')">Go to Results</button>
+</div>
+</div>
+
+<!-- Status (FULL WIDTH, BELOW) -->
+<div class="card">
+<div class="row">
+<div>
+<h2>Status</h2>
+<div class="sub">Backend health and last run details.</div>
+</div>
+<div class="row" style="gap:8px;">
+<button class="btn" onclick="pingAPI()">Re-check API</button>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="row" style="margin-bottom:10px;">
+<div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
+</div>
+
+<div class="fieldgrid coregrid">
+
+<div>
+<label>API Base URL</label>
+<input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
+<div class="small">Must include <span class="mono">https://</span></div>
+</div>
+<div>
+<label>Endpoint path</label>
+<input id="apiPath" value="/fire" />
+</div>
+</div>
+
+<div class="hr"></div>
+<div class="sub mono" id="lastRunMeta">No run yet.</div>
+</div>
+
+</div>
+</section>
+
+
+<!-- INPUTS -->
+<section id="tab-inputs" class="tabs" style="margin-top:18px;">
+<div class="grid">
+<!-- Core -->
+<div class="card">
+<div class="row">
+<div>
+<h2 style="margin-bottom:4px;">Core inputs</h2>
+<div class="sub">Keep this section as your base model settings.</div>
+</div>
+<div>
+<select id="modeSelect" onchange="setMode(this.value)">
+<option value="yearly">Yearly (recommended)</option>
+<option value="monthly">Monthly (debug)</option>
+</select>
+</div>
+</div>
+<div class="hr"></div>
+
+<div class="fieldgrid coregrid">
+<div>
+<label>Current Age</label>
+<input id="current_age" type="number" step="1" />
+</div>
+<div>
+<label>End Age</label>
+<input id="end_age" type="number" step="1" />
+</div>
+
+<div>
+<label>Initial Savings</label>
+<input id="initial_savings" type="number" step="1" />
+</div>
+<div>
+<label>Todays Lifestyle Income</label>
+<input id="todays_lifestyle_income" type="number" step="1" />
+</div>
+
+<div>
+<label>Current Income</label>
+<input id="current_income" type="number" step="1" />
+</div>
+<div>
+<label>Current Expenses</label>
+<input id="current_expenses" type="number" step="1" />
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="row">
+<button class="btn" onclick="toggleAdvanced()">Advanced assumptions <span class="pill" id="advPill">Hidden</span></button>
+<div class="row" style="gap:8px;">
+<button class="btn" onclick="resetDefaults()">Reset defaults</button>
+<button class="btn primary" onclick="runModel()">Run model</button>
+</div>
+</div>
+
+<div id="advancedBox" style="display:none; margin-top:14px;">
+<div class="hr"></div>
+<h3 style="margin:0 0 10px 0;">Advanced assumptions</h3>
+<div class="sub">Inflation, salary growth, stock growth + contribution settings.</div>
+<div class="hr"></div>
+
+<div class="fieldgrid">
+<div>
+<label>Inflation</label>
+<input id="inflation" type="number" step="0.001"/>
+</div>
+<div>
+<label>Average Salary Increase</label>
+<input id="average_salary_increase" type="number" step="0.001"/>
+</div>
+<div>
+<label>Stock Growth</label>
+<input id="stock_growth" type="number" step="0.001"/>
+</div>
+<div>
+<label>Stock Yearly Contribution</label>
+<input id="stock_yearly_contribution" type="number" step="1"/>
+</div>
+<div>
+<label>Starting Stock Value</label>
+<input id="starting_stock_value" type="number" step="1"/>
+</div>
+<div>
+<label>Stock Drawdown Per Year</label>
+<input id="stock_swr" type="number" step="0.001" />
+</div>
+
+<div>
+<label>Super Drawdown Per Year</label>
+<input id="super_swr" type="number" step="0.001" />
+</div>
+
+<div>
+<label>Super Access Age</label>
+<input id="super_access_age" type="number" step="1" />
+</div>
+
+<div>
+<label>Super Starting Balance</label>
+<input id="super_starting_balance" type="number" step="1" />
+</div>
+
+<div>
+<label>Super Employee Contribution Rate</label>
+<input id="super_sg_rate" type="number" step="0.001" />
+</div>
+
+<div>
+<label>Super Growth</label>
+<input id="super_growth" type="number" step="0.001" />
+</div>
+
+<div>
+<label>Super Additional Contributions</label>
+<input id="super_additional_annual" type="number" step="1" />
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- Properties -->
+<div class="card">
+<div class="row">
+<div>
+<h2 style="margin-bottom:4px;">Properties</h2>
+<div class="sub">
+Each property is its own card (PPOR / Investment 1 / Investment 2 …).
+This replaces the big JSON textarea.
+</div>
+</div>
+<div class="row" style="gap:8px;">
+<button class="btn" onclick="addProperty('investment')">+ Add investment</button>
+<button class="btn" onclick="addProperty('ppor')">+ Add PPOR</button>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div id="propsContainer"></div>
+
+<div class="hr"></div>
+
+<div class="row">
+<button class="btn ghost" onclick="toggleRawJson()">Raw JSON (debug)</button>
+<button class="btn" onclick="copyPayload()">Copy API payload</button>
+</div>
+
+<div id="rawJsonBox" style="display:none; margin-top:12px;">
+<label class="muted">property_list (JSON) — generated from the cards above</label>
+<textarea id="property_json" spellcheck="false"></textarea>
+<div class="small">If you edit this, click “Apply JSON → cards”.</div>
+<div class="row" style="margin-top:10px;">
+<button class="btn" onclick="applyRawJson()">Apply JSON → cards</button>
+<button class="btn danger" onclick="repairJson()">Repair common JSON issues</button>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- RESULTS -->
+<section id="tab-results" class="tabs" style="margin-top:18px;">
+<div class="card">
+<div class="row">
+<div>
+<h2 style="margin-bottom:4px;">Results</h2>
+<div class="sub" id="resultsMeta">Run the model to see charts + tables.</div>
+</div>
+<div class="row" style="gap:10px;">
+<button class="btn" onclick="downloadLastCSV()">Download CSV</button>
+<button class="btn" onclick="showTab('inputs')">Edit inputs</button>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="grid cols4" id="kpiRow">
+<div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
+<div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
+<div class="kpi"><div class="k">Property equity (end)</div><div class="v" id="kpiEquityEnd">—</div></div>
+<div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
+</div>
+
+<div class="hr"></div>
+
+<div class="card" style="padding:14px; background: rgba(0,0,0,.18); border-radius: var(--r2); border-color: rgba(255,255,255,.08);">
+<div class="row">
+<div class="badge" id="rowsBadge"><span class="no"></span><span>No rows yet</span></div>
+
+<!-- Chart presets -->
+<div class="chips" style="margin-top:0;">
+<div class="chip" onclick="setChartPreset('key')">Key only</div>
+<div class="chip" onclick="setChartPreset('all')">All</div>
+<div class="chip" onclick="setChartPreset('none')">None</div>
+</div>
+</div>
+
+<!-- Toggle chips injected here -->
+<div class="chips" id="chartChips"></div>
+<div class="chips" id="propertyChips"></div>
+
+
+<div class="sub" style="margin-top:6px;">
+Left axis = balances (net worth/cash/stocks/equity). Right axis = monthly cashflow (FIRE target/proxy, rent/tax if available).
+</div>
+
+<div style="margin-top:12px;">
+<canvas id="chartMain"></canvas>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="grid cols2">
+<div>
+<h3 style="margin:0 0 8px 0;">Summary table</h3>
+<div class="sub">Clean, “actually useful” columns (cash/stocks/property/net worth).</div>
+<div class="hr"></div>
+<div class="tablewrap" id="summaryTableWrap"></div>
+</div>
+<div>
+<h3 style="margin:0 0 8px 0;">Property breakdown (end row)</h3>
+<div class="sub">Per-property values + mortgage + equity at the final timestep.</div>
+<div class="hr"></div>
+<div class="tablewrap" id="propEndTableWrap"></div>
+</div>
+</div>
+
+<div class="hr"></div>
+
+<div class="row">
+<h3 style="margin:0;">Full table</h3>
+<div class="row" style="gap:10px;">
+<input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
+<button class="btn" onclick="toggleFullTable()">Toggle full table</button>
+</div>
+</div>
+<div class="sub" style="margin-top:6px;">This is the raw API table (filter/searchable). Good for debugging.</div>
+
+<div id="fullTableBox" style="display:none; margin-top:12px;">
+<div class="tablewrap" id="fullTableWrap"></div>
+</div>
+
+<div class="hr"></div>
+
+<h3 style="margin:0 0 8px 0;">Raw API response (debug)</h3>
+<div class="sub">If something breaks, this helps you see exactly what the backend returned.</div>
+<div class="hr"></div>
+<pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
+</div>
+</section>
+
+</div>
 
 <script>
 /** ---------------------------
- *  State + Defaults
- *  --------------------------*/
+*  State + Defaults
+*  --------------------------*/
 const LS_KEY = "fire_frontend_state_v3";
 let state = {
-  apiBase: "https://fire-api-wixz.onrender.com",
-  apiPath: "/fire",
-  mode: "yearly",
-  inputs: {
-    current_age: 25,
-    end_age: 60,
-    inflation: 0.025,
-    todays_lifestyle_income: 80000,
-    initial_savings: 500000,
-    current_income: 200000,
-    current_expenses: 64000,
-    average_salary_increase: 0.035,
-    stock_growth: 0.06,
-    stock_yearly_contribution: 20000,
-    starting_stock_value: 35000,
-	
-	stock_swr: 0.04,
-	super_swr: 0.04,
-    super_access_age: 60,
-    super_starting_balance: 120000,
-    super_sg_rate: 0.11,
-    super_growth: 0.065,
-    super_additional_annual: 0
-  },
-  property_list: [
-    {
-      id: 1,
-      name: "Investment 1 (Apartment)",
-      purchase_price: 400000,
-      current_value: 640000,
-      original_loan: 325000,
-      loan_balance_current: 215000,
-      purchase_fees: 20000,
-      monthly_rent: 2400,
-      strata_quarterly: 1200,
-      rates_quarterly: 900,
-      other_costs_monthly: 200,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.03,
-      year_bought: 2021,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: false
-    },
-    {
-      id: 2,
-      name: "PPOR",
-      purchase_price: 1200000,
-      current_value: 1200000,
-      original_loan: 900000,
-      loan_balance_current: 0,
-      purchase_fees: 40000,
-      monthly_rent: 0,
-      strata_quarterly: 0,
-      rates_quarterly: 900,
-      other_costs_monthly: 300,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.0,
-      year_bought: 2027,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: true
-    }
-  ],
-  chartToggles: {
-    netWorth: true,
-    cash: true,
-    stocks: true,
-    propertyEquity: true,
-    fireTarget: true,
-    netRent: false,
-    taxPaid: false,
-	superBalance: false,
-	cashDrawdown: false,
-	fireIncome: true,
-	fireIncomeWithCash: true,
-	
+apiBase: "https://fire-api-wixz.onrender.com",
+apiPath: "/fire",
+mode: "yearly",
+inputs: {
+current_age: 25,
+end_age: 60,
+inflation: 0.025,
+todays_lifestyle_income: 80000,
+initial_savings: 500000,
+current_income: 200000,
+current_expenses: 64000,
+average_salary_increase: 0.035,
+stock_growth: 0.06,
+stock_yearly_contribution: 20000,
+starting_stock_value: 35000,
+
+stock_swr: 0.04,
+super_swr: 0.04,
+super_access_age: 60,
+super_starting_balance: 120000,
+super_sg_rate: 0.11,
+super_growth: 0.065,
+super_additional_annual: 0
+},
+property_list: [
+{
+id: 1,
+name: "Investment 1 (Apartment)",
+purchase_price: 400000,
+current_value: 640000,
+original_loan: 325000,
+loan_balance_current: 215000,
+purchase_fees: 20000,
+monthly_rent: 2400,
+strata_quarterly: 1200,
+rates_quarterly: 900,
+other_costs_monthly: 200,
+interest_rate: 0.055,
+property_growth: 0.03,
+rental_growth: 0.03,
+year_bought: 2021,
+loan_term_years: 30,
+use_offset: true,
+is_owner_occupied: false
+},
+{
+id: 2,
+name: "PPOR",
+purchase_price: 1200000,
+current_value: 1200000,
+original_loan: 900000,
+loan_balance_current: 0,
+purchase_fees: 40000,
+monthly_rent: 0,
+strata_quarterly: 0,
+rates_quarterly: 900,
+other_costs_monthly: 300,
+interest_rate: 0.055,
+property_growth: 0.03,
+rental_growth: 0.0,
+year_bought: 2027,
+loan_term_years: 30,
+use_offset: true,
+is_owner_occupied: true
+}
+],
+chartToggles: {
+netWorth: true,
+cash: true,
+stocks: true,
+propertyEquity: true,
+fireTarget: true,
+netRent: false,
+taxPaid: false,
+superBalance: false,
+cashDrawdown: false,
+fireIncome: true,
+fireIncomeWithCash: true,
 
 
-  },
-	selectedPropPrefixes: [],
-	expandedPropertyId: null,
-  lastResult: null,
-  collapsed: {},
+
+},
+selectedPropPrefixes: [],
+expandedPropertyId: null,
+lastResult: null
 };
 
-let toastTimer = null;
-
-function showToast(title, msg, ms = 2500){
-  const el = document.getElementById("toast");
-  const t  = document.getElementById("toastTitle");
-  const m  = document.getElementById("toastMsg");
-  if(!el || !t || !m) return;
-
-  t.textContent = title || "Notice";
-  m.textContent = msg || "";
-
-  el.classList.add("show");
-
-  if(toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => hideToast(), ms);
-}
-
-function hideToast(){
-  const el = document.getElementById("toast");
-  if(!el) return;
-  el.classList.remove("show");
-}
-
-function toggleCollapse(id){
-  const body = document.getElementById(id);
-  if(!body) return;
-  const isHidden = body.classList.contains("hidden");
-  body.classList.toggle("hidden", !isHidden);
-
-  // persist collapsed state
-  state.collapsed = state.collapsed || {};
-  state.collapsed[id] = !isHidden ? true : false; // true means hidden
-  saveState();
-}
-
-function applyCollapseState(){
-  state.collapsed = state.collapsed || {};
-  for(const [id, isHidden] of Object.entries(state.collapsed)){
-    const el = document.getElementById(id);
-    if(el) el.classList.toggle("hidden", !!isHidden);
-  }
-}
-
-
-
 const FIELD_LABELS = {
-  // Core
-  current_age: "Current Age",
-  end_age: "End Age",
-  initial_savings: "Initial Savings",
-  todays_lifestyle_income: "Target Lifestyle Income (Today)",
-  current_income: "Current Income",
-  current_expenses: "Current Expenses",
+// Core
+current_age: "Current Age",
+end_age: "End Age",
+initial_savings: "Initial Savings",
+todays_lifestyle_income: "Target Lifestyle Income (Today)",
+current_income: "Current Income",
+current_expenses: "Current Expenses",
 
-  // Advanced
-  inflation: "Inflation Rate",
-  average_salary_increase: "Annual Salary Growth",
-  stock_growth: "Stock Growth Rate",
-  stock_yearly_contribution: "Annual Stock Contribution",
-  starting_stock_value: "Starting Stock Balance",
-  stock_swr: "Stock Safe Withdrawal Rate",
-  super_swr: "Super Safe Withdrawal Rate",
-  super_access_age: "Super Access Age",
-  super_starting_balance: "Starting Super Balance",
-  super_sg_rate: "Super Guarantee Rate",
-  super_growth: "Super Growth Rate",
-  super_additional_annual: "Additional Super Contributions (Annual)",
+// Advanced
+inflation: "Inflation Rate",
+average_salary_increase: "Annual Salary Growth",
+stock_growth: "Stock Growth Rate",
+stock_yearly_contribution: "Annual Stock Contribution",
+starting_stock_value: "Starting Stock Balance",
+stock_swr: "Stock Safe Withdrawal Rate",
+super_swr: "Super Safe Withdrawal Rate",
+super_access_age: "Super Access Age",
+super_starting_balance: "Starting Super Balance",
+super_sg_rate: "Super Guarantee Rate",
+super_growth: "Super Growth Rate",
+super_additional_annual: "Additional Super Contributions (Annual)",
 };
 
 
 const PROP_FIELD_LABELS = {
-  name: "Property Name",
-  year_bought: "Year Purchased",
-  purchase_price: "Purchase Price",
-  purchase_fees: "Purchase Costs",
-  current_value: "Current Value",
-  original_loan: "Original Loan Amount",
-  loan_balance_current: "Current Loan Balance",
-  interest_rate: "Interest Rate",
-  loan_term_years: "Loan Term (Years)",
-  property_growth: "Capital Growth Rate",
-  monthly_rent: "Monthly Rent",
-  rental_growth: "Rental Growth Rate",
-  strata_quarterly: "Strata (Quarterly)",
-  rates_quarterly: "Council Rates (Quarterly)",
-  other_costs_monthly: "Other Costs (Monthly)",
+name: "Property Name",
+year_bought: "Year Purchased",
+purchase_price: "Purchase Price",
+purchase_fees: "Purchase Costs",
+current_value: "Current Value",
+original_loan: "Original Loan Amount",
+loan_balance_current: "Current Loan Balance",
+interest_rate: "Interest Rate",
+loan_term_years: "Loan Term (Years)",
+property_growth: "Capital Growth Rate",
+monthly_rent: "Monthly Rent",
+rental_growth: "Rental Growth Rate",
+strata_quarterly: "Strata (Quarterly)",
+rates_quarterly: "Council Rates (Quarterly)",
+other_costs_monthly: "Other Costs (Monthly)",
 };
 
 
 const FIELD_META = {
-  // ---- core money
-  initial_savings: { type: "money" },
-  todays_lifestyle_income: { type: "money" },
-  current_income: { type: "money" },
-  current_expenses: { type: "money" },
+// ---- core money
+initial_savings: { type: "money" },
+todays_lifestyle_income: { type: "money" },
+current_income: { type: "money" },
+current_expenses: { type: "money" },
 
-  // ---- core rates (stored as decimal, displayed as %)
-  inflation: { type: "percent" },
-  average_salary_increase: { type: "percent" },
-  stock_growth: { type: "percent" },
-  stock_swr: { type: "percent" },
-  super_swr: { type: "percent" },
-  super_sg_rate: { type: "percent" },
-  super_growth: { type: "percent" },
+// ---- core rates (stored as decimal, displayed as %)
+inflation: { type: "percent" },
+average_salary_increase: { type: "percent" },
+stock_growth: { type: "percent" },
+stock_swr: { type: "percent" },
+super_swr: { type: "percent" },
+super_sg_rate: { type: "percent" },
+super_growth: { type: "percent" },
 
-  // ---- integers
-  current_age: { type: "int" },
-  end_age: { type: "int" },
-  super_access_age: { type: "int" },
+// ---- integers
+current_age: { type: "int" },
+end_age: { type: "int" },
+super_access_age: { type: "int" },
 
-  // ---- other money
-  stock_yearly_contribution: { type: "money" },
-  starting_stock_value: { type: "money" },
-  super_starting_balance: { type: "money" },
-  super_additional_annual: { type: "money" },
+// ---- other money
+stock_yearly_contribution: { type: "money" },
+starting_stock_value: { type: "money" },
+super_starting_balance: { type: "money" },
+super_additional_annual: { type: "money" },
 };
 
 const PROP_FIELD_META = {
-  // money
-  purchase_price: { type: "money" },
-  current_value: { type: "money" },
-  original_loan: { type: "money" },
-  loan_balance_current: { type: "money" },
-  purchase_fees: { type: "money" },
-  monthly_rent: { type: "money" },
-  strata_quarterly: { type: "money" },
-  rates_quarterly: { type: "money" },
-  other_costs_monthly: { type: "money" },
+// money
+purchase_price: { type: "money" },
+current_value: { type: "money" },
+original_loan: { type: "money" },
+loan_balance_current: { type: "money" },
+purchase_fees: { type: "money" },
+monthly_rent: { type: "money" },
+strata_quarterly: { type: "money" },
+rates_quarterly: { type: "money" },
+other_costs_monthly: { type: "money" },
 
-  // rates (decimal in state, % in UI)
-  interest_rate: { type: "percent" },
-  property_growth: { type: "percent" },
-  rental_growth: { type: "percent" },
+// rates (decimal in state, % in UI)
+interest_rate: { type: "percent" },
+property_growth: { type: "percent" },
+rental_growth: { type: "percent" },
 
-  // integers
-  year_bought: { type: "int" },
-  loan_term_years: { type: "int" },
+// integers
+year_bought: { type: "int" },
+loan_term_years: { type: "int" },
 
-  // text
-  name: { type: "text" },
+// text
+name: { type: "text" },
 };
 
 function normSlug(s){
-  return String(s ?? "")
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[^a-z0-9]/g, "");
+return String(s ?? "")
+.toLowerCase()
+.replace(/\s+/g, "")
+.replace(/[^a-z0-9]/g, "");
 }
 
 function displayNameForPrefix(prefix){
-  const pfx = normSlug(prefix);
-  const hit = (state.property_list || []).find(p => normSlug(p?.name).includes(pfx));
-  return hit?.name || prefix;
+const pfx = normSlug(prefix);
+const hit = (state.property_list || []).find(p => normSlug(p?.name).includes(pfx));
+return hit?.name || prefix;
 }
 
 function renderPropertyChips(propPrefixes){
-  const wrap = document.getElementById("propertyChips");
-  if(!wrap) return;
-  wrap.innerHTML = "";
+const wrap = document.getElementById("propertyChips");
+if(!wrap) return;
+wrap.innerHTML = "";
 
-  if(!propPrefixes || !propPrefixes.length){
-    wrap.innerHTML = `<div class="muted">No per-property series detected.</div>`;
-    return;
-  }
+if(!propPrefixes || !propPrefixes.length){
+wrap.innerHTML = `<div class="muted">No per-property series detected.</div>`;
+return;
+}
 
-  // Ensure array exists
-  if(!Array.isArray(state.selectedPropPrefixes)) state.selectedPropPrefixes = [];
+// Ensure array exists
+if(!Array.isArray(state.selectedPropPrefixes)) state.selectedPropPrefixes = [];
 
-  propPrefixes.forEach(prefix => {
-    const chip = document.createElement("div");
-    const isActive = state.selectedPropPrefixes.includes(prefix);
+propPrefixes.forEach(prefix => {
+const chip = document.createElement("div");
+const isActive = state.selectedPropPrefixes.includes(prefix);
 
-    chip.className = "chip" + (isActive ? " active" : "");
-    chip.textContent = displayNameForPrefix(prefix);
+chip.className = "chip" + (isActive ? " active" : "");
+chip.textContent = displayNameForPrefix(prefix);
 
-    chip.onclick = () => {
-      // toggle prefix in the selection array
-      if(state.selectedPropPrefixes.includes(prefix)){
-        state.selectedPropPrefixes = state.selectedPropPrefixes.filter(p => p !== prefix);
-      } else {
-        state.selectedPropPrefixes = [...state.selectedPropPrefixes, prefix];
-      }
-      saveState();
-      if(state.lastResult) renderResults(state.lastResult);
-    };
+chip.onclick = () => {
+// toggle prefix in the selection array
+if(state.selectedPropPrefixes.includes(prefix)){
+state.selectedPropPrefixes = state.selectedPropPrefixes.filter(p => p !== prefix);
+} else {
+state.selectedPropPrefixes = [...state.selectedPropPrefixes, prefix];
+}
+saveState();
+if(state.lastResult) renderResults(state.lastResult);
+};
 
-    wrap.appendChild(chip);
-  });
+wrap.appendChild(chip);
+});
 }
 
 
@@ -1138,444 +979,461 @@ function renderPropertyChips(propPrefixes){
 
 
 function saveState(){
-  localStorage.setItem(LS_KEY, JSON.stringify(state));
+localStorage.setItem(LS_KEY, JSON.stringify(state));
 }
 function isPlainObject(x){
-  return x && typeof x === "object" && !Array.isArray(x);
+return x && typeof x === "object" && !Array.isArray(x);
 }
 
 function loadState(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return;
+try{
+const raw = localStorage.getItem(LS_KEY);
+if(!raw) return;
 
-    const parsed = JSON.parse(raw);
+const parsed = JSON.parse(raw);
 
-    // merge only safe top-level primitives
-    if (isPlainObject(parsed)) {
-      if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
-      if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
-      if (typeof parsed.mode === "string") state.mode = parsed.mode;
-	  if (parsed.expandedPropertyId !== undefined) state.expandedPropertyId = parsed.expandedPropertyId;
+// merge only safe top-level primitives
+if (isPlainObject(parsed)) {
+if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
+if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
+if (typeof parsed.mode === "string") state.mode = parsed.mode;
+if (parsed.expandedPropertyId !== undefined) state.expandedPropertyId = parsed.expandedPropertyId;
 
 
-      // IMPORTANT: only merge inputs if it's a real object
-      if (isPlainObject(parsed.inputs)) {
-        state.inputs = { ...state.inputs, ...parsed.inputs };
-      }
+// IMPORTANT: only merge inputs if it's a real object
+if (isPlainObject(parsed.inputs)) {
+state.inputs = { ...state.inputs, ...parsed.inputs };
+}
 
-      if (Array.isArray(parsed.property_list)) {
-        state.property_list = parsed.property_list;
-      }
+if (Array.isArray(parsed.property_list)) {
+state.property_list = parsed.property_list;
+}
 
-      if (isPlainObject(parsed.chartToggles)) {
-        state.chartToggles = { ...state.chartToggles, ...parsed.chartToggles };
-      }
+if (isPlainObject(parsed.chartToggles)) {
+state.chartToggles = { ...state.chartToggles, ...parsed.chartToggles };
+}
 
-      if (parsed.lastResult) state.lastResult = parsed.lastResult;
-    }
-  } catch(e){
-    // ignore bad storage
-  }
+if (parsed.lastResult) state.lastResult = parsed.lastResult;
+}
+} catch(e){
+// ignore bad storage
+}
   
   state.expandedPropertyId = null;
 
-  // hard defaults if blanks
-  if (!state.apiBase || !String(state.apiBase).trim()) state.apiBase = "https://fire-api-wixz.onrender.com";
-  if (!state.apiPath || !String(state.apiPath).trim()) state.apiPath = "/fire";
+// hard defaults if blanks
+if (!state.apiBase || !String(state.apiBase).trim()) state.apiBase = "https://fire-api-wixz.onrender.com";
+if (!state.apiPath || !String(state.apiPath).trim()) state.apiPath = "/fire";
 }
 
 
 /** ---------------------------
- *  Tab navigation
- *  --------------------------*/
+*  Tab navigation
+*  --------------------------*/
 function showTab(name){
-  document.querySelectorAll(".tabs").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".nav button").forEach(el => el.classList.remove("active"));
-  document.getElementById(`tab-${name}`).classList.add("active");
-  document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`).classList.add("active");
+document.querySelectorAll(".tabs").forEach(el => el.classList.remove("active"));
+document.querySelectorAll(".nav button").forEach(el => el.classList.remove("active"));
+document.getElementById(`tab-${name}`).classList.add("active");
+document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`).classList.add("active");
 }
 
 /** ---------------------------
- *  Mode
- *  --------------------------*/
+*  Mode
+*  --------------------------*/
 function setMode(mode){
-  state.mode = mode;
+state.mode = mode;
 
-  const modeSelect = document.getElementById("modeSelect");
-  if (modeSelect) modeSelect.value = mode;
+const modeSelect = document.getElementById("modeSelect");
+if (modeSelect) modeSelect.value = mode;
 
-  const chipYearly = document.getElementById("chipModeYearly");
-  const chipMonthly = document.getElementById("chipModeMonthly");
+const chipYearly = document.getElementById("chipModeYearly");
+const chipMonthly = document.getElementById("chipModeMonthly");
 
-  if (chipYearly) chipYearly.classList.toggle("active", mode === "yearly");
-  if (chipMonthly) chipMonthly.classList.toggle("active", mode === "monthly");
+if (chipYearly) chipYearly.classList.toggle("active", mode === "yearly");
+if (chipMonthly) chipMonthly.classList.toggle("active", mode === "monthly");
 
-  saveState();
+saveState();
 }
 
 
 /** ---------------------------
- *  Advanced toggle
- *  --------------------------*/
+*  Advanced toggle
+*  --------------------------*/
 function toggleAdvanced(){
-  const box = document.getElementById("advancedBox");
-  const pill = document.getElementById("advPill");
-  const show = box.style.display === "none";
-  box.style.display = show ? "block" : "none";
-  pill.textContent = show ? "Shown" : "Hidden";
+const box = document.getElementById("advancedBox");
+const pill = document.getElementById("advPill");
+const show = box.style.display === "none";
+box.style.display = show ? "block" : "none";
+pill.textContent = show ? "Shown" : "Hidden";
 }
 
 /** ---------------------------
- *  Raw JSON debug
- *  --------------------------*/
+*  Raw JSON debug
+*  --------------------------*/
 function toggleRawJson(){
-  const box = document.getElementById("rawJsonBox");
-  box.style.display = (box.style.display==="none") ? "block" : "none";
-  syncRawJsonFromCards();
+const box = document.getElementById("rawJsonBox");
+box.style.display = (box.style.display==="none") ? "block" : "none";
+syncRawJsonFromCards();
 }
 function syncRawJsonFromCards(){
-  const ta = document.getElementById("property_json");
-  ta.value = JSON.stringify(state.property_list, null, 2);
+const ta = document.getElementById("property_json");
+ta.value = JSON.stringify(state.property_list, null, 2);
 }
 function applyRawJson(){
-  try{
-    const parsed = JSON.parse(document.getElementById("property_json").value);
-    if(!Array.isArray(parsed)) throw new Error("property_list must be an array");
-    state.property_list = parsed.map((p, idx)=>({ ...p, id: Number(p.id ?? (idx+1)) || (idx+1) }));
-    saveState();
-    renderProperties();
-    alert("Applied JSON → cards.");
-  }catch(e){
-    alert("JSON parse failed: " + e.message);
-  }
+try{
+const parsed = JSON.parse(document.getElementById("property_json").value);
+if(!Array.isArray(parsed)) throw new Error("property_list must be an array");
+state.property_list = parsed.map((p, idx)=>({ ...p, id: Number(p.id ?? (idx+1)) || (idx+1) }));
+saveState();
+renderProperties();
+alert("Applied JSON → cards.");
+}catch(e){
+alert("JSON parse failed: " + e.message);
+}
 }
 function repairJson(){
-  let s = document.getElementById("property_json").value;
-  s = s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'");
-  s = s.replace(/,\s*([}\]])/g, "$1");
-  document.getElementById("property_json").value = s;
-  alert("Repaired common issues (quotes/trailing commas). Try Apply JSON → cards.");
+let s = document.getElementById("property_json").value;
+s = s.replace(/[“”]/g,'"').replace(/[‘’]/g,"'");
+s = s.replace(/,\s*([}\]])/g, "$1");
+document.getElementById("property_json").value = s;
+alert("Repaired common issues (quotes/trailing commas). Try Apply JSON → cards.");
 }
 function copyPayload(){
-  const payload = buildPayload();
-  console.log("payload.inputs (expanded):", JSON.stringify(payload.inputs, null, 2));
-  navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-  alert("Copied payload to clipboard.");
+const payload = buildPayload();
+console.log("payload.inputs (expanded):", JSON.stringify(payload.inputs, null, 2));
+navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+alert("Copied payload to clipboard.");
 }
 
 /** ---------------------------
- *  Inputs binding
- *  --------------------------*/
+*  Inputs binding
+*  --------------------------*/
 let pingTimer = null;
 
 function bindCoreInputs(){
-  // API fields
-  document.getElementById("apiBase").value = state.apiBase || "";
-  document.getElementById("apiPath").value = state.apiPath || "";
+// API fields
+document.getElementById("apiBase").value = state.apiBase || "";
+document.getElementById("apiPath").value = state.apiPath || "";
 
-  // ✅ Attach formatting behavior to ALL core+advanced input fields
-  for (const k of Object.keys(state.inputs)){
-    const el = document.getElementById(k);
-    if (!el) continue;
+// ✅ Attach formatting behavior to ALL core+advanced input fields
+for (const k of Object.keys(state.inputs)){
+const el = document.getElementById(k);
+if (!el) continue;
 
-    const meta = FIELD_META[k] || { type: "money" };
+const meta = FIELD_META[k] || { type: "money" };
 
-    // Use text inputs so we can display formatted values like "$500,000" or "2.5%"
-    if (meta.type === "money" || meta.type === "percent"){
-      el.type = "text";
-      el.inputMode = "decimal";
-    } else if (meta.type === "int"){
-      el.type = "text";
-      el.inputMode = "numeric";
-    }
+// Use text inputs so we can display formatted values like "$500,000" or "2.5%"
+if (meta.type === "money" || meta.type === "percent"){
+el.type = "text";
+el.inputMode = "decimal";
+} else if (meta.type === "int"){
+el.type = "text";
+el.inputMode = "numeric";
+}
 
-    attachUnitInputBehavior(
-      el,
-      meta,
-      () => state.inputs[k],
-      (v) => { state.inputs[k] = v; }
-    );
-  }
+attachUnitInputBehavior(
+el,
+meta,
+() => state.inputs[k],
+(v) => { state.inputs[k] = v; }
+);
+}
 
-  // API listeners
-  document.getElementById("apiBase").oninput = (e)=>{
-    state.apiBase = e.target.value.trim();
-    saveState();
-    clearTimeout(pingTimer);
-    pingTimer = setTimeout(pingAPI, 400);
-  };
+// API listeners
+document.getElementById("apiBase").oninput = (e)=>{
+state.apiBase = e.target.value.trim();
+saveState();
+clearTimeout(pingTimer);
+pingTimer = setTimeout(pingAPI, 400);
+};
 
-  document.getElementById("apiPath").oninput = (e)=>{
-    state.apiPath = e.target.value.trim();
-    saveState();
-  };
+document.getElementById("apiPath").oninput = (e)=>{
+state.apiPath = e.target.value.trim();
+saveState();
+};
 }
 
 
 
 /** ---------------------------
- *  Property cards UI
- *  --------------------------*/
+*  Property cards UI
+*  --------------------------*/
 
 function calcNetMonthlyForProperty(p){
-  const rent = toNumber(p.monthly_rent);
-  //* const loan = toNumber(p.loan_balance_current || p.original_loan);\\
-  const loan = toNumber(p.loan_balance_current ?? p.original_loan);
-  const rate = toNumber(p.interest_rate);
-  const interestMonthly = (loan * rate) / 12;
+const rent = toNumber(p.monthly_rent);
+const loan = toNumber(p.loan_balance_current || p.original_loan);
+const rate = toNumber(p.interest_rate);
+const interestMonthly = (loan * rate) / 12;
 
-  const strata = toNumber(p.strata_quarterly) / 3;
-  const rates = toNumber(p.rates_quarterly) / 3;
-  const other = toNumber(p.other_costs_monthly);
+const strata = toNumber(p.strata_quarterly) / 3;
+const rates = toNumber(p.rates_quarterly) / 3;
+const other = toNumber(p.other_costs_monthly);
 
-  return rent - interestMonthly - strata - rates - other;
+return rent - interestMonthly - strata - rates - other;
 }
 
 function propertySummary(p){
-  const value = toNumber(p.current_value);
-  const loan  = toNumber(p.loan_balance_current || 0);
-  const equity = Math.max(value - loan, 0);
-  const lvr = (value > 0) ? (loan / value) : 0;
-  const netMo = calcNetMonthlyForProperty(p);
-  return { value, loan, equity, lvr, netMo };
+const value = toNumber(p.current_value);
+const loan  = toNumber(p.loan_balance_current || 0);
+const equity = Math.max(value - loan, 0);
+const lvr = (value > 0) ? (loan / value) : 0;
+const netMo = calcNetMonthlyForProperty(p);
+return { value, loan, equity, lvr, netMo };
 }
 
 function setExpandedProperty(id){
-  state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
-  saveState();
-  renderProperties();
+state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
+saveState();
+renderProperties();
 }
 
 
 
 function nextPropertyId(){
-  return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
+return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
 }
-
-
-function addProperty(){
-  const id = nextPropertyId();
-
-  state.property_list.push({
-    id,
-    name: `Property ${id}`,
-    purchase_price: 800000,
-    current_value: 800000,
-    original_loan: 640000,
-    loan_balance_current: 0,
-    purchase_fees: 30000,
-    monthly_rent: 3200,
-    strata_quarterly: 0,
-    rates_quarterly: 900,
-    other_costs_monthly: 200,
-    interest_rate: 0.055,
-    property_growth: 0.03,
-    rental_growth: 0.03,
-    year_bought: new Date().getFullYear(),
-    loan_term_years: 30,
-    use_offset: true,
-    is_owner_occupied: false
-  });
-
-  // keep collapsed on add (don’t auto-open)
-  state.expandedPropertyId = null;
-
-  saveState();
-  renderProperties();
+function addProperty(kind){
+const id = nextPropertyId();
+if(kind === "ppor"){
+state.property_list.push({
+id,
+name: "PPOR",
+purchase_price: 1200000,
+current_value: 1200000,
+original_loan: 900000,
+loan_balance_current: 0,
+purchase_fees: 40000,
+monthly_rent: 0,
+strata_quarterly: 0,
+rates_quarterly: 900,
+other_costs_monthly: 300,
+interest_rate: 0.055,
+property_growth: 0.03,
+rental_growth: 0.0,
+year_bought: new Date().getFullYear()+1,
+loan_term_years: 30,
+use_offset: true,
+is_owner_occupied: true
+});
+} else {
+state.property_list.push({
+id,
+name: `Investment ${id}`,
+purchase_price: 800000,
+current_value: 800000,
+original_loan: 640000,
+loan_balance_current: 0,
+purchase_fees: 30000,
+monthly_rent: 3200,
+strata_quarterly: 0,
+rates_quarterly: 900,
+other_costs_monthly: 200,
+interest_rate: 0.055,
+property_growth: 0.03,
+rental_growth: 0.03,
+year_bought: new Date().getFullYear()+2,
+loan_term_years: 30,
+use_offset: true,
+is_owner_occupied: false
+});
 }
+state.expandedPropertyId = id; // auto-open newly created property
 
-
-
+saveState();
+renderProperties();
+}
 function removeProperty(id){
-  state.property_list = state.property_list.filter(p => Number(p.id) !== Number(id));
-  saveState();
-  renderProperties();
+state.property_list = state.property_list.filter(p => Number(p.id) !== Number(id));
+saveState();
+renderProperties();
 }
 function renderProperties(){
-  const wrap = document.getElementById("propsContainer");
-  wrap.innerHTML = "";
+const wrap = document.getElementById("propsContainer");
+wrap.innerHTML = "";
 
-  state.property_list.forEach((p, idx)=>{
-    const isPPOR = !!p.is_owner_occupied;
+state.property_list.forEach((p, idx)=>{
+const isPPOR = !!p.is_owner_occupied;
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.marginBottom = "14px";
-    card.style.background = "rgba(0,0,0,.18)";
-    card.style.borderColor = "rgba(255,255,255,.08)";
-    card.style.padding = "14px";
+const card = document.createElement("div");
+card.className = "card";
+card.style.marginBottom = "14px";
+card.style.background = "rgba(0,0,0,.18)";
+card.style.borderColor = "rgba(255,255,255,.08)";
+card.style.padding = "14px";
 
-    const expanded = (Number(state.expandedPropertyId) === Number(p.id));
-    const sum = propertySummary(p);
+const expanded = (Number(state.expandedPropertyId) === Number(p.id));
+const sum = propertySummary(p);
 
-    const header = document.createElement("div");
-    header.className = "propCardHeader";
+const header = document.createElement("div");
+header.className = "propCardHeader";
 
-    header.innerHTML = `
-      <div class="propCardHeaderLeft">
-        <div class="propTitle">
-          <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
-          <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
-          <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
-        </div>
+header.innerHTML = `
+     <div class="propCardHeaderLeft">
+       <div class="propTitle">
+         <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
+         <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
+         <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
+       </div>
 
-        <div class="propSummaryRow">
-          <span class="propSummaryPill">Value <b>${fmtMoney(sum.value)}</b></span>
-          <span class="propSummaryPill">Loan <b>${fmtMoney(sum.loan)}</b></span>
-          <span class="propSummaryPill">Equity <b>${fmtMoney(sum.equity)}</b></span>
-          <span class="propSummaryPill">LVR <b>${(sum.lvr*100).toFixed(0)}%</b></span>
-          <span class="propSummaryPill">Net/mo <b>${fmtMoney(sum.netMo)}</b></span>
-        </div>
-      </div>
+       <div class="propSummaryRow">
+         <span class="propSummaryPill">Value <b>${fmtMoney(sum.value)}</b></span>
+         <span class="propSummaryPill">Loan <b>${fmtMoney(sum.loan)}</b></span>
+         <span class="propSummaryPill">Equity <b>${fmtMoney(sum.equity)}</b></span>
+         <span class="propSummaryPill">LVR <b>${(sum.lvr*100).toFixed(0)}%</b></span>
+         <span class="propSummaryPill">Net/mo <b>${fmtMoney(sum.netMo)}</b></span>
+       </div>
+     </div>
 
-      <div class="row" style="gap:8px;">
-        <button class="btn" onclick="event.stopPropagation(); duplicateProperty(${Number(p.id)})">Duplicate</button>
-        <button class="btn danger" onclick="event.stopPropagation(); removeProperty(${Number(p.id)})">Remove</button>
-        <span class="propChevron">${expanded ? "▾" : "▸"}</span>
-      </div>
-    `;
+     <div class="row" style="gap:8px;">
+       <button class="btn" onclick="event.stopPropagation(); duplicateProperty(${Number(p.id)})">Duplicate</button>
+       <button class="btn danger" onclick="event.stopPropagation(); removeProperty(${Number(p.id)})">Remove</button>
+       <span class="propChevron">${expanded ? "▾" : "▸"}</span>
+     </div>
+   `;
 
-    header.onclick = () => setExpandedProperty(Number(p.id));
-    card.appendChild(header);
-
-
-    const body = document.createElement("div");
-    body.className = "propBody" + (expanded ? "" : " hidden");
-
-    const g = document.createElement("div");
-    g.className = "fieldgrid";
-    g.style.marginTop = "10px";
+header.onclick = () => setExpandedProperty(Number(p.id));
+card.appendChild(header);
 
 
-	const fields = [
-	  ["name", "text", "Name"],
-	  ["year_bought", "number", "Year Bought"],
+const body = document.createElement("div");
+body.className = "propBody" + (expanded ? "" : " hidden");
 
-	  ["purchase_price", "number", "Purchase Price"],
-	  ["purchase_fees", "number", "Purchase Fees"],
-
-	  ["current_value", "number", "Current Value"],
-
-	  ["original_loan", "number", "Original Loan"],
-	  ["loan_balance_current", "number", "Current Loan Balance"],
-
-	  ["interest_rate", "number", "Interest Rate (e.g. 5.5% or 0.055)"],
-	  ["loan_term_years", "number", "Loan Term (Years)"],
-
-	  ["property_growth", "number", "Property Growth (Annual)"],
-	  ["monthly_rent", "number", "Rent (Monthly)"],
-	  ["rental_growth", "number", "Rent Growth (Annual)"],
-
-	  ["strata_quarterly", "number", "Strata (Quarterly)"],
-	  ["rates_quarterly", "number", "Council Rates (Quarterly)"],
-	  ["other_costs_monthly", "number", "Other Costs (Monthly)"],
-	];
+const g = document.createElement("div");
+g.className = "fieldgrid";
+g.style.marginTop = "10px";
 
 
-    fields.forEach(([key, type, label])=>{
-      const d = document.createElement("div");
-      const id = `p_${p.id}_${key}`;
-      d.innerHTML = `
-        <label>${label}</label>
-        <input id="${id}" type="${type}" />
-      `;
-      g.appendChild(d);
-    });
+const fields = [
+["name", "text", "Name"],
+["year_bought", "number", "Year Bought"],
 
-    const toggles = document.createElement("div");
-    toggles.style.gridColumn = "1 / -1";
-    toggles.style.display = "flex";
-    toggles.style.gap = "10px";
-    toggles.style.flexWrap = "wrap";
-    toggles.style.marginTop = "6px";
-	toggles.innerHTML = `
-	  <label class="badge" style="cursor:pointer;">
-		<input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
-		Use Offset
-	  </label>
-	  <label class="badge" style="cursor:pointer;">
-		<input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
-		Owner-occupied (PPOR)
-	  </label>
-	`;
+["purchase_price", "number", "Purchase Price"],
+["purchase_fees", "number", "Purchase Fees"],
 
-    g.appendChild(toggles);
+["current_value", "number", "Current Value"],
 
-    body.appendChild(g);
-    card.appendChild(body);
-    wrap.appendChild(card);
+["original_loan", "number", "Original Loan"],
+["loan_balance_current", "number", "Current Loan Balance"],
+
+["interest_rate", "number", "Interest Rate (e.g. 5.5% or 0.055)"],
+["loan_term_years", "number", "Loan Term (Years)"],
+
+["property_growth", "number", "Property Growth (Annual)"],
+["monthly_rent", "number", "Rent (Monthly)"],
+["rental_growth", "number", "Rent Growth (Annual)"],
+
+["strata_quarterly", "number", "Strata (Quarterly)"],
+["rates_quarterly", "number", "Council Rates (Quarterly)"],
+["other_costs_monthly", "number", "Other Costs (Monthly)"],
+];
 
 
-    fields.forEach(([key, type])=>{
-		const el = document.getElementById(`p_${p.id}_${key}`);
+fields.forEach(([key, type, label])=>{
+const d = document.createElement("div");
+const id = `p_${p.id}_${key}`;
+d.innerHTML = `
+       <label>${label}</label>
+       <input id="${id}" type="${type}" />
+     `;
+g.appendChild(d);
+});
 
-		const meta = PROP_FIELD_META[key] || { type: (type === "number" ? "money" : "text") };
+const toggles = document.createElement("div");
+toggles.style.gridColumn = "1 / -1";
+toggles.style.display = "flex";
+toggles.style.gap = "10px";
+toggles.style.flexWrap = "wrap";
+toggles.style.marginTop = "6px";
+toggles.innerHTML = `
+     <label class="badge" style="cursor:pointer;">
+       <input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
+        use_offset
+        Use Offset
+     </label>
+     <label class="badge" style="cursor:pointer;">
+       <input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
+        is_owner_occupied (PPOR)
+        Is Owner Occupied (PPOR)
+     </label>
+   `;
+g.appendChild(toggles);
 
-		
-		if (meta.type === "money" || meta.type === "percent"){
-		  el.type = "text";
-		  el.inputMode = "decimal";
-		} else if (meta.type === "int"){
-		  el.type = "text";
-		  el.inputMode = "numeric";
-		}
+body.appendChild(g);
+card.appendChild(body);
+wrap.appendChild(card);
 
 
-		attachUnitInputBehavior(
-		  el,
-		  meta,
-		  () => {
-			const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-			return prop ? prop[key] : (p[key] ?? 0);
-		  },
-		  (v) => {
-			const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-			if(!prop) return;
-			prop[key] = v;
-			saveState();
-			syncRawJsonFromCards();
-		  }
-		);
+fields.forEach(([key, type])=>{
+const el = document.getElementById(`p_${p.id}_${key}`);
 
-    });
+const meta = PROP_FIELD_META[key] || { type: (type === "number" ? "money" : "text") };
 
-    const offEl = document.getElementById(`p_${p.id}_use_offset`);
-    offEl.checked = !!p.use_offset;
-    offEl.onchange = ()=>{
+
+if (meta.type === "money" || meta.type === "percent"){
+el.type = "text";
+el.inputMode = "decimal";
+} else if (meta.type === "int"){
+el.type = "text";
+el.inputMode = "numeric";
+}
+
+
+attachUnitInputBehavior(
+el,
+meta,
+() => {
+const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+return prop ? prop[key] : (p[key] ?? 0);
+},
+(v) => {
+const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+if(!prop) return;
+prop[key] = v;
+saveState();
+syncRawJsonFromCards();
+}
+);
+
+});
+
+const offEl = document.getElementById(`p_${p.id}_use_offset`);
+offEl.checked = !!p.use_offset;
+offEl.onchange = ()=>{
+const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+prop.use_offset = !!offEl.checked;
+saveState(); syncRawJsonFromCards();
+};
+
+const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
+occEl.checked = !!p.is_owner_occupied;
+    occEl.onchange = ()=>{
       const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-      prop.use_offset = !!offEl.checked;
-      saveState(); syncRawJsonFromCards();
+      prop.is_owner_occupied = !!occEl.checked;
+      if(prop.is_owner_occupied){
+        prop.monthly_rent = 0;
+        prop.rental_growth = 0;
+      }
+      saveState();
+      renderProperties();
     };
-
-    const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
-    occEl.checked = !!p.is_owner_occupied;
-	occEl.onchange = () => {
+	occEl.onchange = ()=>{
 	  const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-	  if (!prop) return;
+	  if(!prop) return;
 
-	  const wantsPPOR = !!occEl.checked;
+	  const turningOn = !!occEl.checked;
 
-	  if (wantsPPOR) {
-		// If another PPOR already exists (not this one), block it + popup + revert UI
-		const otherPPORExists = state.property_list.some(x =>
-		  Number(x.id) !== Number(p.id) && !!x.is_owner_occupied
-		);
+	  if(turningOn){
+		// ✅ enforce single PPOR
+		state.property_list.forEach(other => {
+		  if(Number(other.id) !== Number(prop.id)){
+			other.is_owner_occupied = false;
+		  }
+		});
 
-		if (otherPPORExists) {
-		  showToast("PPOR limit", "Only 1 PPOR allowed.");
-		  occEl.checked = false;           // revert checkbox UI immediately
-		  prop.is_owner_occupied = false;  // revert state
-		  saveState();
-		  return; // do NOT re-render
-		}
-
-		// Allowed to become PPOR
 		prop.is_owner_occupied = true;
 		prop.monthly_rent = 0;
 		prop.rental_growth = 0;
 	  } else {
-		// Turning PPOR off is always allowed
 		prop.is_owner_occupied = false;
 	  }
 
@@ -1583,382 +1441,381 @@ function renderProperties(){
 	  renderProperties();
 	};
 
+});
 
-  });
-
-  syncRawJsonFromCards();
+syncRawJsonFromCards();
 }
 function duplicateProperty(id){
-  const p = state.property_list.find(x => Number(x.id) === Number(id));
-  if(!p) return;
-  const newId = nextPropertyId();
-  const copy = JSON.parse(JSON.stringify(p));
-  copy.id = newId;
-  copy.name = (p.name || "Property") + " (copy)";
-  state.property_list.push(copy);
-  saveState();
-  renderProperties();
+const p = state.property_list.find(x => Number(x.id) === Number(id));
+if(!p) return;
+const newId = nextPropertyId();
+const copy = JSON.parse(JSON.stringify(p));
+copy.id = newId;
+copy.name = (p.name || "Property") + " (copy)";
+state.property_list.push(copy);
+saveState();
+renderProperties();
 }
 
 /** ---------------------------
- *  API health
- *  --------------------------*/
+*  API health
+*  --------------------------*/
 async function pingAPI(){
-  const base = (state.apiBase || "").replace(/\/+$/,"");
-  if(!base){
-    setApiStatus(false, "API base URL missing");
-    return;
-  }
-  try{
-    const r = await fetch(base + "/health", {method:"GET"});
-    const j = await r.json().catch(()=>null);
-    const ok = !!(j && (j.ok === true || j.status === "ok"));
-    setApiStatus(ok, ok ? "ok" : "health returned non-ok");
-  }catch(e){
-    setApiStatus(false, "unreachable");
-  }
+const base = (state.apiBase || "").replace(/\/+$/,"");
+if(!base){
+setApiStatus(false, "API base URL missing");
+return;
+}
+try{
+const r = await fetch(base + "/health", {method:"GET"});
+const j = await r.json().catch(()=>null);
+const ok = !!(j && (j.ok === true || j.status === "ok"));
+setApiStatus(ok, ok ? "ok" : "health returned non-ok");
+}catch(e){
+setApiStatus(false, "unreachable");
+}
 }
 function setApiStatus(ok, text){
-  const pill = document.getElementById("apiPill");
-  pill.textContent = `API: ${ok ? "ok" : "down"}`;
-  const badge = document.getElementById("apiBadge");
-  badge.innerHTML = ok
-    ? `<span class="ok"></span><span>API reachable (${escapeHtml(text)})</span>`
-    : `<span class="no"></span><span>API issue (${escapeHtml(text)})</span>`;
+const pill = document.getElementById("apiPill");
+pill.textContent = `API: ${ok ? "ok" : "down"}`;
+const badge = document.getElementById("apiBadge");
+badge.innerHTML = ok
+? `<span class="ok"></span><span>API reachable (${escapeHtml(text)})</span>`
+: `<span class="no"></span><span>API issue (${escapeHtml(text)})</span>`;
 }
 
 function normalizeInputs(obj){
-  const out = {};
-  for (const [k, v] of Object.entries(obj || {})){
-    out[k] = toNumber(v); // every input becomes a number
-  }
-  return out;
+const out = {};
+for (const [k, v] of Object.entries(obj || {})){
+out[k] = toNumber(v); // every input becomes a number
+}
+return out;
 }
 
 /** ---------------------------
- *  Build payload + run
- *  --------------------------*/
+*  Build payload + run
+*  --------------------------*/
 function buildPayload(){
-  return {
-    inputs: normalizeInputs(state.inputs),  // ✅ normalize ALL inputs, no key list
-    property_list: state.property_list,
-    display_month: (state.mode === "monthly")
-  };
+return {
+inputs: normalizeInputs(state.inputs),  // ✅ normalize ALL inputs, no key list
+property_list: state.property_list,
+display_month: (state.mode === "monthly")
+};
 }
 
 
 async function callPath(base, path, payload){
-  const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
-  
-    const body = JSON.stringify(payload);
-	console.log("SENDING body:", body);
+const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
 
-  let r, text;
-  try {
-	r = await fetch(url, {
-	  method: "POST",
-	  headers: {
-		"Content-Type":"application/json",
-		"Cache-Control":"no-store",
-		"Pragma":"no-cache"
-	  },
-	  cache: "no-store",
-	  body
-	});
+const body = JSON.stringify(payload);
+console.log("SENDING body:", body);
 
-  } catch (e) {
-    // This is the big one: CORS / network / SSL / blocked request
-    throw new Error(`FETCH_FAILED @ ${path}: ${e.message || e}`);
-  }
+let r, text;
+try {
+r = await fetch(url, {
+method: "POST",
+headers: {
+"Content-Type":"application/json",
+"Cache-Control":"no-store",
+"Pragma":"no-cache"
+},
+cache: "no-store",
+body
+});
 
-  text = await r.text();
+} catch (e) {
+// This is the big one: CORS / network / SSL / blocked request
+throw new Error(`FETCH_FAILED @ ${path}: ${e.message || e}`);
+}
+
+text = await r.text();
 
 // If we accidentally hit the frontend (Netlify), we'll get HTML back
 if ((text || "").trim().startsWith("<!DOCTYPE html")) {
-  throw new Error(
-    "HIT_FRONTEND_HTML @ " + path +
-    "\nYour apiBase is probably pointing to the Netlify site, not Render." +
-    "\napiBase=" + base +
-    "\n--- body (first 200 chars) ---\n" +
-    text.slice(0, 200)
-  );
+throw new Error(
+"HIT_FRONTEND_HTML @ " + path +
+"\nYour apiBase is probably pointing to the Netlify site, not Render." +
+"\napiBase=" + base +
+"\n--- body (first 200 chars) ---\n" +
+text.slice(0, 200)
+);
 }
 
 
 
-  // Try JSON, but don't assume it
-  let j = null;
-  try { j = JSON.parse(text); } catch(e) {}
+// Try JSON, but don't assume it
+let j = null;
+try { j = JSON.parse(text); } catch(e) {}
 
-  if(!r.ok){
-    // Show body even if it's HTML
-    throw new Error(`HTTP_${r.status} @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
-  }
+if(!r.ok){
+// Show body even if it's HTML
+throw new Error(`HTTP_${r.status} @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
+}
 
-  if(!j){
-    // 200 OK but not JSON (often HTML error page)
-    throw new Error(`NON_JSON_200 @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
-  }
+if(!j){
+// 200 OK but not JSON (often HTML error page)
+throw new Error(`NON_JSON_200 @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
+}
 
-  return j;
+return j;
 }
 
 
 
 
 async function runModel(){
-  syncInputsFromUI();
-  saveState();
-  const base = (state.apiBase || "").replace(/\/+$/,"");
-  if(!base){
-    alert("Set API Base URL first.");
-    return;
-  }
+syncInputsFromUI();
+saveState();
+const base = (state.apiBase || "").replace(/\/+$/,"");
+if(!base){
+alert("Set API Base URL first.");
+return;
+}
 
-  const payload = buildPayload();
-  const payloadStr = JSON.stringify(payload);
-  const fp = hashString(payloadStr);
+const payload = buildPayload();
+const payloadStr = JSON.stringify(payload);
+const fp = hashString(payloadStr);
 
-  document.getElementById("lastRunMeta").textContent =
-    `Running… | payload hash=${fp} | mode=${state.mode} | apiPath=${state.apiPath || "(auto)"}`;
+document.getElementById("lastRunMeta").textContent =
+`Running… | payload hash=${fp} | mode=${state.mode} | apiPath=${state.apiPath || "(auto)"}`;
 
-  console.log("RUN payload hash:", fp, payload);
+console.log("RUN payload hash:", fp, payload);
 
-  const explicit = (state.apiPath || "").trim();
+const explicit = (state.apiPath || "").trim();
 
-  const candidates = explicit
-    ? [explicit.startsWith("/") ? explicit : ("/"+explicit)]
-	: ["/fire", "/fire/", "/run", "/fire-model", "/model", "/run_fire_model", "/fire_model", "/calculate"];
+const candidates = explicit
+? [explicit.startsWith("/") ? explicit : ("/"+explicit)]
+: ["/fire", "/fire/", "/run", "/fire-model", "/model", "/run_fire_model", "/fire_model", "/calculate"];
 
-  document.getElementById("rawOut").textContent = "Running…";
-  document.getElementById("resultsMeta").textContent = "Running…";
+document.getElementById("rawOut").textContent = "Running…";
+document.getElementById("resultsMeta").textContent = "Running…";
 
-  let result = null;
-  let usedPath = null;
-  let lastErr = null;
+let result = null;
+let usedPath = null;
+let lastErr = null;
 
-  for(const p of candidates){
-    try{
-      result = await callPath(base, p, payload);
-      usedPath = p;
-      break;
-    }catch(e){
-      lastErr = e;
-    }
-  }
+for(const p of candidates){
+try{
+result = await callPath(base, p, payload);
+usedPath = p;
+break;
+}catch(e){
+lastErr = e;
+}
+}
 
-  if(!result){
-    document.getElementById("rawOut").textContent = String(lastErr || "Unknown error");
-    document.getElementById("resultsMeta").textContent = "Run failed. See raw output.";
-    showTab("results");
-    return;
-  }
+if(!result){
+document.getElementById("rawOut").textContent = String(lastErr || "Unknown error");
+document.getElementById("resultsMeta").textContent = "Run failed. See raw output.";
+showTab("results");
+return;
+}
 
-    // Response fingerprint (hash the raw JSON string we actually got back)
-  const respText = result.__rawText ? result.__rawText : JSON.stringify(result);
-  const respHash = hashString(respText);
+// Response fingerprint (hash the raw JSON string we actually got back)
+const respText = result.__rawText ? result.__rawText : JSON.stringify(result);
+const respHash = hashString(respText);
 
-  state.lastResult = result;
-  saveState();
+state.lastResult = result;
+saveState();
 
-  document.getElementById("lastRunMeta").textContent =
-    `Last run: ${new Date().toLocaleString()} | endpoint=${usedPath} | payload=${fp} | response=${respHash} | mode=${result.mode}`;
+document.getElementById("lastRunMeta").textContent =
+`Last run: ${new Date().toLocaleString()} | endpoint=${usedPath} | payload=${fp} | response=${respHash} | mode=${result.mode}`;
 
-  console.log("RUN result endpoint:", usedPath);
-  console.log("RUN response hash:", respHash);
+console.log("RUN result endpoint:", usedPath);
+console.log("RUN response hash:", respHash);
 
 
-  renderResults(result);
-  showTab("results");
+renderResults(result);
+showTab("results");
 }
 
 // Draw a vertical "FIRE" marker line on the chart
 const fireMarkerPlugin = {
-  id: "fireMarker",
-  afterDraw(chart, args, pluginOptions) {
-    const { ctx, chartArea, scales } = chart;
-    const xScale = scales.x;
-    if (!xScale || !chartArea) return;
+id: "fireMarker",
+afterDraw(chart, args, pluginOptions) {
+const { ctx, chartArea, scales } = chart;
+const xScale = scales.x;
+if (!xScale || !chartArea) return;
 
-    const idx = pluginOptions?.index;
-    if (idx === null || idx === undefined || idx < 0) return;
+const idx = pluginOptions?.index;
+if (idx === null || idx === undefined || idx < 0) return;
 
-    // Category scale: get pixel by index
-    const x = xScale.getPixelForValue(idx);
-    if (!Number.isFinite(x)) return;
+// Category scale: get pixel by index
+const x = xScale.getPixelForValue(idx);
+if (!Number.isFinite(x)) return;
 
-    ctx.save();
+ctx.save();
 
-    // Line styling (adjust to taste)
-    ctx.strokeStyle = pluginOptions?.color || "rgba(139,92,246,.95)";
-    ctx.lineWidth = pluginOptions?.lineWidth || 2;
-    ctx.setLineDash(pluginOptions?.dash || [6, 6]);
+// Line styling (adjust to taste)
+ctx.strokeStyle = pluginOptions?.color || "rgba(139,92,246,.95)";
+ctx.lineWidth = pluginOptions?.lineWidth || 2;
+ctx.setLineDash(pluginOptions?.dash || [6, 6]);
 
-    // Vertical line
-    ctx.beginPath();
-    ctx.moveTo(x, chartArea.top);
-    ctx.lineTo(x, chartArea.bottom);
-    ctx.stroke();
+// Vertical line
+ctx.beginPath();
+ctx.moveTo(x, chartArea.top);
+ctx.lineTo(x, chartArea.bottom);
+ctx.stroke();
 
-    // Optional label
-    const label = pluginOptions?.label || "FIRE";
-    ctx.setLineDash([]);
-    ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
-    ctx.font = pluginOptions?.font || "600 12px ui-sans-serif, system-ui, -apple-system, Segoe UI";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
+// Optional label
+const label = pluginOptions?.label || "FIRE";
+ctx.setLineDash([]);
+ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
+ctx.font = pluginOptions?.font || "600 12px ui-sans-serif, system-ui, -apple-system, Segoe UI";
+ctx.textAlign = "left";
+ctx.textBaseline = "top";
 
-    // Small label box background (optional)
-    const padX = 8, padY = 6;
-    const textW = ctx.measureText(label).width;
-    const boxW = textW + padX * 2;
-    const boxH = 22;
+// Small label box background (optional)
+const padX = 8, padY = 6;
+const textW = ctx.measureText(label).width;
+const boxW = textW + padX * 2;
+const boxH = 22;
 
-    const bx = Math.min(x + 8, chartArea.right - boxW);
-    const by = chartArea.top + 8;
+const bx = Math.min(x + 8, chartArea.right - boxW);
+const by = chartArea.top + 8;
 
-    ctx.fillStyle = pluginOptions?.boxBg || "rgba(0,0,0,.45)";
-    ctx.strokeStyle = pluginOptions?.boxBorder || "rgba(255,255,255,.15)";
-    ctx.lineWidth = 1;
+ctx.fillStyle = pluginOptions?.boxBg || "rgba(0,0,0,.45)";
+ctx.strokeStyle = pluginOptions?.boxBorder || "rgba(255,255,255,.15)";
+ctx.lineWidth = 1;
 
-    // Rounded rect
-    const r = 10;
-    ctx.beginPath();
-    ctx.moveTo(bx + r, by);
-    ctx.arcTo(bx + boxW, by, bx + boxW, by + boxH, r);
-    ctx.arcTo(bx + boxW, by + boxH, bx, by + boxH, r);
-    ctx.arcTo(bx, by + boxH, bx, by, r);
-    ctx.arcTo(bx, by, bx + boxW, by, r);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+// Rounded rect
+const r = 10;
+ctx.beginPath();
+ctx.moveTo(bx + r, by);
+ctx.arcTo(bx + boxW, by, bx + boxW, by + boxH, r);
+ctx.arcTo(bx + boxW, by + boxH, bx, by + boxH, r);
+ctx.arcTo(bx, by + boxH, bx, by, r);
+ctx.arcTo(bx, by, bx + boxW, by, r);
+ctx.closePath();
+ctx.fill();
+ctx.stroke();
 
-    // Label text
-    ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
-    ctx.fillText(label, bx + padX, by + 5);
+// Label text
+ctx.fillStyle = pluginOptions?.labelColor || "rgba(255,255,255,.92)";
+ctx.fillText(label, bx + padX, by + 5);
 
-    ctx.restore();
-  }
+ctx.restore();
+}
 };
-	
+
 /** ---------------------------
- *  Results rendering
- *  --------------------------*/
+*  Results rendering
+*  --------------------------*/
 let chart = null;
 let lastMetricsRegistry = [];
 
 function renderResults(result){
-  document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
+document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
 
-  const rows = result.rows || [];
-  const mode = result.mode || "yearly";
-  const n = rows.length;
+const rows = result.rows || [];
+const mode = result.mode || "yearly";
+const n = rows.length;
 
-  const rowsBadge = document.getElementById("rowsBadge");
-  rowsBadge.innerHTML = n
-    ? `<span class="ok"></span><span>${n} rows returned (${escapeHtml(mode)}).</span>`
-    : `<span class="no"></span><span>No rows returned.</span>`;
+const rowsBadge = document.getElementById("rowsBadge");
+rowsBadge.innerHTML = n
+? `<span class="ok"></span><span>${n} rows returned (${escapeHtml(mode)}).</span>`
+: `<span class="no"></span><span>No rows returned.</span>`;
 
-  document.getElementById("resultsMeta").textContent =
-    n ? `Showing ${n} rows (${mode}).` : "No rows to display.";
+document.getElementById("resultsMeta").textContent =
+n ? `Showing ${n} rows (${mode}).` : "No rows to display.";
 
-  if(!n) return;
+if(!n) return;
 
-  const cols = result.columns || Object.keys(rows[0] || {});
-  const last = rows[n-1];
+const cols = result.columns || Object.keys(rows[0] || {});
+const last = rows[n-1];
 
-  const yearKey  = findKey(cols, ["Year"]);
-  const ageKey   = findKey(cols, ["Age"]);
+const yearKey  = findKey(cols, ["Year"]);
+const ageKey   = findKey(cols, ["Age"]);
 
-	const fireEligibleKey = findKey(cols, ["FIRE_Eligible", "fire_eligible"]);
-	let fireIndex = -1;
-	
-	if (fireEligibleKey) {
-	  // first row where FIRE_Eligible becomes 1
-	  fireIndex = rows.findIndex(r => toNumber(r[fireEligibleKey]) === 1);
+const fireEligibleKey = findKey(cols, ["FIRE_Eligible", "fire_eligible"]);
+let fireIndex = -1;
+
+if (fireEligibleKey) {
+// first row where FIRE_Eligible becomes 1
+fireIndex = rows.findIndex(r => toNumber(r[fireEligibleKey]) === 1);
 }
 
-	let fireLabel = "FIRE";
+let fireLabel = "FIRE";
 if (fireIndex >= 0) {
-  const fireRow = rows[fireIndex];
-  const fireAge = ageKey ? toNumber(fireRow[ageKey]) : null;
+const fireRow = rows[fireIndex];
+const fireAge = ageKey ? toNumber(fireRow[ageKey]) : null;
 
-  // Use year label if available
-  const fireYear = yearKey ? fireRow[yearKey] : null;
+// Use year label if available
+const fireYear = yearKey ? fireRow[yearKey] : null;
 
-  if (Number.isFinite(fireAge) && fireAge > 0) {
-    fireLabel = `FIRE @ ${fireAge.toFixed(1)}`;
-  } else if (fireYear !== null && fireYear !== undefined) {
-    fireLabel = `FIRE (${fireYear})`;
-  }
+if (Number.isFinite(fireAge) && fireAge > 0) {
+fireLabel = `FIRE @ ${fireAge.toFixed(1)}`;
+} else if (fireYear !== null && fireYear !== undefined) {
+fireLabel = `FIRE (${fireYear})`;
+}
 }
 
 
-  // Core keys
-  const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
-  const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
-  const superKey = findKey(cols, ["Super_Balance", "Super_Balance_End", "Super"]);
+// Core keys
+const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
+const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+const superKey = findKey(cols, ["Super_Balance", "Super_Balance_End", "Super"]);
 
-  // Prefer backend totals/net-worth if present
-  const equityTotalKey = findKey(cols, ["Property_Equity_Total","Total_Property_Equity","Total_Equity"]);
-  const nwKey = findKey(cols, [
-    "Net_Worth_Incl_PPOR",
-    "Net_Worth_Ex_PPOR",
-    "Net_Worth",
-    "Net_Worth_Incl_Super_Incl_PPOR",
-    "Net_Worth_Incl_Super_Ex_PPOR"
-  ]);
+// Prefer backend totals/net-worth if present
+const equityTotalKey = findKey(cols, ["Property_Equity_Total","Total_Property_Equity","Total_Equity"]);
+const nwKey = findKey(cols, [
+"Net_Worth_Incl_PPOR",
+"Net_Worth_Ex_PPOR",
+"Net_Worth",
+"Net_Worth_Incl_Super_Incl_PPOR",
+"Net_Worth_Incl_Super_Ex_PPOR"
+]);
 
-	// Cashflow/FIRE keys (optional)
-	const fireTargetKey = findKey(cols, [
-	  "Fire_Target_Monthly",
-	  "FIRE_Target_Monthly",
-	  "Target_Monthly_Infl_Adj",
-	  "FIRE_Target"
-	]);
-	
-	// You only want FIRE income series (no passive income series)
-	const fireIncomeKey = findKey(cols, [
-	  "FIRE_Income_Monthly",
-	  "Fire_Replacement_Cashflow_Monthly"
-	]);
+// Cashflow/FIRE keys (optional)
+const fireTargetKey = findKey(cols, [
+"Fire_Target_Monthly",
+"FIRE_Target_Monthly",
+"Target_Monthly_Infl_Adj",
+"FIRE_Target"
+]);
 
-  // Debug series (optional)
-  const netRentKey = findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Net_Rent_Total"]);
-  const taxKey = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
+// You only want FIRE income series (no passive income series)
+const fireIncomeKey = findKey(cols, [
+"FIRE_Income_Monthly",
+"Fire_Replacement_Cashflow_Monthly"
+]);
 
-  // Property totals fallback using prefixes
-  const propPrefixes = detectPropertyPrefixes(cols);
-  renderPropertyChips(propPrefixes);
+// Debug series (optional)
+const netRentKey = findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Net_Rent_Total"]);
+const taxKey = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
 
-
+// Property totals fallback using prefixes
+const propPrefixes = detectPropertyPrefixes(cols);
+renderPropertyChips(propPrefixes);
 
 
 
 
-	
-  // KPI end row
-  const cashEnd   = getFirstNumber(last, [cashKey]);
-  const stocksEnd = getFirstNumber(last, [stockKey]);
-  const equityEnd = (equityTotalKey && Object.prototype.hasOwnProperty.call(last, equityTotalKey))
-    ? toNumber(last[equityTotalKey])
-    : computePropertyTotals(last, propPrefixes, cols).totalEquity;
-
-  const netWorthEnd = (nwKey && Object.prototype.hasOwnProperty.call(last, nwKey))
-    ? toNumber(last[nwKey])
-    : (cashEnd + stocksEnd + equityEnd);
-
-  document.getElementById("kpiCashEnd").textContent = fmtMoney(cashEnd);
-  document.getElementById("kpiStocksEnd").textContent = fmtMoney(stocksEnd);
-  document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
-  document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
-
-  // Build labels + series
-  const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
-  const ageLabels = rows.map(r => ageKey ? String(r[ageKey] ?? "") : "");
 
 
-  const seriesFromKey = (key) => rows.map(r => getFirstNumber(r, [key]));
+
+// KPI end row
+const cashEnd   = getFirstNumber(last, [cashKey]);
+const stocksEnd = getFirstNumber(last, [stockKey]);
+const equityEnd = (equityTotalKey && Object.prototype.hasOwnProperty.call(last, equityTotalKey))
+? toNumber(last[equityTotalKey])
+: computePropertyTotals(last, propPrefixes, cols).totalEquity;
+
+const netWorthEnd = (nwKey && Object.prototype.hasOwnProperty.call(last, nwKey))
+? toNumber(last[nwKey])
+: (cashEnd + stocksEnd + equityEnd);
+
+document.getElementById("kpiCashEnd").textContent = fmtMoney(cashEnd);
+document.getElementById("kpiStocksEnd").textContent = fmtMoney(stocksEnd);
+document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
+document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
+
+// Build labels + series
+const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
+const ageLabels = rows.map(r => ageKey ? String(r[ageKey] ?? "") : "");
+
+
+const seriesFromKey = (key) => rows.map(r => getFirstNumber(r, [key]));
 
 
 // ✅ Always plot monthly units on the chart.
@@ -1969,759 +1826,756 @@ if (fireIndex >= 0) {
 //     })
 //   : null;
 
-	
+
 const cashDrawKey = findKey(cols, [
-  "Cash_Drawdown_Monthly",   // NEW yearly “last month” metric
-  "Cash_Drawdown_Paid",
-  "Cash_Drawdown_Total"
+"Cash_Drawdown_Monthly",   // NEW yearly “last month” metric
+"Cash_Drawdown_Paid",
+"Cash_Drawdown_Total"
 ]);
 
 
 const cashDrawSeries = cashDrawKey
-  ? seriesFromKey(cashDrawKey).map(v => (cashDrawKey === "Cash_Drawdown_Total" ? v / 12 : v))
-  : null;
+? seriesFromKey(cashDrawKey).map(v => (cashDrawKey === "Cash_Drawdown_Total" ? v / 12 : v))
+: null;
 
-  const cashSeries   = seriesFromKey(cashKey);
-  const stockSeries  = seriesFromKey(stockKey);
-  const superSeries = superKey ? seriesFromKey(superKey) : null;
+const cashSeries   = seriesFromKey(cashKey);
+const stockSeries  = seriesFromKey(stockKey);
+const superSeries = superKey ? seriesFromKey(superKey) : null;
 
-  const equitySeries = rows.map(r => {
-    if (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey)) return toNumber(r[equityTotalKey]);
-    return computePropertyTotals(r, propPrefixes, cols).totalEquity;
-  });
+const equitySeries = rows.map(r => {
+if (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey)) return toNumber(r[equityTotalKey]);
+return computePropertyTotals(r, propPrefixes, cols).totalEquity;
+});
 
-  const netWorthSeries = rows.map(r => {
-    if (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey)) return toNumber(r[nwKey]);
-    const c = getFirstNumber(r, [cashKey]);
-    const s = getFirstNumber(r, [stockKey]);
-    const e = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
-      ? toNumber(r[equityTotalKey])
-      : computePropertyTotals(r, propPrefixes, cols).totalEquity;
-    return c + s + e;
-  });
+const netWorthSeries = rows.map(r => {
+if (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey)) return toNumber(r[nwKey]);
+const c = getFirstNumber(r, [cashKey]);
+const s = getFirstNumber(r, [stockKey]);
+const e = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
+? toNumber(r[equityTotalKey])
+: computePropertyTotals(r, propPrefixes, cols).totalEquity;
+return c + s + e;
+});
 
-  const fireTargetSeries = fireTargetKey ? seriesFromKey(fireTargetKey) : null;
-  
-  const netRentSeries = netRentKey
-  ? seriesFromKey(netRentKey).map(v => {
-      // Yearly mode returns annual net rent, so convert to monthly
-      return (mode === "yearly" ? v / 12 : v);
-    })
-  : null;
-  const taxSeries = taxKey
-  ? seriesFromKey(taxKey).map(v => (mode === "yearly" ? v / 12 : v))
-  : null;
+const fireTargetSeries = fireTargetKey ? seriesFromKey(fireTargetKey) : null;
 
-	const fireIncomeSeries = fireIncomeKey ? seriesFromKey(fireIncomeKey) : null;
-	
+const netRentSeries = netRentKey
+? seriesFromKey(netRentKey).map(v => {
+// Yearly mode returns annual net rent, so convert to monthly
+return (mode === "yearly" ? v / 12 : v);
+})
+: null;
+const taxSeries = taxKey
+? seriesFromKey(taxKey).map(v => (mode === "yearly" ? v / 12 : v))
+: null;
+
+const fireIncomeSeries = fireIncomeKey ? seriesFromKey(fireIncomeKey) : null;
+
 const fireIncomeWithCashSeries =
-  (fireIncomeSeries && cashDrawSeries && fireIncomeSeries.length === cashDrawSeries.length)
-    ? fireIncomeSeries.map((v, idx) => v + cashDrawSeries[idx])
-    : null;
+(fireIncomeSeries && cashDrawSeries && fireIncomeSeries.length === cashDrawSeries.length)
+? fireIncomeSeries.map((v, idx) => v + cashDrawSeries[idx])
+: null;
 
 
-	
-	const withdrawalsKey = findKey(cols, ["Withdrawals_Total","Withdrawals_Monthly"]);
-	const withdrawalsSeries = withdrawalsKey
-	  ? seriesFromKey(withdrawalsKey).map(v => (withdrawalsKey === "Withdrawals_Total" ? v / 12 : v))
-	  : null;
+
+const withdrawalsKey = findKey(cols, ["Withdrawals_Total","Withdrawals_Monthly"]);
+const withdrawalsSeries = withdrawalsKey
+? seriesFromKey(withdrawalsKey).map(v => (withdrawalsKey === "Withdrawals_Total" ? v / 12 : v))
+: null;
 
 
-  // Registry of possible chart datasets
-	// Registry of possible chart datasets
-	const METRICS = [
-	  { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
-	  { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
-	  { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
-	  { id:"propertyEquity", label:"Property equity (total)", axis:"y", data: equitySeries, defaultOn:true },
+// Registry of possible chart datasets
+// Registry of possible chart datasets
+const METRICS = [
+{ id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
+{ id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
+{ id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
+{ id:"propertyEquity", label:"Property equity (total)", axis:"y", data: equitySeries, defaultOn:true },
 
 
-	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
+...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
 
-	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
-	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
-		// ...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
-	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
-		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
-		...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
-		...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true}] : []),
-		...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash",  label:"FIRE income + cash (monthly)",  axis:"y2",  data: fireIncomeWithCashSeries,  defaultOn:true}] : []),
+...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
+...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
+// ...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
+...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
+...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
+...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
+...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true}] : []),
+...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash",  label:"FIRE income + cash (monthly)",  axis:"y2",  data: fireIncomeWithCashSeries,  defaultOn:true}] : []),
 
-	];
+];
 
 
-  lastMetricsRegistry = METRICS;
+lastMetricsRegistry = METRICS;
 
-  // Ensure toggle values exist (but keep user’s saved preferences)
-  for(const m of METRICS){
-    if(typeof state.chartToggles[m.id] !== "boolean"){
-      state.chartToggles[m.id] = !!m.defaultOn;
-    }
-  }
-  saveState();
-  renderChartChips(METRICS);
+// Ensure toggle values exist (but keep user’s saved preferences)
+for(const m of METRICS){
+if(typeof state.chartToggles[m.id] !== "boolean"){
+state.chartToggles[m.id] = !!m.defaultOn;
+}
+}
+saveState();
+renderChartChips(METRICS);
 
 
 const datasets = METRICS
-  .filter(m => state.chartToggles[m.id])
-  .map(m => ({
-    label: m.label,
-    data: m.data,
-    yAxisID: m.axis,
-    borderWidth: 2,
-    tension: .25,
-    pointRadius: (mode === "monthly" ? 0 : 2),
-    pointHoverRadius: (mode === "monthly" ? 2 : 4)
-  }));
+.filter(m => state.chartToggles[m.id])
+.map(m => ({
+label: m.label,
+data: m.data,
+yAxisID: m.axis,
+borderWidth: 2,
+tension: .25,
+pointRadius: (mode === "monthly" ? 0 : 2),
+pointHoverRadius: (mode === "monthly" ? 2 : 4)
+}));
 
-  
+
 const selected = Array.isArray(state.selectedPropPrefixes) ? state.selectedPropPrefixes : [];
 
 selected
-  .filter(prefix => propPrefixes.includes(prefix))
-  .forEach(prefix => {
-    const valueKey    = propCol(prefix, "value", cols);
-    const mortKey     = propCol(prefix, "mortgage", cols);
-    const netRentKeyP = propCol(prefix, "netRentMonthly", cols);
+.filter(prefix => propPrefixes.includes(prefix))
+.forEach(prefix => {
+const valueKey    = propCol(prefix, "value", cols);
+const mortKey     = propCol(prefix, "mortgage", cols);
+const netRentKeyP = propCol(prefix, "netRentMonthly", cols);
 
-    const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
-    const equitySeriesP  = rows.map(r => {
-      const v = getFirstNumber(r, [valueKey]);
-      const m = getFirstNumber(r, [mortKey]);
-      return Math.max(v - m, 0);
-    });
-    const netRentSeriesP = rows.map(r => {
-  const v = getFirstNumber(r, [netRentKeyP]);
-  return (mode === "yearly" ? v / 12 : v);
+const mortgageSeries = rows.map(r => getFirstNumber(r, [mortKey]));
+const equitySeriesP  = rows.map(r => {
+const v = getFirstNumber(r, [valueKey]);
+const m = getFirstNumber(r, [mortKey]);
+return Math.max(v - m, 0);
+});
+const netRentSeriesP = rows.map(r => {
+const v = getFirstNumber(r, [netRentKeyP]);
+return (mode === "yearly" ? v / 12 : v);
 });
 
-    datasets.push(
-      { label: `${prefix} — Mortgage`, data: mortgageSeries, yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
-      { label: `${prefix} — Equity`,   data: equitySeriesP,  yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
-      { label: `${prefix} — Net rent (monthly)`, data: netRentSeriesP, yAxisID:"y2", borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) }
-    );
-  });
+datasets.push(
+{ label: `${prefix} — Mortgage`, data: mortgageSeries, yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
+{ label: `${prefix} — Equity`,   data: equitySeriesP,  yAxisID:"y",  borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) },
+{ label: `${prefix} — Net rent (monthly)`, data: netRentSeriesP, yAxisID:"y2", borderWidth:2, tension:.25, pointRadius:(mode==="monthly"?0:2), pointHoverRadius:(mode==="monthly"?2:4) }
+);
+});
 
 
-  const ctx = document.getElementById("chartMain");
-  if(chart){ chart.destroy(); chart = null; }
+const ctx = document.getElementById("chartMain");
+if(chart){ chart.destroy(); chart = null; }
 
-  chart = new Chart(ctx, {
-    type: "line",
-    data: { 
-	labels, 
-	datasets 
-	},
-    plugins: [fireMarkerPlugin],
-    options: {
-	  locale: "en-US",
-      responsive: true,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: false }, // chips are the legend
-        tooltip: {
-          callbacks: {
-            label: (c)=> `${c.dataset.label}: ${fmtMoney(c.parsed.y)}`
-          }
-        },		
-      fireMarker: {
-        index: fireIndex,
-        label: fireLabel,
-        color: "rgba(139,92,246,.95)",
-        dash: [6, 6],
-        lineWidth: 2,
-        boxBg: "rgba(0,0,0,.45)"
-      }
-      },
-      scales: {
-        x: {
-			  position: "top",
-			  ticks: {
-				color: "rgba(255,255,255,.75)"
-			  },
-			  grid: {
-				color: "rgba(255,255,255,.06)"
-			  }
-			},
-		xAge: {
-			  position: "bottom",
-			  labels: ageLabels,
-			  ticks: {
-				color: "rgba(255,255,255,.45)"
-			  },
-			  grid: {
-				drawOnChartArea: false
-			  }
-			},
+chart = new Chart(ctx, {
+type: "line",
+data: { 
+labels, 
+datasets 
+},
+plugins: [fireMarkerPlugin],
+options: {
+locale: "en-US",
+responsive: true,
+interaction: { mode: "index", intersect: false },
+plugins: {
+legend: { display: false }, // chips are the legend
+tooltip: {
+callbacks: {
+label: (c)=> `${c.dataset.label}: ${fmtMoney(c.parsed.y)}`
+}
+},		
+fireMarker: {
+index: fireIndex,
+label: fireLabel,
+color: "rgba(139,92,246,.95)",
+dash: [6, 6],
+lineWidth: 2,
+boxBg: "rgba(0,0,0,.45)"
+}
+},
+scales: {
+x: {
+position: "top",
+ticks: {
+color: "rgba(255,255,255,.75)"
+},
+grid: {
+color: "rgba(255,255,255,.06)"
+}
+},
+xAge: {
+position: "bottom",
+labels: ageLabels,
+ticks: {
+color: "rgba(255,255,255,.45)"
+},
+grid: {
+drawOnChartArea: false
+}
+},
 
-        y: {
-          position: "left",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ color:"rgba(255,255,255,.06)" }
-        },
-        y2: {
-          position: "right",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ drawOnChartArea:false }
-        }
-      }
-    }
-  });
+y: {
+position: "left",
+ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+grid:{ color:"rgba(255,255,255,.06)" }
+},
+y2: {
+position: "right",
+ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+grid:{ drawOnChartArea:false }
+}
+}
+}
+});
 
-  renderSummaryTable(result, propPrefixes);
-  renderPropertyEndTable(last, propPrefixes);
-  renderFullTable();
+renderSummaryTable(result, propPrefixes);
+renderPropertyEndTable(last, propPrefixes);
+renderFullTable();
 }
 
 /** ---------------------------
- *  Chart chips + presets
- *  --------------------------*/
+*  Chart chips + presets
+*  --------------------------*/
 function renderChartChips(METRICS){
-  const wrap = document.getElementById("chartChips");
-  if(!wrap) return;
+const wrap = document.getElementById("chartChips");
+if(!wrap) return;
 
-  wrap.innerHTML = "";
-  METRICS.forEach(m => {
-    const chip = document.createElement("div");
-    chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
-    chip.textContent = m.label;
-	chip.onclick = () => {
-	  state.chartToggles[m.id] = !state.chartToggles[m.id];
-	  saveState();
-	  if(state.lastResult) renderResults(state.lastResult);
-	};
+wrap.innerHTML = "";
+METRICS.forEach(m => {
+const chip = document.createElement("div");
+chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
+chip.textContent = m.label;
+chip.onclick = () => {
+state.chartToggles[m.id] = !state.chartToggles[m.id];
+saveState();
+if(state.lastResult) renderResults(state.lastResult);
+};
 
-    wrap.appendChild(chip);
-  });
+wrap.appendChild(chip);
+});
 }
 
 function setChartPreset(which){
-  const METRICS = lastMetricsRegistry || [];
-  if(!METRICS.length){
-    if(state.lastResult) renderResults(state.lastResult);
-    return;
-  }
+const METRICS = lastMetricsRegistry || [];
+if(!METRICS.length){
+if(state.lastResult) renderResults(state.lastResult);
+return;
+}
 
-  const ids = METRICS.map(m => m.id);
+const ids = METRICS.map(m => m.id);
 
-  if(which === "none"){
-    for(const id of ids) state.chartToggles[id] = false;
-  } else if(which === "all"){
-    for(const id of ids) state.chartToggles[id] = true;
-  } else {
-    // key
-    const keySet = new Set(["netWorth","cash","stocks","superBalance","propertyEquity","fireTarget","fireIncome","fireIncomeWithCash"]);
-    for(const id of ids) state.chartToggles[id] = keySet.has(id);
-  }
+if(which === "none"){
+for(const id of ids) state.chartToggles[id] = false;
+} else if(which === "all"){
+for(const id of ids) state.chartToggles[id] = true;
+} else {
+// key
+const keySet = new Set(["netWorth","cash","stocks","superBalance","propertyEquity","fireTarget","fireIncome","fireIncomeWithCash"]);
+for(const id of ids) state.chartToggles[id] = keySet.has(id);
+}
 
-  saveState();
-  if(state.lastResult) renderResults(state.lastResult);
+saveState();
+if(state.lastResult) renderResults(state.lastResult);
 }
 
 /** ---------------------------
- *  Summary + tables
- *  --------------------------*/
+*  Summary + tables
+*  --------------------------*/
 function renderSummaryTable(result, propPrefixes){
-  const rows = result.rows || [];
-  const cols = result.columns || (rows[0] ? Object.keys(rows[0]) : []);
+const rows = result.rows || [];
+const cols = result.columns || (rows[0] ? Object.keys(rows[0]) : []);
 
-  const yearKey   = findKey(cols, ["Year"]);
-  const ageKey    = findKey(cols, ["Age"]);
+const yearKey   = findKey(cols, ["Year"]);
+const ageKey    = findKey(cols, ["Age"]);
 
-  const salaryKey = findKey(cols, ["Salary_Annual", "Salary (Increase Inc.)", "Salary"]);
-  const expKey    = findKey(cols, ["Expenses_Annual", "Living Expenses (Increase Inc.)", "Expenses"]);
-  const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
-  const netRentKey= findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Total Net Rent"]);
+const salaryKey = findKey(cols, ["Salary_Annual", "Salary (Increase Inc.)", "Salary"]);
+const expKey    = findKey(cols, ["Expenses_Annual", "Living Expenses (Increase Inc.)", "Expenses"]);
+const taxKey    = findKey(cols, ["Tax_Paid","Tax_Payable_Paid","Tax_Payable","Tax Paid"]);
+const netRentKey= findKey(cols, ["Total_Net_Rent","Total_Net_Rent_Monthly","Total Net Rent"]);
 
-  const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
-  const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+const cashKey   = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
+const stockKey  = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
 
-  const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
-  const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
-  const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
+const propValueTotalKey = findKey(cols, ["Property_Value_Total", "Total_Property_Value"]);
+const mortBalTotalKey   = findKey(cols, ["Mortgage_Balance_Total", "Total_Mortgage_Balance"]);
+const equityTotalKey    = findKey(cols, ["Property_Equity_Total", "Total_Property_Equity"]);
 
-  const nwKey = findKey(cols, [
-    "Net_Worth_Incl_PPOR",
-    "Net_Worth_Ex_PPOR",
-    "Net_Worth",
-    "Net_Worth_Incl_Super_Incl_PPOR",
-    "Net_Worth_Incl_Super_Ex_PPOR"
-  ]);
+const nwKey = findKey(cols, [
+"Net_Worth_Incl_PPOR",
+"Net_Worth_Ex_PPOR",
+"Net_Worth",
+"Net_Worth_Incl_Super_Incl_PPOR",
+"Net_Worth_Incl_Super_Ex_PPOR"
+]);
 
-  const summaryRows = rows.map(r => {
-    const cash   = getFirstNumber(r, [cashKey]);
-    const stocks = getFirstNumber(r, [stockKey]);
+const summaryRows = rows.map(r => {
+const cash   = getFirstNumber(r, [cashKey]);
+const stocks = getFirstNumber(r, [stockKey]);
 
-    const computed = computePropertyTotals(r, propPrefixes, cols);
+const computed = computePropertyTotals(r, propPrefixes, cols);
 
-    const propValueTotal = (propValueTotalKey && Object.prototype.hasOwnProperty.call(r, propValueTotalKey))
-      ? toNumber(r[propValueTotalKey])
-      : computed.totalValue;
+const propValueTotal = (propValueTotalKey && Object.prototype.hasOwnProperty.call(r, propValueTotalKey))
+? toNumber(r[propValueTotalKey])
+: computed.totalValue;
 
-    const mortBalTotal = (mortBalTotalKey && Object.prototype.hasOwnProperty.call(r, mortBalTotalKey))
-      ? toNumber(r[mortBalTotalKey])
-      : computed.totalMortgage;
+const mortBalTotal = (mortBalTotalKey && Object.prototype.hasOwnProperty.call(r, mortBalTotalKey))
+? toNumber(r[mortBalTotalKey])
+: computed.totalMortgage;
 
-    const equityTotal = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
-      ? toNumber(r[equityTotalKey])
-      : Math.max(propValueTotal - mortBalTotal, 0);
+const equityTotal = (equityTotalKey && Object.prototype.hasOwnProperty.call(r, equityTotalKey))
+? toNumber(r[equityTotalKey])
+: Math.max(propValueTotal - mortBalTotal, 0);
 
-    const netWorth = (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey))
-      ? toNumber(r[nwKey])
-      : (cash + stocks + equityTotal);
+const netWorth = (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey))
+? toNumber(r[nwKey])
+: (cash + stocks + equityTotal);
 
-    return {
-      [(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
-      [(ageKey  || "Age")]:  ageKey  ? (r[ageKey] ?? "")  : "",
-      Salary_Annual: salaryKey ? (r[salaryKey] ?? "") : "",
-      Expenses_Annual: expKey ? (r[expKey] ?? "") : "",
-      Total_Net_Rent: netRentKey ? (r[netRentKey] ?? "") : "",
-      Tax_Paid: taxKey ? (r[taxKey] ?? "") : "",
-      Cash_End: cash,
-      Stocks_End: stocks,
-      Property_Value_Total: propValueTotal,
-      Mortgage_Balance_Total: mortBalTotal,
-      Property_Equity_Total: equityTotal,
-      Net_Worth: netWorth
-    };
-  });
+return {
+[(yearKey || "Year")]: yearKey ? (r[yearKey] ?? "") : "",
+[(ageKey  || "Age")]:  ageKey  ? (r[ageKey] ?? "")  : "",
+Salary_Annual: salaryKey ? (r[salaryKey] ?? "") : "",
+Expenses_Annual: expKey ? (r[expKey] ?? "") : "",
+Total_Net_Rent: netRentKey ? (r[netRentKey] ?? "") : "",
+Tax_Paid: taxKey ? (r[taxKey] ?? "") : "",
+Cash_End: cash,
+Stocks_End: stocks,
+Property_Value_Total: propValueTotal,
+Mortgage_Balance_Total: mortBalTotal,
+Property_Equity_Total: equityTotal,
+Net_Worth: netWorth
+};
+});
 
-  const showCols = Object.keys(summaryRows[0] || {});
-  document.getElementById("summaryTableWrap").innerHTML = buildTableHTML(summaryRows, showCols, {
-    formatters: {
-      Salary_Annual: fmtMoney,
-      Expenses_Annual: fmtMoney,
-      Total_Net_Rent: fmtMoney,
-      Tax_Paid: fmtMoney,
-      Cash_End: fmtMoney,
-      Stocks_End: fmtMoney,
-      Property_Value_Total: fmtMoney,
-      Mortgage_Balance_Total: fmtMoney,
-      Property_Equity_Total: fmtMoney,
-      Net_Worth: fmtMoney
-    },
-    rightAlign: new Set([
-      "Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid",
-      "Cash_End","Stocks_End","Property_Value_Total","Mortgage_Balance_Total",
-      "Property_Equity_Total","Net_Worth"
-    ])
-  });
+const showCols = Object.keys(summaryRows[0] || {});
+document.getElementById("summaryTableWrap").innerHTML = buildTableHTML(summaryRows, showCols, {
+formatters: {
+Salary_Annual: fmtMoney,
+Expenses_Annual: fmtMoney,
+Total_Net_Rent: fmtMoney,
+Tax_Paid: fmtMoney,
+Cash_End: fmtMoney,
+Stocks_End: fmtMoney,
+Property_Value_Total: fmtMoney,
+Mortgage_Balance_Total: fmtMoney,
+Property_Equity_Total: fmtMoney,
+Net_Worth: fmtMoney
+},
+rightAlign: new Set([
+"Salary_Annual","Expenses_Annual","Total_Net_Rent","Tax_Paid",
+"Cash_End","Stocks_End","Property_Value_Total","Mortgage_Balance_Total",
+"Property_Equity_Total","Net_Worth"
+])
+});
 }
 
 function renderPropertyEndTable(lastRow, propPrefixes){
-  const colsAll = state.lastResult?.columns || Object.keys(lastRow || {});
-  const rows = propPrefixes.map(prefix => {
-    const snap = getPropertySnapshot(lastRow, prefix, colsAll);
-    return {
-      Property: prefix,
-      Type: snap.isPPOR ? "PPOR" : "Investment",
-      Property_Value: snap.value,
-      Mortgage_Balance: snap.mortgage,
-      Equity: snap.equity,
-      Rent_Monthly: snap.rent,
-      Net_Rent_Monthly: snap.netRent
-    };
-  });
+const colsAll = state.lastResult?.columns || Object.keys(lastRow || {});
+const rows = propPrefixes.map(prefix => {
+const snap = getPropertySnapshot(lastRow, prefix, colsAll);
+return {
+Property: prefix,
+Type: snap.isPPOR ? "PPOR" : "Investment",
+Property_Value: snap.value,
+Mortgage_Balance: snap.mortgage,
+Equity: snap.equity,
+Rent_Monthly: snap.rent,
+Net_Rent_Monthly: snap.netRent
+};
+});
 
-  const cols = ["Property","Type","Property_Value","Mortgage_Balance","Equity","Rent_Monthly","Net_Rent_Monthly"];
-  document.getElementById("propEndTableWrap").innerHTML = rows.length
-    ? buildTableHTML(rows, cols, {
-        formatters: {
-          Property_Value: fmtMoney,
-          Mortgage_Balance: fmtMoney,
-          Equity: fmtMoney,
-          Rent_Monthly: fmtMoney,
-          Net_Rent_Monthly: fmtMoney
-        },
-        rightAlign: new Set(["Property_Value","Mortgage_Balance","Equity","Rent_Monthly","Net_Rent_Monthly"])
-      })
-    : `<div style="padding:12px;" class="muted">No property columns detected in the API output.</div>`;
+const cols = ["Property","Type","Property_Value","Mortgage_Balance","Equity","Rent_Monthly","Net_Rent_Monthly"];
+document.getElementById("propEndTableWrap").innerHTML = rows.length
+? buildTableHTML(rows, cols, {
+formatters: {
+Property_Value: fmtMoney,
+Mortgage_Balance: fmtMoney,
+Equity: fmtMoney,
+Rent_Monthly: fmtMoney,
+Net_Rent_Monthly: fmtMoney
+},
+rightAlign: new Set(["Property_Value","Mortgage_Balance","Equity","Rent_Monthly","Net_Rent_Monthly"])
+})
+: `<div style="padding:12px;" class="muted">No property columns detected in the API output.</div>`;
 }
 
 function toggleFullTable(){
-  const box = document.getElementById("fullTableBox");
-  box.style.display = (box.style.display==="none") ? "block" : "none";
-  if(box.style.display === "block") renderFullTable();
+const box = document.getElementById("fullTableBox");
+box.style.display = (box.style.display==="none") ? "block" : "none";
+if(box.style.display === "block") renderFullTable();
 }
 
 function renderFullTable(){
-  const box = document.getElementById("fullTableWrap");
-  const res = state.lastResult;
-  if(!res || !(res.rows||[]).length){
-    box.innerHTML = `<div style="padding:12px;" class="muted">No data yet.</div>`;
-    return;
-  }
-  const q = (document.getElementById("tableSearch").value || "").toLowerCase().trim();
-  const rows = res.rows || [];
-  const cols = res.columns || Object.keys(rows[0]||{});
+const box = document.getElementById("fullTableWrap");
+const res = state.lastResult;
+if(!res || !(res.rows||[]).length){
+box.innerHTML = `<div style="padding:12px;" class="muted">No data yet.</div>`;
+return;
+}
+const q = (document.getElementById("tableSearch").value || "").toLowerCase().trim();
+const rows = res.rows || [];
+const cols = res.columns || Object.keys(rows[0]||{});
 
-  let filtered = rows;
-  if(q){
-    filtered = rows.filter(r=>{
-      for(const c of cols){
-        if(String(c).toLowerCase().includes(q)) return true;
-        const v = r[c];
-        if(v !== null && v !== undefined && String(v).toLowerCase().includes(q)) return true;
-      }
-      return false;
-    });
-  }
-  box.innerHTML = buildTableHTML(filtered.slice(0, 500), cols, {
-    rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest|equity|worth/i.test(c)))
-  }) + (filtered.length > 500 ? `<div class="small" style="padding:10px;">Showing first 500 rows of ${filtered.length}. Use Yearly mode or add search to narrow.</div>` : "");
+let filtered = rows;
+if(q){
+filtered = rows.filter(r=>{
+for(const c of cols){
+if(String(c).toLowerCase().includes(q)) return true;
+const v = r[c];
+if(v !== null && v !== undefined && String(v).toLowerCase().includes(q)) return true;
+}
+return false;
+});
+}
+box.innerHTML = buildTableHTML(filtered.slice(0, 500), cols, {
+rightAlign: new Set(cols.filter(c=>/balance|value|income|tax|rent|salary|expenses|contribution|offset|mortgage|principal|interest|equity|worth/i.test(c)))
+}) + (filtered.length > 500 ? `<div class="small" style="padding:10px;">Showing first 500 rows of ${filtered.length}. Use Yearly mode or add search to narrow.</div>` : "");
 }
 
 /** ---------------------------
- *  CSV download
- *  --------------------------*/
+*  CSV download
+*  --------------------------*/
 function downloadLastCSV(){
-  const res = state.lastResult;
-  if(!res || !res.rows || !res.rows.length){
-    alert("No results to download yet.");
-    return;
-  }
-  const cols = res.columns || Object.keys(res.rows[0]);
-  const csv = toCSV(res.rows, cols);
-  downloadText(csv, `fire_${res.mode || "result"}.csv`, "text/csv");
+const res = state.lastResult;
+if(!res || !res.rows || !res.rows.length){
+alert("No results to download yet.");
+return;
+}
+const cols = res.columns || Object.keys(res.rows[0]);
+const csv = toCSV(res.rows, cols);
+downloadText(csv, `fire_${res.mode || "result"}.csv`, "text/csv");
 }
 function toCSV(rows, cols){
-  const esc = (s)=> `"${String(s ?? "").replace(/"/g,'""')}"`;
-  const head = cols.map(esc).join(",");
-  const body = rows.map(r => cols.map(c => esc(r[c])).join(",")).join("\n");
-  return head + "\n" + body;
+const esc = (s)=> `"${String(s ?? "").replace(/"/g,'""')}"`;
+const head = cols.map(esc).join(",");
+const body = rows.map(r => cols.map(c => esc(r[c])).join(",")).join("\n");
+return head + "\n" + body;
 }
 function downloadText(text, filename, type){
-  const blob = new Blob([text], {type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+const blob = new Blob([text], {type});
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+a.remove();
+URL.revokeObjectURL(url);
 }
 
 function syncInputsFromUI(){
-  // Pull current values directly from the DOM so "Run" always uses what you see on screen
-  for (const k of Object.keys(state.inputs)){
-    const el = document.getElementById(k);
-    if (!el) continue;
-    // Only update if the field isn't blank
-	const raw = String(el.value ?? "").trim();
-	const meta = FIELD_META[k] || { type: "money" };
-	if (raw !== "") state.inputs[k] = parseFromUI(raw, meta);
+// Pull current values directly from the DOM so "Run" always uses what you see on screen
+for (const k of Object.keys(state.inputs)){
+const el = document.getElementById(k);
+if (!el) continue;
+// Only update if the field isn't blank
+const raw = String(el.value ?? "").trim();
+if (raw !== "") state.inputs[k] = toNumber(raw);
 
+}
+// Keep API fields in sync too
+const baseEl = document.getElementById("apiBase");
+const pathEl = document.getElementById("apiPath");
+if (baseEl) state.apiBase = baseEl.value.trim();
+if (pathEl) state.apiPath = pathEl.value.trim();
 
-  }
-  // Keep API fields in sync too
-  const baseEl = document.getElementById("apiBase");
-  const pathEl = document.getElementById("apiPath");
-  if (baseEl) state.apiBase = baseEl.value.trim();
-  if (pathEl) state.apiPath = pathEl.value.trim();
-
-  saveState();
+saveState();
 }
 
 function stableStringify(obj){
-  // stable-ish stringify for quick fingerprinting (good enough for debugging)
-  return JSON.stringify(obj, Object.keys(obj).sort(), 0);
+// stable-ish stringify for quick fingerprinting (good enough for debugging)
+return JSON.stringify(obj, Object.keys(obj).sort(), 0);
 }
 
 function hashString(s){
-  // tiny non-crypto hash for fingerprints
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++){
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(16);
+// tiny non-crypto hash for fingerprints
+let h = 2166136261;
+for (let i = 0; i < s.length; i++){
+h ^= s.charCodeAt(i);
+h = Math.imul(h, 16777619);
+}
+return (h >>> 0).toString(16);
 }
 
 
 /** ---------------------------
- *  Utilities
- *  --------------------------*/
+*  Utilities
+*  --------------------------*/
 function resetDefaults(){
-  localStorage.removeItem(LS_KEY);
-  loadState();
-  hydrateUI();
-  alert("Defaults restored.");
+localStorage.removeItem(LS_KEY);
+loadState();
+hydrateUI();
+alert("Defaults restored.");
 }
 function hydrateUI(){
-  document.getElementById("apiBase").value = state.apiBase || "";
-  document.getElementById("apiPath").value = state.apiPath || "";
-  document.getElementById("modeSelect").value = state.mode || "yearly";
-  setMode(state.mode || "yearly");
-  applyCollapseState();
+document.getElementById("apiBase").value = state.apiBase || "";
+document.getElementById("apiPath").value = state.apiPath || "";
+document.getElementById("modeSelect").value = state.mode || "yearly";
+setMode(state.mode || "yearly");
 
-  // ✅ DO NOT do: el.value = state.inputs[k]
-  // bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
+// ✅ DO NOT do: el.value = state.inputs[k]
+// bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
 
-  renderProperties();
-  pingAPI();
+renderProperties();
+pingAPI();
 
-  if(state.lastResult){
-    renderResults(state.lastResult);
-    document.getElementById("lastRunMeta").textContent =
-      `Last run loaded from browser storage (${new Date().toLocaleString()}).`;
-  }
+if(state.lastResult){
+renderResults(state.lastResult);
+document.getElementById("lastRunMeta").textContent =
+`Last run loaded from browser storage (${new Date().toLocaleString()}).`;
+}
 }
 
 function toNumber(v){
-  if (v === null || v === undefined) return 0;
+if (v === null || v === undefined) return 0;
 
-  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+if (typeof v === "number") return Number.isFinite(v) ? v : 0;
 
-  if (typeof v === "string") {
-    const s = v.trim();
-    if (!s || s === "—" || s === "-") return 0;
+if (typeof v === "string") {
+const s = v.trim();
+if (!s || s === "—" || s === "-") return 0;
 
-    const cleaned = s
-      .replace(/[$€£¥]/g, "")
-      .replace(/,/g, "")
-      .replace(/\s+/g, "");
+const cleaned = s
+.replace(/[$€£¥]/g, "")
+.replace(/,/g, "")
+.replace(/\s+/g, "");
 
-    const n = Number(cleaned);
-    return Number.isFinite(n) ? n : 0;
-  }
+const n = Number(cleaned);
+return Number.isFinite(n) ? n : 0;
+}
 
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+const n = Number(v);
+return Number.isFinite(n) ? n : 0;
 }
 
 
 
 
 function formatForUI(value, meta){
-  const n = Number(value);
-  if (!meta || meta.type === "text") return String(value ?? "");
-  if (meta.type === "int") return Number.isFinite(n) ? String(Math.round(n)) : "";
-  if (meta.type === "money") return Number.isFinite(n) ? fmtMoney(n) : "";
-  if (meta.type === "percent") return Number.isFinite(n) ? `${(n * 100).toFixed(2).replace(/\.00$/,"")}%` : "";
-  return String(value ?? "");
+const n = Number(value);
+if (!meta || meta.type === "text") return String(value ?? "");
+if (meta.type === "int") return Number.isFinite(n) ? String(Math.round(n)) : "";
+if (meta.type === "money") return Number.isFinite(n) ? fmtMoney(n) : "";
+if (meta.type === "percent") return Number.isFinite(n) ? `${(n * 100).toFixed(2).replace(/\.00$/,"")}%` : "";
+return String(value ?? "");
 }
 
 function parseFromUI(str, meta){
-  if (!meta || meta.type === "text") return String(str ?? "");
+if (!meta || meta.type === "text") return String(str ?? "");
 
-  const s = String(str ?? "").trim();
-  if (!s) return 0;
+const s = String(str ?? "").trim();
+if (!s) return 0;
 
-  if (meta.type === "percent"){
-    const cleaned = s.replace(/%/g,"").replace(/,/g,"").trim();
-    const raw = Number(cleaned);
-    if (!Number.isFinite(raw)) return 0;
-    return (raw > 1) ? raw / 100 : raw;
-  }
+if (meta.type === "percent"){
+const cleaned = s.replace(/%/g,"").replace(/,/g,"").trim();
+const raw = Number(cleaned);
+if (!Number.isFinite(raw)) return 0;
+return (raw > 1) ? raw / 100 : raw;
+}
 
-  const n = toNumber(s);
-  return meta.type === "int" ? Math.round(n) : n;
+const n = toNumber(s);
+return meta.type === "int" ? Math.round(n) : n;
 }
 
 function attachUnitInputBehavior(el, meta, getVal, setVal){
-  if (!el) return;
+if (!el) return;
 
-  el.value = formatForUI(getVal(), meta);
+el.value = formatForUI(getVal(), meta);
 
-  el.addEventListener("focus", () => {
-    const v = getVal();
-    if (meta?.type === "percent") el.value = String((Number(v) * 100).toFixed(4)).replace(/0+$/,"").replace(/\.$/,"");
-    else el.value = String(v ?? "");
-  });
+el.addEventListener("focus", () => {
+const v = getVal();
+if (meta?.type === "percent") el.value = String((Number(v) * 100).toFixed(4)).replace(/0+$/,"").replace(/\.$/,"");
+else el.value = String(v ?? "");
+});
 
-  const commit = () => {
-    const parsed = parseFromUI(el.value, meta);
-    setVal(parsed);
-    el.value = formatForUI(parsed, meta);
-    saveState();
-  };
+const commit = () => {
+const parsed = parseFromUI(el.value, meta);
+setVal(parsed);
+el.value = formatForUI(parsed, meta);
+saveState();
+};
 
-  el.addEventListener("blur", commit);
-  el.addEventListener("change", commit);
+el.addEventListener("blur", commit);
+el.addEventListener("change", commit);
 }
 
 
 
 const moneyFmt = new Intl.NumberFormat("en-AU", {
-  style: "currency",
-  currency: "AUD",
-  currencyDisplay: "narrowSymbol", // usually "$" not "A$"
-  maximumFractionDigits: 0
+style: "currency",
+currency: "AUD",
+currencyDisplay: "narrowSymbol", // usually "$" not "A$"
+maximumFractionDigits: 0
 });
 
 function fmtMoney(n){
-  const x = Number(n);
-  if(!Number.isFinite(x)) return "—";
-  return moneyFmt
-    .format(x)
-    .replace(/^A\$/, "$")
-    .replace(/^AU\$/, "$");
+const x = Number(n);
+if(!Number.isFinite(x)) return "—";
+return moneyFmt
+.format(x)
+.replace(/^A\$/, "$")
+.replace(/^AU\$/, "$");
 }
 
 
 
 function moneyAxis(v){
-  const x = Number(v);
-  if(!Number.isFinite(x)) return v;
-  if(Math.abs(x) >= 1_000_000) return (x/1_000_000).toFixed(1) + "m";
-  if(Math.abs(x) >= 1_000) return (x/1_000).toFixed(0) + "k";
-  return String(Math.round(x));
+const x = Number(v);
+if(!Number.isFinite(x)) return v;
+if(Math.abs(x) >= 1_000_000) return (x/1_000_000).toFixed(1) + "m";
+if(Math.abs(x) >= 1_000) return (x/1_000).toFixed(0) + "k";
+return String(Math.round(x));
 }
 function escapeHtml(s){
-  return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
 }
 
 function findKey(cols, candidates){
-  if(!Array.isArray(cols)) return null;
+if(!Array.isArray(cols)) return null;
 
-  for (const cand of candidates){
-    if (cols.includes(cand)) return cand;
-  }
+for (const cand of candidates){
+if (cols.includes(cand)) return cand;
+}
 
-  const lowerMap = new Map(cols.map(c => [String(c).toLowerCase(), c]));
-  for (const cand of candidates){
-    const hit = lowerMap.get(String(cand).toLowerCase());
-    if (hit) return hit;
-  }
+const lowerMap = new Map(cols.map(c => [String(c).toLowerCase(), c]));
+for (const cand of candidates){
+const hit = lowerMap.get(String(cand).toLowerCase());
+if (hit) return hit;
+}
 
-  const colsLower = cols.map(c => String(c).toLowerCase());
-  for (const cand of candidates){
-    const needle = String(cand).toLowerCase();
-    const idx = colsLower.findIndex(c => c.includes(needle));
-    if (idx >= 0) return cols[idx];
-  }
+const colsLower = cols.map(c => String(c).toLowerCase());
+for (const cand of candidates){
+const needle = String(cand).toLowerCase();
+const idx = colsLower.findIndex(c => c.includes(needle));
+if (idx >= 0) return cols[idx];
+}
 
-  return null;
+return null;
 }
 
 function detectPropertyPrefixes(cols){
-  const set = new Set();
-  if(!Array.isArray(cols)) return [];
+const set = new Set();
+if(!Array.isArray(cols)) return [];
 
-  const patterns = [
-    /^(.+)_Property_Value$/i,
-    /^(.+)_Property_Projected_Value$/i,
-    /^(.+)_Mortgage_Balance$/i,
-    /^(.+)_Mortgage_Balance_Projected$/i,
-    /^(.+)_Property_Projected_Rental_Income$/i,
-    /^(.+)_Rent_Income$/i
-  ];
+const patterns = [
+/^(.+)_Property_Value$/i,
+/^(.+)_Property_Projected_Value$/i,
+/^(.+)_Mortgage_Balance$/i,
+/^(.+)_Mortgage_Balance_Projected$/i,
+/^(.+)_Property_Projected_Rental_Income$/i,
+/^(.+)_Rent_Income$/i
+];
 
-  cols.forEach(c=>{
-    const s = String(c);
-    for(const re of patterns){
-      const m = s.match(re);
-      if(m){ set.add(m[1]); break; }
-    }
-  });
+cols.forEach(c=>{
+const s = String(c);
+for(const re of patterns){
+const m = s.match(re);
+if(m){ set.add(m[1]); break; }
+}
+});
 
-  return Array.from(set);
+return Array.from(set);
 }
 
 function getFirstNumber(row, keys){
-  for(const k of keys){
-    if(!k) continue;
-    if(Object.prototype.hasOwnProperty.call(row, k)) return toNumber(row[k]);
-  }
-  return 0;
+for(const k of keys){
+if(!k) continue;
+if(Object.prototype.hasOwnProperty.call(row, k)) return toNumber(row[k]);
+}
+return 0;
 }
 
 function propCol(prefix, kind, cols){
-  const candidatesByKind = {
-    value: [
-      `${prefix}_Property_Value`,
-      `${prefix}_Property_Projected_Value`
-    ],
-    mortgage: [
-      `${prefix}_Mortgage_Balance`,
-      `${prefix}_Mortgage_Balance_Projected`
-    ],
-    rentMonthly: [
-      `${prefix}_Rent_Income`,
-      `${prefix}_Property_Projected_Rental_Income`
-    ],
-    netRentMonthly: [
-      `${prefix}_Net_Rent`,
-      `${prefix}_Net_Rent_Monthly`,
-      `${prefix}_Property_Net_Rent`
-    ],
-    isPPOR: [
-      `${prefix}_Is_PPOR`,
-      `${prefix}_is_owner_occupied`,
-      `${prefix}_Is_Owner_Occupied`
-    ]
-  };
+const candidatesByKind = {
+value: [
+`${prefix}_Property_Value`,
+`${prefix}_Property_Projected_Value`
+],
+mortgage: [
+`${prefix}_Mortgage_Balance`,
+`${prefix}_Mortgage_Balance_Projected`
+],
+rentMonthly: [
+`${prefix}_Rent_Income`,
+`${prefix}_Property_Projected_Rental_Income`
+],
+netRentMonthly: [
+`${prefix}_Net_Rent`,
+`${prefix}_Net_Rent_Monthly`,
+`${prefix}_Property_Net_Rent`
+],
+isPPOR: [
+`${prefix}_Is_PPOR`,
+`${prefix}_is_owner_occupied`,
+`${prefix}_Is_Owner_Occupied`
+]
+};
 
-  const cands = candidatesByKind[kind] || [];
-  return findKey(cols, cands);
+const cands = candidatesByKind[kind] || [];
+return findKey(cols, cands);
 }
 
 function getPropertySnapshot(row, prefix, cols){
-  const valueKey   = propCol(prefix, "value", cols);
-  const mortKey    = propCol(prefix, "mortgage", cols);
-  const rentKey    = propCol(prefix, "rentMonthly", cols);
-  const netRentKey = propCol(prefix, "netRentMonthly", cols);
-  const isPPORKey  = propCol(prefix, "isPPOR", cols);
+const valueKey   = propCol(prefix, "value", cols);
+const mortKey    = propCol(prefix, "mortgage", cols);
+const rentKey    = propCol(prefix, "rentMonthly", cols);
+const netRentKey = propCol(prefix, "netRentMonthly", cols);
+const isPPORKey  = propCol(prefix, "isPPOR", cols);
 
-  const value = getFirstNumber(row, [valueKey]);
-  const mortgage = getFirstNumber(row, [mortKey]);
-  const equity = Math.max(value - mortgage, 0);
+const value = getFirstNumber(row, [valueKey]);
+const mortgage = getFirstNumber(row, [mortKey]);
+const equity = Math.max(value - mortgage, 0);
 
-  const rent = getFirstNumber(row, [rentKey]);
-  const netRent = getFirstNumber(row, [netRentKey]);
+const rent = getFirstNumber(row, [rentKey]);
+const netRent = getFirstNumber(row, [netRentKey]);
 
-  const isPPOR = isPPORKey ? !!toNumber(row[isPPORKey]) : false;
+const isPPOR = isPPORKey ? !!toNumber(row[isPPORKey]) : false;
 
-  return { value, mortgage, equity, rent, netRent, isPPOR };
+return { value, mortgage, equity, rent, netRent, isPPOR };
 }
 
 function seriesFromRowCalc(rows, fn){
-  return rows.map(r => {
-    const v = fn(r);
-    return Number.isFinite(v) ? v : 0;
-  });
+return rows.map(r => {
+const v = fn(r);
+return Number.isFinite(v) ? v : 0;
+});
 }
 
 function computePropertyTotals(row, propPrefixes, cols){
-  let totalValue = 0, totalMortgage = 0;
-  for(const prefix of propPrefixes){
-    const snap = getPropertySnapshot(row, prefix, cols);
-    totalValue += snap.value;
-    totalMortgage += snap.mortgage;
-  }
-  return {
-    totalValue,
-    totalMortgage,
-    totalEquity: Math.max(totalValue - totalMortgage, 0)
-  };
+let totalValue = 0, totalMortgage = 0;
+for(const prefix of propPrefixes){
+const snap = getPropertySnapshot(row, prefix, cols);
+totalValue += snap.value;
+totalMortgage += snap.mortgage;
+}
+return {
+totalValue,
+totalMortgage,
+totalEquity: Math.max(totalValue - totalMortgage, 0)
+};
 }
 
 function buildTableHTML(rows, cols, {formatters = {}, rightAlign = new Set()} = {}){
-  if(!rows || !rows.length){
-    return `<div style="padding:12px;" class="muted">No rows.</div>`;
-  }
-  const ths = cols.map(c=>`<th>${escapeHtml(c)}</th>`).join("");
-  const tds = rows.map(r=>{
-    const cells = cols.map(c=>{
-      const v = r[c];
-      const fmt = formatters[c];
-      const out = fmt ? fmt(v) : (v ?? "");
-      const cls = rightAlign.has(c) ? "right" : "";
-      return `<td class="${cls}">${escapeHtml(out)}</td>`;
-    }).join("");
-    return `<tr>${cells}</tr>`;
-  }).join("");
-  return `<table><thead><tr>${ths}</tr></thead><tbody>${tds}</tbody></table>`;
+if(!rows || !rows.length){
+return `<div style="padding:12px;" class="muted">No rows.</div>`;
+}
+const ths = cols.map(c=>`<th>${escapeHtml(c)}</th>`).join("");
+const tds = rows.map(r=>{
+const cells = cols.map(c=>{
+const v = r[c];
+const fmt = formatters[c];
+const out = fmt ? fmt(v) : (v ?? "");
+const cls = rightAlign.has(c) ? "right" : "";
+return `<td class="${cls}">${escapeHtml(out)}</td>`;
+}).join("");
+return `<tr>${cells}</tr>`;
+}).join("");
+return `<table><thead><tr>${ths}</tr></thead><tbody>${tds}</tbody></table>`;
 }
 
 /** ---------------------------
- *  Init
- *  --------------------------*/
+*  Init
+*  --------------------------*/
 loadState();
 window.addEventListener("load", ()=>{
-  bindCoreInputs();
-  hydrateUI();
+bindCoreInputs();
+hydrateUI();
 });
 </script>
 
