@@ -579,20 +579,23 @@
     <section id="tab-inputs" class="tabs" style="margin-top:18px;">
       <div class="grid">
         <!-- Core -->
-        <div class="card">
-		<div id="coreBody" class="collapseBody">
-		  <div>
-			<h2 style="margin-bottom:4px;">Core</h2>
-			<div class="sub">The settings you change most often.</div>
-		  </div>
-		  <div class="row" style="gap:10px;">
-			<select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
-			  <option value="yearly">Yearly (recommended)</option>
-			  <option value="monthly">Monthly (debug)</option>
-			</select>
-			<span class="collapseChevron">▾</span>
-		  </div>
-</div>
+	<div class="card">
+	  <div class="collapseHeader" onclick="toggleCollapse('coreBody')">
+		<div>
+		  <h2 style="margin-bottom:4px;">Inputs</h2>
+		  <div class="sub">The settings you change most often.</div>
+		</div>
+		<div class="row" style="gap:10px;">
+		  <select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
+			<option value="yearly">Yearly (recommended)</option>
+			<option value="monthly">Monthly (debug)</option>
+		  </select>
+		  <span class="propChevron">▾</span>
+		</div>
+	  </div>
+
+	  <div id="coreBody" class="collapseBody">
+		<div class="hr"></div>
 
           <div class="hr"></div>
 
@@ -628,7 +631,7 @@
           <div class="hr"></div>
 
           <div class="row">
-            <button class="btn" onclick="toggleAdvanced()">Advanced assumptions <span class="pill" id="advPill">Hidden</span></button>
+            <button class="btn" onclick="toggleAdvanced()">Stocks and Super <span class="pill" id="advPill">Hidden</span></button>
             <div class="row" style="gap:8px;">
               <button class="btn" onclick="resetDefaults()">Reset defaults</button>
               <button class="btn primary" onclick="runModel()">Run model</button>
@@ -637,8 +640,9 @@
 
           <div id="advancedBox" style="display:none; margin-top:14px;">
             <div class="hr"></div>
-            <h3 style="margin:0 0 10px 0;">Advanced assumptions</h3>
-            <div class="sub">Inflation, salary growth, stock growth + contribution settings.</div>
+            <h3 style="margin:0 0 10px 0;">Stocks and Super</h3>
+            <div class="sub">Stock + super settings (and other growth assumptions).</div>
+
             <div class="hr"></div>
 
             <div class="fieldgrid">
@@ -1590,6 +1594,7 @@ function renderProperties(){
 }
 function duplicateProperty(id){
   const p = state.property_list.find(x => Number(x.id) === Number(id));
+  if (copy.is_owner_occupied) copy.is_owner_occupied = false;
   if(!p) return;
   const newId = nextPropertyId();
   const copy = JSON.parse(JSON.stringify(p));
