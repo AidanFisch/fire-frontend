@@ -111,6 +111,7 @@
       display:grid;
       gap: 16px;
     }
+	.grid.cols1{ grid-template-columns: 1fr; }
     .grid.cols2{ grid-template-columns: 1fr 1fr; }
     .grid.cols3{ grid-template-columns: 1fr 1fr 1fr; }
     .grid.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
@@ -326,56 +327,94 @@
     </div>
 
     <!-- HOME -->
-    <section id="tab-home" class="tabs active" style="margin-top:18px;">
-      <div class="grid cols2">
-        <div class="card">
-          <h2>What this does</h2>
-          <div class="sub">
-            Runs your full monthly engine via your FastAPI backend and renders a clean, usable “app” UI:
-            Core inputs + separate property cards (PPOR / Investment 1 / Investment 2 …), then outputs:
-            charts, summary KPIs, and tables (summary + full).
-          </div>
-          <div class="hr"></div>
-          <div class="row">
-            <button class="btn primary" onclick="showTab('inputs')">Go to inputs</button>
-            <button class="btn" onclick="pingAPI()">Re-check API</button>
-          </div>
-          <div class="chips" style="margin-top:14px;">
-            <div class="chip active" id="chipModeYearly" onclick="setMode('yearly')">Yearly</div>
-            <div class="chip" id="chipModeMonthly" onclick="setMode('monthly')">Monthly</div>
-            <div class="chip" onclick="downloadLastCSV()">Download last CSV</div>
-          </div>
-          <div class="sub" style="margin-top:10px;">
-            Tip: Keep “Yearly” until everything is stable (faster tables + charts). Monthly can be huge.
-          </div>
-        </div>
+ <!-- HOME -->
+	<section id="tab-home" class="tabs active" style="margin-top:18px;">
+	  <div class="grid cols1">
 
-        <div class="card">
-          <h2>Status</h2>
-          <div class="sub">Quick backend health and last run details.</div>
-          <div class="hr"></div>
+		<!-- What this does (FULL WIDTH) -->
+		<div class="card">
+		  <h2>What this does</h2>
+		  <div class="sub">
+			This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
+			and you get charts + tables to see when (or if) your plan becomes self-funding.
+		  </div>
 
-          <div class="row" style="margin-bottom:10px;">
-            <div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
-          </div>
+		  <div class="hr"></div>
 
-          <div class="fieldgrid">
-            <div>
-              <label>API Base URL</label>
-              <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
-              <div class="small">Must include <span class="mono">https://</span></div>
-            </div>
-            <div>
-              <label>Endpoint path</label>
-              <input id="apiPath" value="/fire" />
-            </div>
-          </div>
+		  <h3 style="margin:0 0 8px 0;">How to use it</h3>
+		  <div class="sub">
+			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
+			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
+			<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
+		  </div>
 
-          <div class="hr"></div>
-          <div class="sub mono" id="lastRunMeta">No run yet.</div>
-        </div>
-      </div>
-    </section>
+		  <div class="hr"></div>
+
+		  <h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
+		  <div class="sub" style="line-height:1.55;">
+			<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
+			Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
+
+			<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
+			It can be negative (negative gearing) or positive.<br/><br/>
+
+			<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
+
+			<b>FIRE income</b>: the model estimates income after FIRE mainly from:
+			investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="sub">
+			Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="row">
+			<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
+			<button class="btn" onclick="showTab('results')">Go to Results</button>
+		  </div>
+		</div>
+
+		<!-- Status (FULL WIDTH, BELOW) -->
+		<div class="card">
+		  <div class="row">
+			<div>
+			  <h2>Status</h2>
+			  <div class="sub">Backend health and last run details.</div>
+			</div>
+			<div class="row" style="gap:8px;">
+			  <button class="btn" onclick="pingAPI()">Re-check API</button>
+			</div>
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="row" style="margin-bottom:10px;">
+			<div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
+		  </div>
+
+		  <div class="fieldgrid">
+			<div>
+			  <label>API Base URL</label>
+			  <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
+			  <div class="small">Must include <span class="mono">https://</span></div>
+			</div>
+			<div>
+			  <label>Endpoint path</label>
+			  <input id="apiPath" value="/fire" />
+			</div>
+		  </div>
+
+		  <div class="hr"></div>
+		  <div class="sub mono" id="lastRunMeta">No run yet.</div>
+		</div>
+
+	  </div>
+	</section>
+
 
     <!-- INPUTS -->
     <section id="tab-inputs" class="tabs" style="margin-top:18px;">
