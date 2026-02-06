@@ -241,6 +241,45 @@
 
     .tabs{display:none}
     .tabs.active{display:block}
+	
+	.subnav{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    border:1px solid var(--stroke);
+    background: rgba(0,0,0,.14);
+    padding: 6px;
+    border-radius: 999px;
+  }
+  .subnav button{
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor:pointer;
+    font-size: 14px;
+  }
+  .subnav button.active{
+    color: var(--txt);
+    border-color: rgba(34,211,238,.50);
+    background: rgba(34,211,238,.10);
+  }
+  .subtabs{display:none}
+  .subtabs.active{display:block}
+
+/* --- Collapsible cards --- */
+.collapseHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  user-select:none;
+}
+.collapseBody{ margin-top: 12px; }
+.collapseBody.hidden{ display:none; }
+
 
     /* tables */
     .tablewrap{
@@ -440,7 +479,7 @@
       </div>
       <div class="nav">
         <button id="btnHome" class="active" onclick="showTab('home')">Home</button>
-        <button id="btnInputs" onclick="showTab('inputs')">Inputs</button>
+        <button id="btnInputs" onclick="showTab('inputs')">Setup</button>
         <button id="btnResults" onclick="showTab('results')">Results</button>
       </div>
     </div>
@@ -541,18 +580,20 @@
       <div class="grid">
         <!-- Core -->
         <div class="card">
-          <div class="row">
-            <div>
-              <h2 style="margin-bottom:4px;">Core inputs</h2>
-              <div class="sub">Keep this section as your base model settings.</div>
-            </div>
-            <div>
-              <select id="modeSelect" onchange="setMode(this.value)">
-                <option value="yearly">Yearly (recommended)</option>
-                <option value="monthly">Monthly (debug)</option>
-              </select>
-            </div>
-          </div>
+		<div id="coreBody" class="collapseBody">
+		  <div>
+			<h2 style="margin-bottom:4px;">Core</h2>
+			<div class="sub">The settings you change most often.</div>
+		  </div>
+		  <div class="row" style="gap:10px;">
+			<select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
+			  <option value="yearly">Yearly (recommended)</option>
+			  <option value="monthly">Monthly (debug)</option>
+			</select>
+			<span class="collapseChevron">▾</span>
+		  </div>
+</div>
+
           <div class="hr"></div>
 
           <div class="fieldgrid coregrid">
@@ -897,7 +938,8 @@ let state = {
   },
 	selectedPropPrefixes: [],
 	expandedPropertyId: null,
-  lastResult: null
+  lastResult: null,
+  collapsed: {},
 };
 
 let toastTimer = null;
@@ -921,6 +963,26 @@ function hideToast(){
   const el = document.getElementById("toast");
   if(!el) return;
   el.classList.remove("show");
+}
+
+function toggleCollapse(id){
+  const body = document.getElementById(id);
+  if(!body) return;
+  const isHidden = body.classList.contains("hidden");
+  body.classList.toggle("hidden", !isHidden);
+
+  // persist collapsed state
+  state.collapsed = state.collapsed || {};
+  state.collapsed[id] = !isHidden ? true : false; // true means hidden
+  saveState();
+}
+
+function applyCollapseState(){
+  state.collapsed = state.collapsed || {};
+  for(const [id, isHidden] of Object.entries(state.collapsed)){
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle("hidden", !!isHidden);
+  }
 }
 
 
@@ -1258,7 +1320,8 @@ function bindCoreInputs(){
 
 function calcNetMonthlyForProperty(p){
   const rent = toNumber(p.monthly_rent);
-  const loan = toNumber(p.loan_balance_current || p.original_loan);
+  //* const loan = toNumber(p.loan_balance_current || p.original_loan);\\
+  const loan = toNumber(p.loan_balance_current ?? p.original_loan);
   const rate = toNumber(p.interest_rate);
   const interestMonthly = (loan * rate) / 12;
 
@@ -2346,7 +2409,9 @@ function syncInputsFromUI(){
     if (!el) continue;
     // Only update if the field isn't blank
 	const raw = String(el.value ?? "").trim();
-	if (raw !== "") state.inputs[k] = toNumber(raw);
+	const meta = FIELD_META[k] || { type: "money" };
+	if (raw !== "") state.inputs[k] = parseFromUI(raw, meta);
+
 
   }
   // Keep API fields in sync too
@@ -2388,6 +2453,7 @@ function hydrateUI(){
   document.getElementById("apiPath").value = state.apiPath || "";
   document.getElementById("modeSelect").value = state.mode || "yearly";
   setMode(state.mode || "yearly");
+  applyCollapseState();
 
   // ✅ DO NOT do: el.value = state.inputs[k]
   // bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
