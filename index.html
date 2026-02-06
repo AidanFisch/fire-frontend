@@ -111,7 +111,6 @@
       display:grid;
       gap: 16px;
     }
-	.grid.cols1{ grid-template-columns: 1fr; }
     .grid.cols2{ grid-template-columns: 1fr 1fr; }
     .grid.cols3{ grid-template-columns: 1fr 1fr 1fr; }
     .grid.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
@@ -327,94 +326,56 @@
     </div>
 
     <!-- HOME -->
- <!-- HOME -->
-	<section id="tab-home" class="tabs active" style="margin-top:18px;">
-	  <div class="grid cols1">
+    <section id="tab-home" class="tabs active" style="margin-top:18px;">
+      <div class="grid cols2">
+        <div class="card">
+          <h2>What this does</h2>
+          <div class="sub">
+            Runs your full monthly engine via your FastAPI backend and renders a clean, usable “app” UI:
+            Core inputs + separate property cards (PPOR / Investment 1 / Investment 2 …), then outputs:
+            charts, summary KPIs, and tables (summary + full).
+          </div>
+          <div class="hr"></div>
+          <div class="row">
+            <button class="btn primary" onclick="showTab('inputs')">Go to inputs</button>
+            <button class="btn" onclick="pingAPI()">Re-check API</button>
+          </div>
+          <div class="chips" style="margin-top:14px;">
+            <div class="chip active" id="chipModeYearly" onclick="setMode('yearly')">Yearly</div>
+            <div class="chip" id="chipModeMonthly" onclick="setMode('monthly')">Monthly</div>
+            <div class="chip" onclick="downloadLastCSV()">Download last CSV</div>
+          </div>
+          <div class="sub" style="margin-top:10px;">
+            Tip: Keep “Yearly” until everything is stable (faster tables + charts). Monthly can be huge.
+          </div>
+        </div>
 
-		<!-- What this does (FULL WIDTH) -->
-		<div class="card">
-		  <h2>What this does</h2>
-		  <div class="sub">
-			This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
-			and you get charts + tables to see when (or if) your plan becomes self-funding.
-		  </div>
+        <div class="card">
+          <h2>Status</h2>
+          <div class="sub">Quick backend health and last run details.</div>
+          <div class="hr"></div>
 
-		  <div class="hr"></div>
+          <div class="row" style="margin-bottom:10px;">
+            <div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
+          </div>
 
-		  <h3 style="margin:0 0 8px 0;">How to use it</h3>
-		  <div class="sub">
-			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
-			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
-			<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
-		  </div>
+          <div class="fieldgrid">
+            <div>
+              <label>API Base URL</label>
+              <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
+              <div class="small">Must include <span class="mono">https://</span></div>
+            </div>
+            <div>
+              <label>Endpoint path</label>
+              <input id="apiPath" value="/fire" />
+            </div>
+          </div>
 
-		  <div class="hr"></div>
-
-		  <h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
-		  <div class="sub" style="line-height:1.55;">
-			<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
-			Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
-
-			<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
-			It can be negative (negative gearing) or positive.<br/><br/>
-
-			<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
-
-			<b>FIRE income</b>: the model estimates income after FIRE mainly from:
-			investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="sub">
-			Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="row">
-			<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
-			<button class="btn" onclick="showTab('results')">Go to Results</button>
-		  </div>
-		</div>
-
-		<!-- Status (FULL WIDTH, BELOW) -->
-		<div class="card">
-		  <div class="row">
-			<div>
-			  <h2>Status</h2>
-			  <div class="sub">Backend health and last run details.</div>
-			</div>
-			<div class="row" style="gap:8px;">
-			  <button class="btn" onclick="pingAPI()">Re-check API</button>
-			</div>
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="row" style="margin-bottom:10px;">
-			<div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
-		  </div>
-
-		  <div class="fieldgrid">
-			<div>
-			  <label>API Base URL</label>
-			  <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
-			  <div class="small">Must include <span class="mono">https://</span></div>
-			</div>
-			<div>
-			  <label>Endpoint path</label>
-			  <input id="apiPath" value="/fire" />
-			</div>
-		  </div>
-
-		  <div class="hr"></div>
-		  <div class="sub mono" id="lastRunMeta">No run yet.</div>
-		</div>
-
-	  </div>
-	</section>
-
+          <div class="hr"></div>
+          <div class="sub mono" id="lastRunMeta">No run yet.</div>
+        </div>
+      </div>
+    </section>
 
     <!-- INPUTS -->
     <section id="tab-inputs" class="tabs" style="margin-top:18px;">
@@ -437,29 +398,29 @@
 
           <div class="fieldgrid">
             <div>
-              <label>Current Age</label>
+              <label>current_age</label>
               <input id="current_age" type="number" step="1" />
             </div>
             <div>
-              <label>End Age</label>
+              <label>end_age</label>
               <input id="end_age" type="number" step="1" />
             </div>
 
             <div>
-              <label>Initial Savings</label>
+              <label>initial_savings</label>
               <input id="initial_savings" type="number" step="1" />
             </div>
             <div>
-              <label>Todays Lifestyle Income</label>
+              <label>todays_lifestyle_income</label>
               <input id="todays_lifestyle_income" type="number" step="1" />
             </div>
 
             <div>
-              <label>Current Income</label>
+              <label>current_income</label>
               <input id="current_income" type="number" step="1" />
             </div>
             <div>
-              <label>Current Expenses</label>
+              <label>current_expenses</label>
               <input id="current_expenses" type="number" step="1" />
             </div>
           </div>
@@ -482,57 +443,57 @@
 
             <div class="fieldgrid">
               <div>
-                <label>Inflation</label>
+                <label>inflation</label>
                 <input id="inflation" type="number" step="0.001"/>
               </div>
               <div>
-                <label>Average Salary Increase</label>
+                <label>average_salary_increase</label>
                 <input id="average_salary_increase" type="number" step="0.001"/>
               </div>
               <div>
-                <label>Stock Growth</label>
+                <label>stock_growth</label>
                 <input id="stock_growth" type="number" step="0.001"/>
               </div>
               <div>
-                <label>Stock Yearly Contribution</label>
+                <label>stock_yearly_contribution</label>
                 <input id="stock_yearly_contribution" type="number" step="1"/>
               </div>
               <div>
-                <label>Starting Stock Value</label>
+                <label>starting_stock_value</label>
                 <input id="starting_stock_value" type="number" step="1"/>
               </div>
 				<div>
-				  <label>Stock Drawdown Per Year</label>
+				  <label>stock_swr</label>
 				  <input id="stock_swr" type="number" step="0.001" />
 				</div>
 				
 				<div>
-				  <label>Super Drawdown Per Year</label>
+				  <label>super_swr</label>
 				  <input id="super_swr" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>Super Access Age</label>
+				  <label>super_access_age</label>
 				  <input id="super_access_age" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>Super Starting Balance</label>
+				  <label>super_starting_balance</label>
 				  <input id="super_starting_balance" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>Super Employee Contribution Rate</label>
+				  <label>super_sg_rate (e.g. 0.11)</label>
 				  <input id="super_sg_rate" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>Super Growth</label>
+				  <label>super_growth (e.g. 0.065)</label>
 				  <input id="super_growth" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>Super Additional Contributions</label>
+				  <label>super_additional_annual</label>
 				  <input id="super_additional_annual" type="number" step="1" />
 				</div>
 
@@ -768,50 +729,6 @@ let state = {
   lastResult: null
 };
 
-const FIELD_LABELS = {
-  // Core
-  current_age: "Current Age",
-  end_age: "End Age",
-  initial_savings: "Initial Savings",
-  todays_lifestyle_income: "Target Lifestyle Income (Today)",
-  current_income: "Current Income",
-  current_expenses: "Current Expenses",
-
-  // Advanced
-  inflation: "Inflation Rate",
-  average_salary_increase: "Annual Salary Growth",
-  stock_growth: "Stock Growth Rate",
-  stock_yearly_contribution: "Annual Stock Contribution",
-  starting_stock_value: "Starting Stock Balance",
-  stock_swr: "Stock Safe Withdrawal Rate",
-  super_swr: "Super Safe Withdrawal Rate",
-  super_access_age: "Super Access Age",
-  super_starting_balance: "Starting Super Balance",
-  super_sg_rate: "Super Guarantee Rate",
-  super_growth: "Super Growth Rate",
-  super_additional_annual: "Additional Super Contributions (Annual)",
-};
-
-
-const PROP_FIELD_LABELS = {
-  name: "Property Name",
-  year_bought: "Year Purchased",
-  purchase_price: "Purchase Price",
-  purchase_fees: "Purchase Costs",
-  current_value: "Current Value",
-  original_loan: "Original Loan Amount",
-  loan_balance_current: "Current Loan Balance",
-  interest_rate: "Interest Rate",
-  loan_term_years: "Loan Term (Years)",
-  property_growth: "Capital Growth Rate",
-  monthly_rent: "Monthly Rent",
-  rental_growth: "Rental Growth Rate",
-  strata_quarterly: "Strata (Quarterly)",
-  rates_quarterly: "Council Rates (Quarterly)",
-  other_costs_monthly: "Other Costs (Monthly)",
-};
-
-
 const FIELD_META = {
   // ---- core money
   initial_savings: { type: "money" },
@@ -978,19 +895,11 @@ function showTab(name){
  *  --------------------------*/
 function setMode(mode){
   state.mode = mode;
-
-  const modeSelect = document.getElementById("modeSelect");
-  if (modeSelect) modeSelect.value = mode;
-
-  const chipYearly = document.getElementById("chipModeYearly");
-  const chipMonthly = document.getElementById("chipModeMonthly");
-
-  if (chipYearly) chipYearly.classList.toggle("active", mode === "yearly");
-  if (chipMonthly) chipMonthly.classList.toggle("active", mode === "monthly");
-
+  document.getElementById("modeSelect").value = mode;
+  document.getElementById("chipModeYearly").classList.toggle("active", mode==="yearly");
+  document.getElementById("chipModeMonthly").classList.toggle("active", mode==="monthly");
   saveState();
 }
-
 
 /** ---------------------------
  *  Advanced toggle
@@ -1183,30 +1092,23 @@ function renderProperties(){
     g.className = "fieldgrid";
     g.style.marginTop = "10px";
 
-	const fields = [
-	  ["name", "text", "Name"],
-	  ["year_bought", "number", "Year Bought"],
-
-	  ["purchase_price", "number", "Purchase Price"],
-	  ["purchase_fees", "number", "Purchase Fees"],
-
-	  ["current_value", "number", "Current Value"],
-
-	  ["original_loan", "number", "Original Loan"],
-	  ["loan_balance_current", "number", "Current Loan Balance"],
-
-	  ["interest_rate", "number", "Interest Rate (e.g. 5.5% or 0.055)"],
-	  ["loan_term_years", "number", "Loan Term (Years)"],
-
-	  ["property_growth", "number", "Property Growth (Annual)"],
-	  ["monthly_rent", "number", "Rent (Monthly)"],
-	  ["rental_growth", "number", "Rent Growth (Annual)"],
-
-	  ["strata_quarterly", "number", "Strata (Quarterly)"],
-	  ["rates_quarterly", "number", "Council Rates (Quarterly)"],
-	  ["other_costs_monthly", "number", "Other Costs (Monthly)"],
-	];
-
+    const fields = [
+      ["name", "text", "Name / label"],
+      ["year_bought", "number", "year_bought"],
+      ["purchase_price", "number", "purchase_price"],
+      ["purchase_fees", "number", "purchase_fees"],
+      ["current_value", "number", "current_value"],
+      ["original_loan", "number", "original_loan"],
+      ["loan_balance_current", "number", "loan_balance_current"],
+      ["interest_rate", "number", "interest_rate (e.g. 0.055)"],
+      ["loan_term_years", "number", "loan_term_years"],
+      ["property_growth", "number", "property_growth (e.g. 0.03)"],
+      ["monthly_rent", "number", "monthly_rent"],
+      ["rental_growth", "number", "rental_growth (e.g. 0.03)"],
+      ["strata_quarterly", "number", "strata_quarterly"],
+      ["rates_quarterly", "number", "rates_quarterly"],
+      ["other_costs_monthly", "number", "other_costs_monthly"]
+    ];
 
     fields.forEach(([key, type, label])=>{
       const d = document.createElement("div");
