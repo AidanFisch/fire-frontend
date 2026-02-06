@@ -308,6 +308,57 @@
       background: rgba(0,0,0,.18);
       color: var(--muted);
     }
+	  /* --- Property accordion --- */
+	  .propCardHeader{
+		display:flex;
+		align-items:center;
+		justify-content:space-between;
+		gap:10px;
+		cursor:pointer;
+		user-select:none;
+	  }
+
+	  .propCardHeaderLeft{
+		display:flex;
+		flex-direction:column;
+		gap:6px;
+	  }
+
+	  .propSummaryRow{
+		display:flex;
+		gap:10px;
+		flex-wrap:wrap;
+		color: rgba(255,255,255,.72);
+		font-size: 12px;
+	  }
+
+	  .propSummaryPill{
+		display:inline-flex;
+		align-items:center;
+		gap:6px;
+		padding: 6px 10px;
+		border-radius: 999px;
+		border: 1px solid var(--stroke);
+		background: rgba(0,0,0,.16);
+	  }
+
+	  .propChevron{
+		font-size: 14px;
+		opacity:.7;
+		padding: 8px 10px;
+		border-radius: 999px;
+		border: 1px solid var(--stroke);
+		background: rgba(0,0,0,.14);
+	  }
+
+	  .propBody{
+		margin-top: 12px;
+	  }
+
+	  .hidden{
+		display:none !important;
+	  }
+
   </style>
 </head>
 
@@ -764,7 +815,7 @@ let state = {
 
   },
 	selectedPropPrefixes: [],
-
+	expandedPropertyId: null,
   lastResult: null
 };
 
@@ -937,6 +988,8 @@ function loadState(){
       if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
       if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
       if (typeof parsed.mode === "string") state.mode = parsed.mode;
+	  if (parsed.expandedPropertyId !== undefined) state.expandedPropertyId = parsed.expandedPropertyId;
+
 
       // IMPORTANT: only merge inputs if it's a real object
       if (isPlainObject(parsed.inputs)) {
@@ -1094,6 +1147,37 @@ function bindCoreInputs(){
 /** ---------------------------
  *  Property cards UI
  *  --------------------------*/
+
+function calcNetMonthlyForProperty(p){
+  const rent = toNumber(p.monthly_rent);
+  const loan = toNumber(p.loan_balance_current || p.original_loan);
+  const rate = toNumber(p.interest_rate);
+  const interestMonthly = (loan * rate) / 12;
+
+  const strata = toNumber(p.strata_quarterly) / 3;
+  const rates = toNumber(p.rates_quarterly) / 3;
+  const other = toNumber(p.other_costs_monthly);
+
+  return rent - interestMonthly - strata - rates - other;
+}
+
+function propertySummary(p){
+  const value = toNumber(p.current_value);
+  const loan  = toNumber(p.loan_balance_current || 0);
+  const equity = Math.max(value - loan, 0);
+  const lvr = (value > 0) ? (loan / value) : 0;
+  const netMo = calcNetMonthlyForProperty(p);
+  return { value, loan, equity, lvr, netMo };
+}
+
+function setExpandedProperty(id){
+  state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
+  saveState();
+  renderProperties();
+}
+
+
+
 function nextPropertyId(){
   return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
 }
@@ -1142,6 +1226,8 @@ function addProperty(kind){
       is_owner_occupied: false
     });
   }
+  state.expandedPropertyId = id; // auto-open newly created property
+
   saveState();
   renderProperties();
 }
@@ -1164,24 +1250,47 @@ function renderProperties(){
     card.style.borderColor = "rgba(255,255,255,.08)";
     card.style.padding = "14px";
 
+    const expanded = (Number(state.expandedPropertyId) === Number(p.id));
+    const sum = propertySummary(p);
+
     const header = document.createElement("div");
-    header.className = "propHeader";
+    header.className = "propCardHeader";
+
     header.innerHTML = `
-      <div class="propTitle">
-        <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
-        <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
-        <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
+      <div class="propCardHeaderLeft">
+        <div class="propTitle">
+          <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
+          <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
+          <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
+        </div>
+
+        <div class="propSummaryRow">
+          <span class="propSummaryPill">Value <b>${fmtMoney(sum.value)}</b></span>
+          <span class="propSummaryPill">Loan <b>${fmtMoney(sum.loan)}</b></span>
+          <span class="propSummaryPill">Equity <b>${fmtMoney(sum.equity)}</b></span>
+          <span class="propSummaryPill">LVR <b>${(sum.lvr*100).toFixed(0)}%</b></span>
+          <span class="propSummaryPill">Net/mo <b>${fmtMoney(sum.netMo)}</b></span>
+        </div>
       </div>
+
       <div class="row" style="gap:8px;">
-        <button class="btn" onclick="duplicateProperty(${Number(p.id)})">Duplicate</button>
-        <button class="btn danger" onclick="removeProperty(${Number(p.id)})">Remove</button>
+        <button class="btn" onclick="event.stopPropagation(); duplicateProperty(${Number(p.id)})">Duplicate</button>
+        <button class="btn danger" onclick="event.stopPropagation(); removeProperty(${Number(p.id)})">Remove</button>
+        <span class="propChevron">${expanded ? "▾" : "▸"}</span>
       </div>
     `;
+
+    header.onclick = () => setExpandedProperty(Number(p.id));
     card.appendChild(header);
+
+
+    const body = document.createElement("div");
+    body.className = "propBody" + (expanded ? "" : " hidden");
 
     const g = document.createElement("div");
     g.className = "fieldgrid";
     g.style.marginTop = "10px";
+
 
 	const fields = [
 	  ["name", "text", "Name"],
@@ -1236,8 +1345,10 @@ function renderProperties(){
     `;
     g.appendChild(toggles);
 
-    card.appendChild(g);
+    body.appendChild(g);
+    card.appendChild(body);
     wrap.appendChild(card);
+
 
     fields.forEach(([key, type])=>{
 		const el = document.getElementById(`p_${p.id}_${key}`);
