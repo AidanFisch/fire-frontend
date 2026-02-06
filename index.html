@@ -111,6 +111,7 @@
       display:grid;
       gap: 16px;
     }
+	.grid.cols1{ grid-template-columns: 1fr; }
     .grid.cols2{ grid-template-columns: 1fr 1fr; }
     .grid.cols3{ grid-template-columns: 1fr 1fr 1fr; }
     .grid.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
@@ -144,6 +145,14 @@
       gap: 12px;
       grid-template-columns: 1fr 1fr;
     }
+	/* Core inputs gets more columns when full width */
+	.coregrid{
+	  grid-template-columns: 1fr 1fr 1fr;
+	}
+	@media (max-width: 980px){
+	  .coregrid{ grid-template-columns: 1fr; }
+	}
+
     @media (max-width: 980px){ .fieldgrid{grid-template-columns:1fr} }
 
     label{
@@ -232,6 +241,45 @@
 
     .tabs{display:none}
     .tabs.active{display:block}
+	
+	.subnav{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    border:1px solid var(--stroke);
+    background: rgba(0,0,0,.14);
+    padding: 6px;
+    border-radius: 999px;
+  }
+  .subnav button{
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor:pointer;
+    font-size: 14px;
+  }
+  .subnav button.active{
+    color: var(--txt);
+    border-color: rgba(34,211,238,.50);
+    background: rgba(34,211,238,.10);
+  }
+  .subtabs{display:none}
+  .subtabs.active{display:block}
+
+/* --- Collapsible cards --- */
+.collapseHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  user-select:none;
+}
+.collapseBody{ margin-top: 12px; }
+.collapseBody.hidden{ display:none; }
+
 
     /* tables */
     .tablewrap{
@@ -307,6 +355,117 @@
       background: rgba(0,0,0,.18);
       color: var(--muted);
     }
+	  /* --- Property accordion --- */
+	  .propCardHeader{
+		display:flex;
+		align-items:center;
+		justify-content:space-between;
+		gap:10px;
+		cursor:pointer;
+		user-select:none;
+	  }
+
+	  .propCardHeaderLeft{
+		display:flex;
+		flex-direction:column;
+		gap:6px;
+	  }
+
+	  .propSummaryRow{
+		display:flex;
+		gap:10px;
+		flex-wrap:wrap;
+		color: rgba(255,255,255,.72);
+		font-size: 12px;
+	  }
+
+	  .propSummaryPill{
+		display:inline-flex;
+		align-items:center;
+		gap:6px;
+		padding: 6px 10px;
+		border-radius: 999px;
+		border: 1px solid var(--stroke);
+		background: rgba(0,0,0,.16);
+	  }
+
+	  .propChevron{
+		font-size: 14px;
+		opacity:.7;
+		padding: 8px 10px;
+		border-radius: 999px;
+		border: 1px solid var(--stroke);
+		background: rgba(0,0,0,.14);
+	  }
+
+	  .propBody{
+		margin-top: 12px;
+	  }
+
+	  .hidden{
+		display:none !important;
+	  }
+	  
+	  /* --- Toast --- */
+	.toast{
+	  position: fixed;
+	  right: 18px;
+	  bottom: 18px;
+	  z-index: 9999;
+	  display: flex;
+	  align-items: flex-start;
+	  gap: 10px;
+	  max-width: 420px;
+
+	  padding: 12px 14px;
+	  border-radius: 16px;
+	  border: 1px solid rgba(255,255,255,.14);
+	  background: rgba(10,13,24,.82);
+	  backdrop-filter: blur(10px);
+	  box-shadow: 0 18px 50px rgba(0,0,0,.55);
+
+	  transform: translateY(12px);
+	  opacity: 0;
+	  pointer-events: none;
+	  transition: 180ms ease;
+	}
+	.toast.show{
+	  transform: translateY(0);
+	  opacity: 1;
+	  pointer-events: auto;
+	}
+	.toast .icon{
+	  width: 10px; height: 10px; border-radius: 99px;
+	  margin-top: 6px;
+	  background: var(--warn);
+	  box-shadow: 0 0 0 6px rgba(255,207,92,.12);
+	  flex: 0 0 auto;
+	}
+	.toast .t{
+	  font-weight: 800;
+	  letter-spacing: .2px;
+	  margin: 0;
+	  line-height: 1.2;
+	}
+	.toast .m{
+	  margin: 4px 0 0 0;
+	  color: rgba(255,255,255,.70);
+	  font-size: 13px;
+	  line-height: 1.35;
+	}
+	.toast .x{
+	  margin-left: auto;
+	  border: 1px solid rgba(255,255,255,.12);
+	  background: rgba(255,255,255,.06);
+	  color: rgba(255,255,255,.85);
+	  border-radius: 999px;
+	  padding: 6px 10px;
+	  cursor: pointer;
+	  font-weight: 700;
+	}
+
+	  
+
   </style>
 </head>
 
@@ -320,107 +479,148 @@
       </div>
       <div class="nav">
         <button id="btnHome" class="active" onclick="showTab('home')">Home</button>
-        <button id="btnInputs" onclick="showTab('inputs')">Inputs</button>
+        <button id="btnInputs" onclick="showTab('inputs')">Setup</button>
         <button id="btnResults" onclick="showTab('results')">Results</button>
       </div>
     </div>
 
     <!-- HOME -->
-    <section id="tab-home" class="tabs active" style="margin-top:18px;">
-      <div class="grid cols2">
-        <div class="card">
-          <h2>What this does</h2>
-          <div class="sub">
-            Runs your full monthly engine via your FastAPI backend and renders a clean, usable “app” UI:
-            Core inputs + separate property cards (PPOR / Investment 1 / Investment 2 …), then outputs:
-            charts, summary KPIs, and tables (summary + full).
-          </div>
-          <div class="hr"></div>
-          <div class="row">
-            <button class="btn primary" onclick="showTab('inputs')">Go to inputs</button>
-            <button class="btn" onclick="pingAPI()">Re-check API</button>
-          </div>
-          <div class="chips" style="margin-top:14px;">
-            <div class="chip active" id="chipModeYearly" onclick="setMode('yearly')">Yearly</div>
-            <div class="chip" id="chipModeMonthly" onclick="setMode('monthly')">Monthly</div>
-            <div class="chip" onclick="downloadLastCSV()">Download last CSV</div>
-          </div>
-          <div class="sub" style="margin-top:10px;">
-            Tip: Keep “Yearly” until everything is stable (faster tables + charts). Monthly can be huge.
-          </div>
-        </div>
+ <!-- HOME -->
+	<section id="tab-home" class="tabs active" style="margin-top:18px;">
+	  <div class="grid cols1">
 
-        <div class="card">
-          <h2>Status</h2>
-          <div class="sub">Quick backend health and last run details.</div>
-          <div class="hr"></div>
+		<!-- What this does (FULL WIDTH) -->
+		<div class="card">
+		  <h2>What this does</h2>
+		  <div class="sub">
+			This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
+			and you get charts + tables to see when (or if) your plan becomes self-funding.
+		  </div>
 
-          <div class="row" style="margin-bottom:10px;">
-            <div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
-          </div>
+		  <div class="hr"></div>
 
-          <div class="fieldgrid">
-            <div>
-              <label>API Base URL</label>
-              <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
-              <div class="small">Must include <span class="mono">https://</span></div>
-            </div>
-            <div>
-              <label>Endpoint path</label>
-              <input id="apiPath" value="/fire" />
-            </div>
-          </div>
+		  <h3 style="margin:0 0 8px 0;">How to use it</h3>
+		  <div class="sub">
+			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
+			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
+			<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
+		  </div>
 
-          <div class="hr"></div>
-          <div class="sub mono" id="lastRunMeta">No run yet.</div>
-        </div>
-      </div>
-    </section>
+		  <div class="hr"></div>
+
+		  <h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
+		  <div class="sub" style="line-height:1.55;">
+			<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
+			Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
+
+			<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
+			It can be negative (negative gearing) or positive.<br/><br/>
+
+			<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
+
+			<b>FIRE income</b>: the model estimates income after FIRE mainly from:
+			investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="sub">
+			Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="row">
+			<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
+			<button class="btn" onclick="showTab('results')">Go to Results</button>
+		  </div>
+		</div>
+
+		<!-- Status (FULL WIDTH, BELOW) -->
+		<div class="card">
+		  <div class="row">
+			<div>
+			  <h2>Status</h2>
+			  <div class="sub">Backend health and last run details.</div>
+			</div>
+			<div class="row" style="gap:8px;">
+			  <button class="btn" onclick="pingAPI()">Re-check API</button>
+			</div>
+		  </div>
+
+		  <div class="hr"></div>
+
+		  <div class="row" style="margin-bottom:10px;">
+			<div class="badge" id="apiBadge"><span class="no"></span><span>API not checked yet</span></div>
+		  </div>
+
+		  <div class="fieldgrid coregrid">
+
+			<div>
+			  <label>API Base URL</label>
+			  <input id="apiBase" placeholder="https://fire-api-wixz.onrender.com" />
+			  <div class="small">Must include <span class="mono">https://</span></div>
+			</div>
+			<div>
+			  <label>Endpoint path</label>
+			  <input id="apiPath" value="/fire" />
+			</div>
+		  </div>
+
+		  <div class="hr"></div>
+		  <div class="sub mono" id="lastRunMeta">No run yet.</div>
+		</div>
+
+	  </div>
+	</section>
+
 
     <!-- INPUTS -->
     <section id="tab-inputs" class="tabs" style="margin-top:18px;">
-      <div class="grid cols2">
+      <div class="grid">
         <!-- Core -->
         <div class="card">
-          <div class="row">
-            <div>
-              <h2 style="margin-bottom:4px;">Core inputs</h2>
-              <div class="sub">Keep this section as your base model settings.</div>
-            </div>
-            <div>
-              <select id="modeSelect" onchange="setMode(this.value)">
-                <option value="yearly">Yearly (recommended)</option>
-                <option value="monthly">Monthly (debug)</option>
-              </select>
-            </div>
-          </div>
+		<div id="coreBody" class="collapseBody">
+		  <div>
+			<h2 style="margin-bottom:4px;">Core</h2>
+			<div class="sub">The settings you change most often.</div>
+		  </div>
+		  <div class="row" style="gap:10px;">
+			<select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
+			  <option value="yearly">Yearly (recommended)</option>
+			  <option value="monthly">Monthly (debug)</option>
+			</select>
+			<span class="collapseChevron">▾</span>
+		  </div>
+</div>
+
           <div class="hr"></div>
 
-          <div class="fieldgrid">
+          <div class="fieldgrid coregrid">
             <div>
-              <label>current_age</label>
+              <label>Current Age</label>
               <input id="current_age" type="number" step="1" />
             </div>
             <div>
-              <label>end_age</label>
+              <label>End Age</label>
               <input id="end_age" type="number" step="1" />
             </div>
 
             <div>
-              <label>initial_savings</label>
+              <label>Initial Savings</label>
               <input id="initial_savings" type="number" step="1" />
             </div>
             <div>
-              <label>todays_lifestyle_income</label>
+              <label>Todays Lifestyle Income</label>
               <input id="todays_lifestyle_income" type="number" step="1" />
             </div>
 
             <div>
-              <label>current_income</label>
+              <label>Current Income</label>
               <input id="current_income" type="number" step="1" />
             </div>
             <div>
-              <label>current_expenses</label>
+              <label>Current Expenses</label>
               <input id="current_expenses" type="number" step="1" />
             </div>
           </div>
@@ -443,57 +643,57 @@
 
             <div class="fieldgrid">
               <div>
-                <label>inflation</label>
+                <label>Inflation</label>
                 <input id="inflation" type="number" step="0.001"/>
               </div>
               <div>
-                <label>average_salary_increase</label>
+                <label>Average Salary Increase</label>
                 <input id="average_salary_increase" type="number" step="0.001"/>
               </div>
               <div>
-                <label>stock_growth</label>
+                <label>Stock Growth</label>
                 <input id="stock_growth" type="number" step="0.001"/>
               </div>
               <div>
-                <label>stock_yearly_contribution</label>
+                <label>Stock Yearly Contribution</label>
                 <input id="stock_yearly_contribution" type="number" step="1"/>
               </div>
               <div>
-                <label>starting_stock_value</label>
+                <label>Starting Stock Value</label>
                 <input id="starting_stock_value" type="number" step="1"/>
               </div>
 				<div>
-				  <label>stock_swr</label>
+				  <label>Stock Drawdown Per Year</label>
 				  <input id="stock_swr" type="number" step="0.001" />
 				</div>
 				
 				<div>
-				  <label>super_swr</label>
+				  <label>Super Drawdown Per Year</label>
 				  <input id="super_swr" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_access_age</label>
+				  <label>Super Access Age</label>
 				  <input id="super_access_age" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>super_starting_balance</label>
+				  <label>Super Starting Balance</label>
 				  <input id="super_starting_balance" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>super_sg_rate (e.g. 0.11)</label>
+				  <label>Super Employee Contribution Rate</label>
 				  <input id="super_sg_rate" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_growth (e.g. 0.065)</label>
+				  <label>Super Growth</label>
 				  <input id="super_growth" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_additional_annual</label>
+				  <label>Super Additional Contributions</label>
 				  <input id="super_additional_annual" type="number" step="1" />
 				</div>
 
@@ -511,10 +711,10 @@
                 This replaces the big JSON textarea.
               </div>
             </div>
-            <div class="row" style="gap:8px;">
-              <button class="btn" onclick="addProperty('investment')">+ Add investment</button>
-              <button class="btn" onclick="addProperty('ppor')">+ Add PPOR</button>
-            </div>
+			<div class="row" style="gap:8px;">
+			  <button class="btn" onclick="addProperty()">+ Add property</button>
+			</div>
+
           </div>
 
           <div class="hr"></div>
@@ -635,6 +835,18 @@
     </section>
 
   </div>
+  
+  
+  <!-- Toast -->
+<div id="toast" class="toast" aria-live="polite" aria-atomic="true">
+  <div class="icon"></div>
+  <div style="min-width:0;">
+    <p class="t" id="toastTitle">Notice</p>
+    <p class="m" id="toastMsg">…</p>
+  </div>
+  <button class="x" onclick="hideToast()">Close</button>
+</div>
+
 
 <script>
 /** ---------------------------
@@ -725,9 +937,99 @@ let state = {
 
   },
 	selectedPropPrefixes: [],
-
-  lastResult: null
+	expandedPropertyId: null,
+  lastResult: null,
+  collapsed: {},
 };
+
+let toastTimer = null;
+
+function showToast(title, msg, ms = 2500){
+  const el = document.getElementById("toast");
+  const t  = document.getElementById("toastTitle");
+  const m  = document.getElementById("toastMsg");
+  if(!el || !t || !m) return;
+
+  t.textContent = title || "Notice";
+  m.textContent = msg || "";
+
+  el.classList.add("show");
+
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => hideToast(), ms);
+}
+
+function hideToast(){
+  const el = document.getElementById("toast");
+  if(!el) return;
+  el.classList.remove("show");
+}
+
+function toggleCollapse(id){
+  const body = document.getElementById(id);
+  if(!body) return;
+  const isHidden = body.classList.contains("hidden");
+  body.classList.toggle("hidden", !isHidden);
+
+  // persist collapsed state
+  state.collapsed = state.collapsed || {};
+  state.collapsed[id] = !isHidden ? true : false; // true means hidden
+  saveState();
+}
+
+function applyCollapseState(){
+  state.collapsed = state.collapsed || {};
+  for(const [id, isHidden] of Object.entries(state.collapsed)){
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle("hidden", !!isHidden);
+  }
+}
+
+
+
+const FIELD_LABELS = {
+  // Core
+  current_age: "Current Age",
+  end_age: "End Age",
+  initial_savings: "Initial Savings",
+  todays_lifestyle_income: "Target Lifestyle Income (Today)",
+  current_income: "Current Income",
+  current_expenses: "Current Expenses",
+
+  // Advanced
+  inflation: "Inflation Rate",
+  average_salary_increase: "Annual Salary Growth",
+  stock_growth: "Stock Growth Rate",
+  stock_yearly_contribution: "Annual Stock Contribution",
+  starting_stock_value: "Starting Stock Balance",
+  stock_swr: "Stock Safe Withdrawal Rate",
+  super_swr: "Super Safe Withdrawal Rate",
+  super_access_age: "Super Access Age",
+  super_starting_balance: "Starting Super Balance",
+  super_sg_rate: "Super Guarantee Rate",
+  super_growth: "Super Growth Rate",
+  super_additional_annual: "Additional Super Contributions (Annual)",
+};
+
+
+const PROP_FIELD_LABELS = {
+  name: "Property Name",
+  year_bought: "Year Purchased",
+  purchase_price: "Purchase Price",
+  purchase_fees: "Purchase Costs",
+  current_value: "Current Value",
+  original_loan: "Original Loan Amount",
+  loan_balance_current: "Current Loan Balance",
+  interest_rate: "Interest Rate",
+  loan_term_years: "Loan Term (Years)",
+  property_growth: "Capital Growth Rate",
+  monthly_rent: "Monthly Rent",
+  rental_growth: "Rental Growth Rate",
+  strata_quarterly: "Strata (Quarterly)",
+  rates_quarterly: "Council Rates (Quarterly)",
+  other_costs_monthly: "Other Costs (Monthly)",
+};
+
 
 const FIELD_META = {
   // ---- core money
@@ -854,6 +1156,8 @@ function loadState(){
       if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
       if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
       if (typeof parsed.mode === "string") state.mode = parsed.mode;
+	  if (parsed.expandedPropertyId !== undefined) state.expandedPropertyId = parsed.expandedPropertyId;
+
 
       // IMPORTANT: only merge inputs if it's a real object
       if (isPlainObject(parsed.inputs)) {
@@ -873,6 +1177,8 @@ function loadState(){
   } catch(e){
     // ignore bad storage
   }
+  
+  state.expandedPropertyId = null;
 
   // hard defaults if blanks
   if (!state.apiBase || !String(state.apiBase).trim()) state.apiBase = "https://fire-api-wixz.onrender.com";
@@ -895,11 +1201,19 @@ function showTab(name){
  *  --------------------------*/
 function setMode(mode){
   state.mode = mode;
-  document.getElementById("modeSelect").value = mode;
-  document.getElementById("chipModeYearly").classList.toggle("active", mode==="yearly");
-  document.getElementById("chipModeMonthly").classList.toggle("active", mode==="monthly");
+
+  const modeSelect = document.getElementById("modeSelect");
+  if (modeSelect) modeSelect.value = mode;
+
+  const chipYearly = document.getElementById("chipModeYearly");
+  const chipMonthly = document.getElementById("chipModeMonthly");
+
+  if (chipYearly) chipYearly.classList.toggle("active", mode === "yearly");
+  if (chipMonthly) chipMonthly.classList.toggle("active", mode === "monthly");
+
   saveState();
 }
+
 
 /** ---------------------------
  *  Advanced toggle
@@ -1003,57 +1317,76 @@ function bindCoreInputs(){
 /** ---------------------------
  *  Property cards UI
  *  --------------------------*/
-function nextPropertyId(){
-  return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
+
+function calcNetMonthlyForProperty(p){
+  const rent = toNumber(p.monthly_rent);
+  //* const loan = toNumber(p.loan_balance_current || p.original_loan);\\
+  const loan = toNumber(p.loan_balance_current ?? p.original_loan);
+  const rate = toNumber(p.interest_rate);
+  const interestMonthly = (loan * rate) / 12;
+
+  const strata = toNumber(p.strata_quarterly) / 3;
+  const rates = toNumber(p.rates_quarterly) / 3;
+  const other = toNumber(p.other_costs_monthly);
+
+  return rent - interestMonthly - strata - rates - other;
 }
-function addProperty(kind){
-  const id = nextPropertyId();
-  if(kind === "ppor"){
-    state.property_list.push({
-      id,
-      name: "PPOR",
-      purchase_price: 1200000,
-      current_value: 1200000,
-      original_loan: 900000,
-      loan_balance_current: 0,
-      purchase_fees: 40000,
-      monthly_rent: 0,
-      strata_quarterly: 0,
-      rates_quarterly: 900,
-      other_costs_monthly: 300,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.0,
-      year_bought: new Date().getFullYear()+1,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: true
-    });
-  } else {
-    state.property_list.push({
-      id,
-      name: `Investment ${id}`,
-      purchase_price: 800000,
-      current_value: 800000,
-      original_loan: 640000,
-      loan_balance_current: 0,
-      purchase_fees: 30000,
-      monthly_rent: 3200,
-      strata_quarterly: 0,
-      rates_quarterly: 900,
-      other_costs_monthly: 200,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.03,
-      year_bought: new Date().getFullYear()+2,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: false
-    });
-  }
+
+function propertySummary(p){
+  const value = toNumber(p.current_value);
+  const loan  = toNumber(p.loan_balance_current || 0);
+  const equity = Math.max(value - loan, 0);
+  const lvr = (value > 0) ? (loan / value) : 0;
+  const netMo = calcNetMonthlyForProperty(p);
+  return { value, loan, equity, lvr, netMo };
+}
+
+function setExpandedProperty(id){
+  state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
   saveState();
   renderProperties();
 }
+
+
+
+function nextPropertyId(){
+  return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
+}
+
+
+function addProperty(){
+  const id = nextPropertyId();
+
+  state.property_list.push({
+    id,
+    name: `Property ${id}`,
+    purchase_price: 800000,
+    current_value: 800000,
+    original_loan: 640000,
+    loan_balance_current: 0,
+    purchase_fees: 30000,
+    monthly_rent: 3200,
+    strata_quarterly: 0,
+    rates_quarterly: 900,
+    other_costs_monthly: 200,
+    interest_rate: 0.055,
+    property_growth: 0.03,
+    rental_growth: 0.03,
+    year_bought: new Date().getFullYear(),
+    loan_term_years: 30,
+    use_offset: true,
+    is_owner_occupied: false
+  });
+
+  // keep collapsed on add (don’t auto-open)
+  state.expandedPropertyId = null;
+
+  saveState();
+  renderProperties();
+}
+
+
+
 function removeProperty(id){
   state.property_list = state.property_list.filter(p => Number(p.id) !== Number(id));
   saveState();
@@ -1073,42 +1406,72 @@ function renderProperties(){
     card.style.borderColor = "rgba(255,255,255,.08)";
     card.style.padding = "14px";
 
+    const expanded = (Number(state.expandedPropertyId) === Number(p.id));
+    const sum = propertySummary(p);
+
     const header = document.createElement("div");
-    header.className = "propHeader";
+    header.className = "propCardHeader";
+
     header.innerHTML = `
-      <div class="propTitle">
-        <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
-        <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
-        <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
+      <div class="propCardHeaderLeft">
+        <div class="propTitle">
+          <span>${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
+          <span class="propTag">${isPPOR ? "PPOR" : "Investment"}</span>
+          <span class="propTag">id: ${Number(p.id)|| (idx+1)}</span>
+        </div>
+
+        <div class="propSummaryRow">
+          <span class="propSummaryPill">Value <b>${fmtMoney(sum.value)}</b></span>
+          <span class="propSummaryPill">Loan <b>${fmtMoney(sum.loan)}</b></span>
+          <span class="propSummaryPill">Equity <b>${fmtMoney(sum.equity)}</b></span>
+          <span class="propSummaryPill">LVR <b>${(sum.lvr*100).toFixed(0)}%</b></span>
+          <span class="propSummaryPill">Net/mo <b>${fmtMoney(sum.netMo)}</b></span>
+        </div>
       </div>
+
       <div class="row" style="gap:8px;">
-        <button class="btn" onclick="duplicateProperty(${Number(p.id)})">Duplicate</button>
-        <button class="btn danger" onclick="removeProperty(${Number(p.id)})">Remove</button>
+        <button class="btn" onclick="event.stopPropagation(); duplicateProperty(${Number(p.id)})">Duplicate</button>
+        <button class="btn danger" onclick="event.stopPropagation(); removeProperty(${Number(p.id)})">Remove</button>
+        <span class="propChevron">${expanded ? "▾" : "▸"}</span>
       </div>
     `;
+
+    header.onclick = () => setExpandedProperty(Number(p.id));
     card.appendChild(header);
+
+
+    const body = document.createElement("div");
+    body.className = "propBody" + (expanded ? "" : " hidden");
 
     const g = document.createElement("div");
     g.className = "fieldgrid";
     g.style.marginTop = "10px";
 
-    const fields = [
-      ["name", "text", "Name / label"],
-      ["year_bought", "number", "year_bought"],
-      ["purchase_price", "number", "purchase_price"],
-      ["purchase_fees", "number", "purchase_fees"],
-      ["current_value", "number", "current_value"],
-      ["original_loan", "number", "original_loan"],
-      ["loan_balance_current", "number", "loan_balance_current"],
-      ["interest_rate", "number", "interest_rate (e.g. 0.055)"],
-      ["loan_term_years", "number", "loan_term_years"],
-      ["property_growth", "number", "property_growth (e.g. 0.03)"],
-      ["monthly_rent", "number", "monthly_rent"],
-      ["rental_growth", "number", "rental_growth (e.g. 0.03)"],
-      ["strata_quarterly", "number", "strata_quarterly"],
-      ["rates_quarterly", "number", "rates_quarterly"],
-      ["other_costs_monthly", "number", "other_costs_monthly"]
-    ];
+
+	const fields = [
+	  ["name", "text", "Name"],
+	  ["year_bought", "number", "Year Bought"],
+
+	  ["purchase_price", "number", "Purchase Price"],
+	  ["purchase_fees", "number", "Purchase Fees"],
+
+	  ["current_value", "number", "Current Value"],
+
+	  ["original_loan", "number", "Original Loan"],
+	  ["loan_balance_current", "number", "Current Loan Balance"],
+
+	  ["interest_rate", "number", "Interest Rate (e.g. 5.5% or 0.055)"],
+	  ["loan_term_years", "number", "Loan Term (Years)"],
+
+	  ["property_growth", "number", "Property Growth (Annual)"],
+	  ["monthly_rent", "number", "Rent (Monthly)"],
+	  ["rental_growth", "number", "Rent Growth (Annual)"],
+
+	  ["strata_quarterly", "number", "Strata (Quarterly)"],
+	  ["rates_quarterly", "number", "Council Rates (Quarterly)"],
+	  ["other_costs_monthly", "number", "Other Costs (Monthly)"],
+	];
+
 
     fields.forEach(([key, type, label])=>{
       const d = document.createElement("div");
@@ -1126,20 +1489,23 @@ function renderProperties(){
     toggles.style.gap = "10px";
     toggles.style.flexWrap = "wrap";
     toggles.style.marginTop = "6px";
-    toggles.innerHTML = `
-      <label class="badge" style="cursor:pointer;">
-        <input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
-        use_offset
-      </label>
-      <label class="badge" style="cursor:pointer;">
-        <input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
-        is_owner_occupied (PPOR)
-      </label>
-    `;
+	toggles.innerHTML = `
+	  <label class="badge" style="cursor:pointer;">
+		<input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
+		Use Offset
+	  </label>
+	  <label class="badge" style="cursor:pointer;">
+		<input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
+		Owner-occupied (PPOR)
+	  </label>
+	`;
+
     g.appendChild(toggles);
 
-    card.appendChild(g);
+    body.appendChild(g);
+    card.appendChild(body);
     wrap.appendChild(card);
+
 
     fields.forEach(([key, type])=>{
 		const el = document.getElementById(`p_${p.id}_${key}`);
@@ -1184,16 +1550,40 @@ function renderProperties(){
 
     const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
     occEl.checked = !!p.is_owner_occupied;
-    occEl.onchange = ()=>{
-      const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-      prop.is_owner_occupied = !!occEl.checked;
-      if(prop.is_owner_occupied){
-        prop.monthly_rent = 0;
-        prop.rental_growth = 0;
-      }
-      saveState();
-      renderProperties();
-    };
+	occEl.onchange = () => {
+	  const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+	  if (!prop) return;
+
+	  const wantsPPOR = !!occEl.checked;
+
+	  if (wantsPPOR) {
+		// If another PPOR already exists (not this one), block it + popup + revert UI
+		const otherPPORExists = state.property_list.some(x =>
+		  Number(x.id) !== Number(p.id) && !!x.is_owner_occupied
+		);
+
+		if (otherPPORExists) {
+		  showToast("PPOR limit", "Only 1 PPOR allowed.");
+		  occEl.checked = false;           // revert checkbox UI immediately
+		  prop.is_owner_occupied = false;  // revert state
+		  saveState();
+		  return; // do NOT re-render
+		}
+
+		// Allowed to become PPOR
+		prop.is_owner_occupied = true;
+		prop.monthly_rent = 0;
+		prop.rental_growth = 0;
+	  } else {
+		// Turning PPOR off is always allowed
+		prop.is_owner_occupied = false;
+	  }
+
+	  saveState();
+	  renderProperties();
+	};
+
+
   });
 
   syncRawJsonFromCards();
@@ -1317,6 +1707,7 @@ if ((text || "").trim().startsWith("<!DOCTYPE html")) {
 
 
 async function runModel(){
+  syncInputsFromUI();
   saveState();
   const base = (state.apiBase || "").replace(/\/+$/,"");
   if(!base){
@@ -2018,7 +2409,9 @@ function syncInputsFromUI(){
     if (!el) continue;
     // Only update if the field isn't blank
 	const raw = String(el.value ?? "").trim();
-	if (raw !== "") state.inputs[k] = toNumber(raw);
+	const meta = FIELD_META[k] || { type: "money" };
+	if (raw !== "") state.inputs[k] = parseFromUI(raw, meta);
+
 
   }
   // Keep API fields in sync too
@@ -2060,6 +2453,7 @@ function hydrateUI(){
   document.getElementById("apiPath").value = state.apiPath || "";
   document.getElementById("modeSelect").value = state.mode || "yearly";
   setMode(state.mode || "yearly");
+  applyCollapseState();
 
   // ✅ DO NOT do: el.value = state.inputs[k]
   // bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
@@ -2096,27 +2490,6 @@ function toNumber(v){
   return Number.isFinite(n) ? n : 0;
 }
 
-function toNumber(v){
-  if (v === null || v === undefined) return 0;
-
-  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
-
-  if (typeof v === "string") {
-    const s = v.trim();
-    if (!s || s === "—" || s === "-") return 0;
-
-    const cleaned = s
-      .replace(/[$€£¥]/g, "")
-      .replace(/,/g, "")
-      .replace(/\s+/g, "");
-
-    const n = Number(cleaned);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
 
 
 
