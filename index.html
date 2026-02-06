@@ -280,6 +280,52 @@
 .collapseBody{ margin-top: 12px; }
 .collapseBody.hidden{ display:none; }
 
+/* --- Section cards (clean + collapsible) --- */
+.section{
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.16);
+  border-radius: 22px;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.sectionHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 14px 16px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.sectionHeader h2{
+  margin:0;
+  font-size:18px;
+}
+
+.sectionBody{
+  padding:14px 16px 16px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+.sectionBody.hidden{
+  display:none;
+}
+
+.chev{
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+}
+
+
 
     /* tables */
     .tablewrap{
@@ -579,171 +625,176 @@
     <section id="tab-inputs" class="tabs" style="margin-top:18px;">
       <div class="grid">
         <!-- Core -->
-	<div class="card">
-	  <div class="collapseHeader" onclick="toggleCollapse('coreBody')">
+	<!-- INPUTS SECTION -->
+	<div class="section">
+	  <div class="sectionHeader"
+		   onclick="toggleSection('inputsSectionBody','inputsChev')">
 		<div>
-		  <h2 style="margin-bottom:4px;">Inputs</h2>
+		  <h2>Inputs</h2>
 		  <div class="sub">The settings you change most often.</div>
 		</div>
+
 		<div class="row" style="gap:10px;">
-		  <select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
+		  <select id="modeSelect"
+				  onchange="event.stopPropagation(); setMode(this.value)">
 			<option value="yearly">Yearly (recommended)</option>
 			<option value="monthly">Monthly (debug)</option>
 		  </select>
-		  <span class="propChevron">▾</span>
+		  <div class="chev" id="inputsChev">▾</div>
 		</div>
 	  </div>
 
-	  <div id="coreBody" class="collapseBody">
-		<div class="hr"></div>
+	  <div class="sectionBody" id="inputsSectionBody">
 
-          <div class="hr"></div>
+  <div class="fieldgrid coregrid">
+    <div>
+      <label>Current Age</label>
+      <input id="current_age" type="number" step="1" />
+    </div>
+    <div>
+      <label>End Age</label>
+      <input id="end_age" type="number" step="1" />
+    </div>
 
-          <div class="fieldgrid coregrid">
-            <div>
-              <label>Current Age</label>
-              <input id="current_age" type="number" step="1" />
-            </div>
-            <div>
-              <label>End Age</label>
-              <input id="end_age" type="number" step="1" />
-            </div>
+    <div>
+      <label>Initial Savings</label>
+      <input id="initial_savings" type="number" step="1" />
+    </div>
+    <div>
+      <label>Todays Lifestyle Income</label>
+      <input id="todays_lifestyle_income" type="number" step="1" />
+    </div>
 
-            <div>
-              <label>Initial Savings</label>
-              <input id="initial_savings" type="number" step="1" />
-            </div>
-            <div>
-              <label>Todays Lifestyle Income</label>
-              <input id="todays_lifestyle_income" type="number" step="1" />
-            </div>
+    <div>
+      <label>Current Income</label>
+      <input id="current_income" type="number" step="1" />
+    </div>
+    <div>
+      <label>Current Expenses</label>
+      <input id="current_expenses" type="number" step="1" />
+    </div>
+  </div>
 
-            <div>
-              <label>Current Income</label>
-              <input id="current_income" type="number" step="1" />
-            </div>
-            <div>
-              <label>Current Expenses</label>
-              <input id="current_expenses" type="number" step="1" />
-            </div>
-          </div>
+  <div class="hr"></div>
 
-          <div class="hr"></div>
+  <div class="row">
+    <button class="btn" onclick="toggleAdvanced()">Stocks and Super
+      <span class="pill" id="advPill">Hidden</span>
+    </button>
 
-          <div class="row">
-            <button class="btn" onclick="toggleAdvanced()">Stocks and Super <span class="pill" id="advPill">Hidden</span></button>
-            <div class="row" style="gap:8px;">
-              <button class="btn" onclick="resetDefaults()">Reset defaults</button>
-              <button class="btn primary" onclick="runModel()">Run model</button>
-            </div>
-          </div>
+    <div class="row" style="gap:8px;">
+      <button class="btn" onclick="resetDefaults()">Reset defaults</button>
+      <button class="btn primary" onclick="runModel()">Run model</button>
+    </div>
+  </div>
 
-          <div id="advancedBox" style="display:none; margin-top:14px;">
-            <div class="hr"></div>
-            <h3 style="margin:0 0 10px 0;">Stocks and Super</h3>
-            <div class="sub">Stock + super settings (and other growth assumptions).</div>
+  <div id="advancedBox" style="display:none; margin-top:14px;">
+    <div class="hr"></div>
+    <h3 style="margin:0 0 10px 0;">Stocks and Super</h3>
+    <div class="sub">Stock + super settings (and other growth assumptions).</div>
 
-            <div class="hr"></div>
+    <div class="hr"></div>
 
-            <div class="fieldgrid">
-              <div>
-                <label>Inflation</label>
-                <input id="inflation" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Average Salary Increase</label>
-                <input id="average_salary_increase" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Stock Growth</label>
-                <input id="stock_growth" type="number" step="0.001"/>
-              </div>
-              <div>
-                <label>Stock Yearly Contribution</label>
-                <input id="stock_yearly_contribution" type="number" step="1"/>
-              </div>
-              <div>
-                <label>Starting Stock Value</label>
-                <input id="starting_stock_value" type="number" step="1"/>
-              </div>
-				<div>
-				  <label>Stock Drawdown Per Year</label>
-				  <input id="stock_swr" type="number" step="0.001" />
-				</div>
-				
-				<div>
-				  <label>Super Drawdown Per Year</label>
-				  <input id="super_swr" type="number" step="0.001" />
-				</div>
+    <div class="fieldgrid">
+      <div>
+        <label>Inflation</label>
+        <input id="inflation" type="number" step="0.001"/>
+      </div>
+      <div>
+        <label>Average Salary Increase</label>
+        <input id="average_salary_increase" type="number" step="0.001"/>
+      </div>
+      <div>
+        <label>Stock Growth</label>
+        <input id="stock_growth" type="number" step="0.001"/>
+      </div>
+      <div>
+        <label>Stock Yearly Contribution</label>
+        <input id="stock_yearly_contribution" type="number" step="1"/>
+      </div>
+      <div>
+        <label>Starting Stock Value</label>
+        <input id="starting_stock_value" type="number" step="1"/>
+      </div>
 
-				<div>
-				  <label>Super Access Age</label>
-				  <input id="super_access_age" type="number" step="1" />
-				</div>
+      <div>
+        <label>Stock Drawdown Per Year</label>
+        <input id="stock_swr" type="number" step="0.001" />
+      </div>
 
-				<div>
-				  <label>Super Starting Balance</label>
-				  <input id="super_starting_balance" type="number" step="1" />
-				</div>
+      <div>
+        <label>Super Drawdown Per Year</label>
+        <input id="super_swr" type="number" step="0.001" />
+      </div>
 
-				<div>
-				  <label>Super Employee Contribution Rate</label>
-				  <input id="super_sg_rate" type="number" step="0.001" />
-				</div>
+      <div>
+        <label>Super Access Age</label>
+        <input id="super_access_age" type="number" step="1" />
+      </div>
 
-				<div>
-				  <label>Super Growth</label>
-				  <input id="super_growth" type="number" step="0.001" />
-				</div>
+      <div>
+        <label>Super Starting Balance</label>
+        <input id="super_starting_balance" type="number" step="1" />
+      </div>
 
-				<div>
-				  <label>Super Additional Contributions</label>
-				  <input id="super_additional_annual" type="number" step="1" />
-				</div>
+      <div>
+        <label>Super Employee Contribution Rate</label>
+        <input id="super_sg_rate" type="number" step="0.001" />
+      </div>
 
-            </div>
-          </div>
-        </div>
+      <div>
+        <label>Super Growth</label>
+        <input id="super_growth" type="number" step="0.001" />
+      </div>
+
+      <div>
+        <label>Super Additional Contributions</label>
+        <input id="super_additional_annual" type="number" step="1" />
+      </div>
+    </div>
+  </div>
+
+</div>
+
 
         <!-- Properties -->
-        <div class="card">
-          <div class="row">
-            <div>
-              <h2 style="margin-bottom:4px;">Properties</h2>
-              <div class="sub">
-                Each property is its own card (PPOR / Investment 1 / Investment 2 …).
-                This replaces the big JSON textarea.
-              </div>
-            </div>
-			<div class="row" style="gap:8px;">
-			  <button class="btn" onclick="addProperty()">+ Add property</button>
+		<!-- PROPERTIES SECTION -->
+		<div class="section" style="margin-top:16px;">
+		  <div class="sectionHeader"
+			   onclick="toggleSection('propsSectionBody','propsChev')">
+			<div>
+			  <h2>Properties</h2>
+			  <div class="sub">
+				Each property is its own card. Collapse this when you’re not editing.
+			  </div>
 			</div>
 
-          </div>
+			<div class="row" style="gap:10px;">
+			  <button class="btn"
+					  onclick="event.stopPropagation(); addProperty()">+ Add property</button>
+			  <div class="chev" id="propsChev">▾</div>
+			</div>
+		  </div>
 
-          <div class="hr"></div>
+		  <div class="sectionBody" id="propsSectionBody">
+			<div id="propsContainer"></div>
 
-          <div id="propsContainer"></div>
+			<div class="hr"></div>
 
-          <div class="hr"></div>
+			<div class="row">
+			  <button class="btn ghost" onclick="toggleRawJson()">Raw JSON (debug)</button>
+			  <button class="btn" onclick="copyPayload()">Copy API payload</button>
+			</div>
 
-          <div class="row">
-            <button class="btn ghost" onclick="toggleRawJson()">Raw JSON (debug)</button>
-            <button class="btn" onclick="copyPayload()">Copy API payload</button>
-          </div>
+			<div id="rawJsonBox" style="display:none; margin-top:12px;">
+			  <label class="muted">property_list (JSON)</label>
+			  <textarea id="property_json"></textarea>
+			</div>
+		  </div>
+		</div>
 
-          <div id="rawJsonBox" style="display:none; margin-top:12px;">
-            <label class="muted">property_list (JSON) — generated from the cards above</label>
-            <textarea id="property_json" spellcheck="false"></textarea>
-            <div class="small">If you edit this, click “Apply JSON → cards”.</div>
-            <div class="row" style="margin-top:10px;">
-              <button class="btn" onclick="applyRawJson()">Apply JSON → cards</button>
-              <button class="btn danger" onclick="repairJson()">Repair common JSON issues</button>
-            </div>
-          </div>
 
-        </div>
-      </div>
+          
     </section>
 
     <!-- RESULTS -->
@@ -980,6 +1031,17 @@ function toggleCollapse(id){
   state.collapsed[id] = !isHidden ? true : false; // true means hidden
   saveState();
 }
+
+function toggleSection(bodyId, chevId){
+  toggleCollapse(bodyId);
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if(body && chev){
+    chev.textContent = body.classList.contains("hidden") ? "▸" : "▾";
+  }
+}
+
+
 
 function applyCollapseState(){
   state.collapsed = state.collapsed || {};
@@ -1338,12 +1400,15 @@ function calcNetMonthlyForProperty(p){
 
 function propertySummary(p){
   const value = toNumber(p.current_value);
-  const loan  = toNumber(p.loan_balance_current || 0);
+  const loan  = toNumber(p.loan_balance_current ?? p.original_loan ?? 0);
+
   const equity = Math.max(value - loan, 0);
   const lvr = (value > 0) ? (loan / value) : 0;
   const netMo = calcNetMonthlyForProperty(p);
+
   return { value, loan, equity, lvr, netMo };
 }
+
 
 function setExpandedProperty(id){
   state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
@@ -1575,7 +1640,7 @@ function renderProperties(){
 		}
 
 		// Allowed to become PPOR
-		prop.is_owner_occupied = true;
+		prop.is_owner_occupied = false;
 		prop.monthly_rent = 0;
 		prop.rental_growth = 0;
 	  } else {
@@ -1592,18 +1657,26 @@ function renderProperties(){
 
   syncRawJsonFromCards();
 }
+
+
 function duplicateProperty(id){
   const p = state.property_list.find(x => Number(x.id) === Number(id));
-  if (copy.is_owner_occupied) copy.is_owner_occupied = false;
   if(!p) return;
+
   const newId = nextPropertyId();
   const copy = JSON.parse(JSON.stringify(p));
+
+  // duplicated property should NEVER be PPOR
+  if (copy.is_owner_occupied) copy.is_owner_occupied = false;
+
   copy.id = newId;
   copy.name = (p.name || "Property") + " (copy)";
+
   state.property_list.push(copy);
   saveState();
   renderProperties();
 }
+
 
 /** ---------------------------
  *  API health
