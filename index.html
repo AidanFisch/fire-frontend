@@ -1018,6 +1018,8 @@ function loadState(){
   } catch(e){
     // ignore bad storage
   }
+  
+  state.expandedPropertyId = null;
 
   // hard defaults if blanks
   if (!state.apiBase || !String(state.apiBase).trim()) state.apiBase = "https://fire-api-wixz.onrender.com";
@@ -1345,11 +1347,11 @@ function renderProperties(){
     toggles.innerHTML = `
       <label class="badge" style="cursor:pointer;">
         <input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
-        use_offset
+        Use Offset
       </label>
       <label class="badge" style="cursor:pointer;">
         <input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
-        is_owner_occupied (PPOR)
+        Is Owner Occupied (PPOR)
       </label>
     `;
     g.appendChild(toggles);
@@ -1402,16 +1404,31 @@ function renderProperties(){
 
     const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
     occEl.checked = !!p.is_owner_occupied;
-    occEl.onchange = ()=>{
-      const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-      prop.is_owner_occupied = !!occEl.checked;
-      if(prop.is_owner_occupied){
-        prop.monthly_rent = 0;
-        prop.rental_growth = 0;
-      }
-      saveState();
-      renderProperties();
-    };
+	occEl.onchange = ()=>{
+	  const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+	  if(!prop) return;
+
+	  const turningOn = !!occEl.checked;
+
+	  if(turningOn){
+		// ✅ enforce single PPOR
+		state.property_list.forEach(other => {
+		  if(Number(other.id) !== Number(prop.id)){
+			other.is_owner_occupied = false;
+		  }
+		});
+
+		prop.is_owner_occupied = true;
+		prop.monthly_rent = 0;
+		prop.rental_growth = 0;
+	  } else {
+		prop.is_owner_occupied = false;
+	  }
+
+	  saveState();
+	  renderProperties();
+	};
+
   });
 
   syncRawJsonFromCards();
