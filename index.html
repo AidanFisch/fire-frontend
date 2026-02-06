@@ -934,11 +934,19 @@ function showTab(name){
  *  --------------------------*/
 function setMode(mode){
   state.mode = mode;
-  document.getElementById("modeSelect").value = mode;
-  document.getElementById("chipModeYearly").classList.toggle("active", mode==="yearly");
-  document.getElementById("chipModeMonthly").classList.toggle("active", mode==="monthly");
+
+  const modeSelect = document.getElementById("modeSelect");
+  if (modeSelect) modeSelect.value = mode;
+
+  const chipYearly = document.getElementById("chipModeYearly");
+  const chipMonthly = document.getElementById("chipModeMonthly");
+
+  if (chipYearly) chipYearly.classList.toggle("active", mode === "yearly");
+  if (chipMonthly) chipMonthly.classList.toggle("active", mode === "monthly");
+
   saveState();
 }
+
 
 /** ---------------------------
  *  Advanced toggle
