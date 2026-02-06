@@ -610,10 +610,10 @@
                 This replaces the big JSON textarea.
               </div>
             </div>
-            <div class="row" style="gap:8px;">
-              <button class="btn" onclick="addProperty('investment')">+ Add investment</button>
-              <button class="btn" onclick="addProperty('ppor')">+ Add PPOR</button>
-            </div>
+			<div class="row" style="gap:8px;">
+			  <button class="btn" onclick="addProperty()">+ Add property</button>
+			</div>
+
           </div>
 
           <div class="hr"></div>
@@ -1192,56 +1192,41 @@ function setExpandedProperty(id){
 function nextPropertyId(){
   return Math.max(0, ...state.property_list.map(p=>Number(p.id)||0)) + 1;
 }
-function addProperty(kind){
+
+
+function addProperty(){
   const id = nextPropertyId();
-  if(kind === "ppor"){
-    state.property_list.push({
-      id,
-      name: "PPOR",
-      purchase_price: 1200000,
-      current_value: 1200000,
-      original_loan: 900000,
-      loan_balance_current: 0,
-      purchase_fees: 40000,
-      monthly_rent: 0,
-      strata_quarterly: 0,
-      rates_quarterly: 900,
-      other_costs_monthly: 300,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.0,
-      year_bought: new Date().getFullYear()+1,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: true
-    });
-  } else {
-    state.property_list.push({
-      id,
-      name: `Investment ${id}`,
-      purchase_price: 800000,
-      current_value: 800000,
-      original_loan: 640000,
-      loan_balance_current: 0,
-      purchase_fees: 30000,
-      monthly_rent: 3200,
-      strata_quarterly: 0,
-      rates_quarterly: 900,
-      other_costs_monthly: 200,
-      interest_rate: 0.055,
-      property_growth: 0.03,
-      rental_growth: 0.03,
-      year_bought: new Date().getFullYear()+2,
-      loan_term_years: 30,
-      use_offset: true,
-      is_owner_occupied: false
-    });
-  }
-  state.expandedPropertyId = id; // auto-open newly created property
+
+  state.property_list.push({
+    id,
+    name: `Property ${id}`,
+    purchase_price: 800000,
+    current_value: 800000,
+    original_loan: 640000,
+    loan_balance_current: 0,
+    purchase_fees: 30000,
+    monthly_rent: 3200,
+    strata_quarterly: 0,
+    rates_quarterly: 900,
+    other_costs_monthly: 200,
+    interest_rate: 0.055,
+    property_growth: 0.03,
+    rental_growth: 0.03,
+    year_bought: new Date().getFullYear(),
+    loan_term_years: 30,
+    use_offset: true,
+    is_owner_occupied: false
+  });
+
+  // keep collapsed on add (don’t auto-open)
+  state.expandedPropertyId = null;
 
   saveState();
   renderProperties();
 }
+
+
+
 function removeProperty(id){
   state.property_list = state.property_list.filter(p => Number(p.id) !== Number(id));
   saveState();
@@ -1344,16 +1329,17 @@ function renderProperties(){
     toggles.style.gap = "10px";
     toggles.style.flexWrap = "wrap";
     toggles.style.marginTop = "6px";
-    toggles.innerHTML = `
-      <label class="badge" style="cursor:pointer;">
-        <input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
-        Use Offset
-      </label>
-      <label class="badge" style="cursor:pointer;">
-        <input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
-        Is Owner Occupied (PPOR)
-      </label>
-    `;
+	toggles.innerHTML = `
+	  <label class="badge" style="cursor:pointer;">
+		<input type="checkbox" id="p_${p.id}_use_offset" style="width:auto; margin-right:8px;" />
+		Use Offset
+	  </label>
+	  <label class="badge" style="cursor:pointer;">
+		<input type="checkbox" id="p_${p.id}_is_owner_occupied" style="width:auto; margin-right:8px;" />
+		Owner-occupied (PPOR)
+	  </label>
+	`;
+
     g.appendChild(toggles);
 
     body.appendChild(g);
@@ -1404,30 +1390,39 @@ function renderProperties(){
 
     const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
     occEl.checked = !!p.is_owner_occupied;
-	occEl.onchange = ()=>{
+	occEl.onchange = () => {
 	  const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-	  if(!prop) return;
+	  if (!prop) return;
 
-	  const turningOn = !!occEl.checked;
+	  const wantsPPOR = !!occEl.checked;
 
-	  if(turningOn){
-		// ✅ enforce single PPOR
-		state.property_list.forEach(other => {
-		  if(Number(other.id) !== Number(prop.id)){
-			other.is_owner_occupied = false;
-		  }
-		});
+	  if (wantsPPOR) {
+		// If another PPOR already exists (not this one), block it + popup + revert UI
+		const otherPPORExists = state.property_list.some(x =>
+		  Number(x.id) !== Number(p.id) && !!x.is_owner_occupied
+		);
 
+		if (otherPPORExists) {
+		  alert("Only 1 PPOR allowed");
+		  occEl.checked = false;           // revert checkbox UI immediately
+		  prop.is_owner_occupied = false;  // revert state
+		  saveState();
+		  return; // do NOT re-render
+		}
+
+		// Allowed to become PPOR
 		prop.is_owner_occupied = true;
 		prop.monthly_rent = 0;
 		prop.rental_growth = 0;
 	  } else {
+		// Turning PPOR off is always allowed
 		prop.is_owner_occupied = false;
 	  }
 
 	  saveState();
 	  renderProperties();
 	};
+
 
   });
 
