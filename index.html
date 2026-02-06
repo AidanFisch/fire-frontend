@@ -437,29 +437,29 @@
 
           <div class="fieldgrid">
             <div>
-              <label>current_age</label>
+              <label>Current Age</label>
               <input id="current_age" type="number" step="1" />
             </div>
             <div>
-              <label>end_age</label>
+              <label>End Age</label>
               <input id="end_age" type="number" step="1" />
             </div>
 
             <div>
-              <label>initial_savings</label>
+              <label>Initial Savings</label>
               <input id="initial_savings" type="number" step="1" />
             </div>
             <div>
-              <label>todays_lifestyle_income</label>
+              <label>Todays Lifestyle Income</label>
               <input id="todays_lifestyle_income" type="number" step="1" />
             </div>
 
             <div>
-              <label>current_income</label>
+              <label>Current Income</label>
               <input id="current_income" type="number" step="1" />
             </div>
             <div>
-              <label>current_expenses</label>
+              <label>Current Expenses</label>
               <input id="current_expenses" type="number" step="1" />
             </div>
           </div>
@@ -482,57 +482,57 @@
 
             <div class="fieldgrid">
               <div>
-                <label>inflation</label>
+                <label>Inflation</label>
                 <input id="inflation" type="number" step="0.001"/>
               </div>
               <div>
-                <label>average_salary_increase</label>
+                <label>Average Salary Increase</label>
                 <input id="average_salary_increase" type="number" step="0.001"/>
               </div>
               <div>
-                <label>stock_growth</label>
+                <label>Stock Growth</label>
                 <input id="stock_growth" type="number" step="0.001"/>
               </div>
               <div>
-                <label>stock_yearly_contribution</label>
+                <label>Stock Yearly Contribution</label>
                 <input id="stock_yearly_contribution" type="number" step="1"/>
               </div>
               <div>
-                <label>starting_stock_value</label>
+                <label>Starting Stock Value</label>
                 <input id="starting_stock_value" type="number" step="1"/>
               </div>
 				<div>
-				  <label>stock_swr</label>
+				  <label>Stock Drawdown Per Year</label>
 				  <input id="stock_swr" type="number" step="0.001" />
 				</div>
 				
 				<div>
-				  <label>super_swr</label>
+				  <label>Super Drawdown Per Year</label>
 				  <input id="super_swr" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_access_age</label>
+				  <label>Super Access Age</label>
 				  <input id="super_access_age" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>super_starting_balance</label>
+				  <label>Super Starting Balance</label>
 				  <input id="super_starting_balance" type="number" step="1" />
 				</div>
 
 				<div>
-				  <label>super_sg_rate (e.g. 0.11)</label>
+				  <label>Super Employee Contribution Rate</label>
 				  <input id="super_sg_rate" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_growth (e.g. 0.065)</label>
+				  <label>Super Growth</label>
 				  <input id="super_growth" type="number" step="0.001" />
 				</div>
 
 				<div>
-				  <label>super_additional_annual</label>
+				  <label>Super Additional Contributions</label>
 				  <input id="super_additional_annual" type="number" step="1" />
 				</div>
 
@@ -767,6 +767,50 @@ let state = {
 
   lastResult: null
 };
+
+const FIELD_LABELS = {
+  // Core
+  current_age: "Current Age",
+  end_age: "End Age",
+  initial_savings: "Initial Savings",
+  todays_lifestyle_income: "Target Lifestyle Income (Today)",
+  current_income: "Current Income",
+  current_expenses: "Current Expenses",
+
+  // Advanced
+  inflation: "Inflation Rate",
+  average_salary_increase: "Annual Salary Growth",
+  stock_growth: "Stock Growth Rate",
+  stock_yearly_contribution: "Annual Stock Contribution",
+  starting_stock_value: "Starting Stock Balance",
+  stock_swr: "Stock Safe Withdrawal Rate",
+  super_swr: "Super Safe Withdrawal Rate",
+  super_access_age: "Super Access Age",
+  super_starting_balance: "Starting Super Balance",
+  super_sg_rate: "Super Guarantee Rate",
+  super_growth: "Super Growth Rate",
+  super_additional_annual: "Additional Super Contributions (Annual)",
+};
+
+
+const PROP_FIELD_LABELS = {
+  name: "Property Name",
+  year_bought: "Year Purchased",
+  purchase_price: "Purchase Price",
+  purchase_fees: "Purchase Costs",
+  current_value: "Current Value",
+  original_loan: "Original Loan Amount",
+  loan_balance_current: "Current Loan Balance",
+  interest_rate: "Interest Rate",
+  loan_term_years: "Loan Term (Years)",
+  property_growth: "Capital Growth Rate",
+  monthly_rent: "Monthly Rent",
+  rental_growth: "Rental Growth Rate",
+  strata_quarterly: "Strata (Quarterly)",
+  rates_quarterly: "Council Rates (Quarterly)",
+  other_costs_monthly: "Other Costs (Monthly)",
+};
+
 
 const FIELD_META = {
   // ---- core money
@@ -1139,23 +1183,30 @@ function renderProperties(){
     g.className = "fieldgrid";
     g.style.marginTop = "10px";
 
-    const fields = [
-      ["name", "text", "Name / label"],
-      ["year_bought", "number", "year_bought"],
-      ["purchase_price", "number", "purchase_price"],
-      ["purchase_fees", "number", "purchase_fees"],
-      ["current_value", "number", "current_value"],
-      ["original_loan", "number", "original_loan"],
-      ["loan_balance_current", "number", "loan_balance_current"],
-      ["interest_rate", "number", "interest_rate (e.g. 0.055)"],
-      ["loan_term_years", "number", "loan_term_years"],
-      ["property_growth", "number", "property_growth (e.g. 0.03)"],
-      ["monthly_rent", "number", "monthly_rent"],
-      ["rental_growth", "number", "rental_growth (e.g. 0.03)"],
-      ["strata_quarterly", "number", "strata_quarterly"],
-      ["rates_quarterly", "number", "rates_quarterly"],
-      ["other_costs_monthly", "number", "other_costs_monthly"]
-    ];
+	const fields = [
+	  ["name", "text", "Name"],
+	  ["year_bought", "number", "Year Bought"],
+
+	  ["purchase_price", "number", "Purchase Price"],
+	  ["purchase_fees", "number", "Purchase Fees"],
+
+	  ["current_value", "number", "Current Value"],
+
+	  ["original_loan", "number", "Original Loan"],
+	  ["loan_balance_current", "number", "Current Loan Balance"],
+
+	  ["interest_rate", "number", "Interest Rate (e.g. 5.5% or 0.055)"],
+	  ["loan_term_years", "number", "Loan Term (Years)"],
+
+	  ["property_growth", "number", "Property Growth (Annual)"],
+	  ["monthly_rent", "number", "Rent (Monthly)"],
+	  ["rental_growth", "number", "Rent Growth (Annual)"],
+
+	  ["strata_quarterly", "number", "Strata (Quarterly)"],
+	  ["rates_quarterly", "number", "Council Rates (Quarterly)"],
+	  ["other_costs_monthly", "number", "Other Costs (Monthly)"],
+	];
+
 
     fields.forEach(([key, type, label])=>{
       const d = document.createElement("div");
