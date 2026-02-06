@@ -366,6 +366,66 @@
 	  .hidden{
 		display:none !important;
 	  }
+	  
+	  /* --- Toast --- */
+	.toast{
+	  position: fixed;
+	  right: 18px;
+	  bottom: 18px;
+	  z-index: 9999;
+	  display: flex;
+	  align-items: flex-start;
+	  gap: 10px;
+	  max-width: 420px;
+
+	  padding: 12px 14px;
+	  border-radius: 16px;
+	  border: 1px solid rgba(255,255,255,.14);
+	  background: rgba(10,13,24,.82);
+	  backdrop-filter: blur(10px);
+	  box-shadow: 0 18px 50px rgba(0,0,0,.55);
+
+	  transform: translateY(12px);
+	  opacity: 0;
+	  pointer-events: none;
+	  transition: 180ms ease;
+	}
+	.toast.show{
+	  transform: translateY(0);
+	  opacity: 1;
+	  pointer-events: auto;
+	}
+	.toast .icon{
+	  width: 10px; height: 10px; border-radius: 99px;
+	  margin-top: 6px;
+	  background: var(--warn);
+	  box-shadow: 0 0 0 6px rgba(255,207,92,.12);
+	  flex: 0 0 auto;
+	}
+	.toast .t{
+	  font-weight: 800;
+	  letter-spacing: .2px;
+	  margin: 0;
+	  line-height: 1.2;
+	}
+	.toast .m{
+	  margin: 4px 0 0 0;
+	  color: rgba(255,255,255,.70);
+	  font-size: 13px;
+	  line-height: 1.35;
+	}
+	.toast .x{
+	  margin-left: auto;
+	  border: 1px solid rgba(255,255,255,.12);
+	  background: rgba(255,255,255,.06);
+	  color: rgba(255,255,255,.85);
+	  border-radius: 999px;
+	  padding: 6px 10px;
+	  cursor: pointer;
+	  font-weight: 700;
+	}
+
+	  
 
   </style>
 </head>
@@ -734,6 +794,18 @@
     </section>
 
   </div>
+  
+  
+  <!-- Toast -->
+<div id="toast" class="toast" aria-live="polite" aria-atomic="true">
+  <div class="icon"></div>
+  <div style="min-width:0;">
+    <p class="t" id="toastTitle">Notice</p>
+    <p class="m" id="toastMsg">…</p>
+  </div>
+  <button class="x" onclick="hideToast()">Close</button>
+</div>
+
 
 <script>
 /** ---------------------------
@@ -827,6 +899,31 @@ let state = {
 	expandedPropertyId: null,
   lastResult: null
 };
+
+let toastTimer = null;
+
+function showToast(title, msg, ms = 2500){
+  const el = document.getElementById("toast");
+  const t  = document.getElementById("toastTitle");
+  const m  = document.getElementById("toastMsg");
+  if(!el || !t || !m) return;
+
+  t.textContent = title || "Notice";
+  m.textContent = msg || "";
+
+  el.classList.add("show");
+
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => hideToast(), ms);
+}
+
+function hideToast(){
+  const el = document.getElementById("toast");
+  if(!el) return;
+  el.classList.remove("show");
+}
+
+
 
 const FIELD_LABELS = {
   // Core
@@ -1403,7 +1500,7 @@ function renderProperties(){
 		);
 
 		if (otherPPORExists) {
-		  alert("Only 1 PPOR allowed");
+		  showToast("PPOR limit", "Only 1 PPOR allowed.");
 		  occEl.checked = false;           // revert checkbox UI immediately
 		  prop.is_owner_occupied = false;  // revert state
 		  saveState();
