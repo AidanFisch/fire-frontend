@@ -682,78 +682,52 @@
       <span class="pill" id="advPill">Hidden</span>
     </button>
 
-    <div class="row" style="gap:8px;">
-      <button class="btn" onclick="resetDefaults()">Reset defaults</button>
-      <button class="btn primary" onclick="runModel()">Run model</button>
+<div class="row">
+  <div class="row" style="gap:8px; margin-left:auto;">
+    <button class="btn" onclick="resetDefaults()">Reset defaults</button>
+    <button class="btn primary" onclick="runModel()">Run model</button>
+  </div>
+</div>
+  </div>  <!-- end inputsSectionBody -->
+</div>    <!-- end Inputs .section -->
+
+<!-- STOCKS + SUPER SECTION -->
+<div class="section" style="margin-top:16px;">
+  <div class="sectionHeader"
+       onclick="toggleSection('stocksSectionBody','stocksChev')">
+    <div>
+      <h2>Stocks and Super</h2>
+      <div class="sub">Less common settings. Collapse when you’re not changing these.</div>
+    </div>
+
+    <div class="row" style="gap:10px;">
+      <div class="chev" id="stocksChev">▾</div>
     </div>
   </div>
 
-  <div id="advancedBox" style="display:none; margin-top:14px;">
-    <div class="hr"></div>
-    <h3 style="margin:0 0 10px 0;">Stocks and Super</h3>
-    <div class="sub">Stock + super settings (and other growth assumptions).</div>
-
-    <div class="hr"></div>
-
+  <div class="sectionBody" id="stocksSectionBody">
     <div class="fieldgrid">
-      <div>
-        <label>Inflation</label>
-        <input id="inflation" type="number" step="0.001"/>
-      </div>
-      <div>
-        <label>Average Salary Increase</label>
-        <input id="average_salary_increase" type="number" step="0.001"/>
-      </div>
-      <div>
-        <label>Stock Growth</label>
-        <input id="stock_growth" type="number" step="0.001"/>
-      </div>
-      <div>
-        <label>Stock Yearly Contribution</label>
-        <input id="stock_yearly_contribution" type="number" step="1"/>
-      </div>
-      <div>
-        <label>Starting Stock Value</label>
-        <input id="starting_stock_value" type="number" step="1"/>
-      </div>
 
-      <div>
-        <label>Stock Drawdown Per Year</label>
-        <input id="stock_swr" type="number" step="0.001" />
-      </div>
+      <div><label>Inflation</label><input id="inflation" type="number" step="0.001"/></div>
+      <div><label>Average Salary Increase</label><input id="average_salary_increase" type="number" step="0.001"/></div>
 
-      <div>
-        <label>Super Drawdown Per Year</label>
-        <input id="super_swr" type="number" step="0.001" />
-      </div>
+      <div><label>Stock Growth</label><input id="stock_growth" type="number" step="0.001"/></div>
+      <div><label>Stock Yearly Contribution</label><input id="stock_yearly_contribution" type="number" step="1"/></div>
 
-      <div>
-        <label>Super Access Age</label>
-        <input id="super_access_age" type="number" step="1" />
-      </div>
+      <div><label>Starting Stock Value</label><input id="starting_stock_value" type="number" step="1"/></div>
+      <div><label>Stock Drawdown Per Year</label><input id="stock_swr" type="number" step="0.001"/></div>
 
-      <div>
-        <label>Super Starting Balance</label>
-        <input id="super_starting_balance" type="number" step="1" />
-      </div>
+      <div><label>Super Drawdown Per Year</label><input id="super_swr" type="number" step="0.001"/></div>
+      <div><label>Super Access Age</label><input id="super_access_age" type="number" step="1"/></div>
 
-      <div>
-        <label>Super Employee Contribution Rate</label>
-        <input id="super_sg_rate" type="number" step="0.001" />
-      </div>
+      <div><label>Super Starting Balance</label><input id="super_starting_balance" type="number" step="1"/></div>
+      <div><label>Super Employee Contribution Rate</label><input id="super_sg_rate" type="number" step="0.001"/></div>
 
-      <div>
-        <label>Super Growth</label>
-        <input id="super_growth" type="number" step="0.001" />
-      </div>
+      <div><label>Super Growth</label><input id="super_growth" type="number" step="0.001"/></div>
+      <div><label>Super Additional Contributions</label><input id="super_additional_annual" type="number" step="1"/></div>
 
-      <div>
-        <label>Super Additional Contributions</label>
-        <input id="super_additional_annual" type="number" step="1" />
-      </div>
     </div>
   </div>
-
 </div>
 
 
@@ -1281,16 +1255,7 @@ function setMode(mode){
 }
 
 
-/** ---------------------------
- *  Advanced toggle
- *  --------------------------*/
-function toggleAdvanced(){
-  const box = document.getElementById("advancedBox");
-  const pill = document.getElementById("advPill");
-  const show = box.style.display === "none";
-  box.style.display = show ? "block" : "none";
-  pill.textContent = show ? "Shown" : "Hidden";
-}
+
 
 /** ---------------------------
  *  Raw JSON debug
@@ -1634,7 +1599,7 @@ function renderProperties(){
 		if (otherPPORExists) {
 		  showToast("PPOR limit", "Only 1 PPOR allowed.");
 		  occEl.checked = false;           // revert checkbox UI immediately
-		  prop.is_owner_occupied = false;  // revert state
+		  prop.is_owner_occupied = true;  // revert state
 		  saveState();
 		  return; // do NOT re-render
 		}
