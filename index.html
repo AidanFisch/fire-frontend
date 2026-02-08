@@ -327,35 +327,45 @@
 
 
 
-    /* tables */
-    .tablewrap{
-      overflow:auto;
-      border: 1px solid var(--stroke);
-      border-radius: var(--r);
-      background: rgba(0,0,0,.18);
-    }
-    table{
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 820px;
-      font-size: 13px;
-    }
-    th, td{
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      white-space: nowrap;
-    }
-    th{
-      position: sticky;
-      top: 0;
-      background: rgba(10,13,24,.85);
-      backdrop-filter: blur(8px);
-      color: rgba(255,255,255,.78);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    tr:hover td{ background: rgba(255,255,255,.03); }
+/* tables */
+.tablewrap{
+  overflow: auto;
+  border: 1px solid var(--stroke);
+  border-radius: var(--r);
+  background: rgba(0,0,0,.18);
+}
+
+/* NEW: vertical scroll limits */
+.tablewrap.scrollY{
+  max-height: 360px;     /* adjust: 280–520 depending on taste */
+  overflow-y: auto;
+}
+
+/* NEW: tighter table */
+table{
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 0;          /* was 820px -> forces wide */
+  font-size: 12px;       /* slightly smaller */
+}
+
+th, td{
+  padding: 8px 10px;     /* tighter rows */
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  white-space: nowrap;   /* keep compact; horizontal scroll handles overflow */
+}
+
+th{
+  position: sticky;
+  top: 0;
+  background: rgba(10,13,24,.85);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,.78);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
 
     .muted{color: var(--muted)}
     .mono{font-family: var(--mono)}
@@ -823,20 +833,53 @@
 
         <div class="hr"></div>
 
-        <div class="grid cols2">
-          <div>
-            <h3 style="margin:0 0 8px 0;">Summary table</h3>
-            <div class="sub">Clean, “actually useful” columns (cash/stocks/property/net worth).</div>
-            <div class="hr"></div>
-            <div class="tablewrap" id="summaryTableWrap"></div>
-          </div>
-          <div>
-            <h3 style="margin:0 0 8px 0;">Property breakdown (end row)</h3>
-            <div class="sub">Per-property values + mortgage + equity at the final timestep.</div>
-            <div class="hr"></div>
-            <div class="tablewrap" id="propEndTableWrap"></div>
-          </div>
-        </div>
+<!-- Compact always-visible summary -->
+<div class="section" style="margin-top:14px;">
+  <div class="sectionHeader" onclick="toggleSection('miniSummaryBody','miniSummaryChev')">
+    <div>
+      <h2>Quick summary</h2>
+      <div class="sub">Now / FIRE / End snapshot.</div>
+    </div>
+    <div class="chev" id="miniSummaryChev">▾</div>
+  </div>
+  <div class="sectionBody" id="miniSummaryBody">
+    <div class="tablewrap" id="miniSummaryWrap"></div>
+  </div>
+</div>
+
+<!-- Expandable big tables -->
+<div class="grid cols2" style="margin-top:16px;">
+
+  <!-- Summary table (expandable) -->
+  <div class="section">
+    <div class="sectionHeader" onclick="toggleSection('summaryTableBody','summaryTableChev')">
+      <div>
+        <h2>Summary table</h2>
+        <div class="sub">Full series (cash/stocks/property/net worth). Click to expand.</div>
+      </div>
+      <div class="chev" id="summaryTableChev">▸</div>
+    </div>
+    <div class="sectionBody hidden" id="summaryTableBody">
+      <div class="tablewrap scrollY" id="summaryTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- Property breakdown (expandable) -->
+  <div class="section">
+    <div class="sectionHeader" onclick="toggleSection('propEndTableBody','propEndTableChev')">
+      <div>
+        <h2>Property breakdown</h2>
+        <div class="sub">Per-property value/mortgage/equity + net rent. Click to expand.</div>
+      </div>
+      <div class="chev" id="propEndTableChev">▸</div>
+    </div>
+    <div class="sectionBody hidden" id="propEndTableBody">
+      <div class="tablewrap scrollY" id="propEndTableWrap"></div>
+    </div>
+  </div>
+
+</div>
+
 
         <div class="hr"></div>
 
@@ -2210,6 +2253,78 @@ selected
     }
   });
 
+function renderMiniSummary(result){
+  const wrap = document.getElementById("miniSummaryWrap");
+  if(!wrap) return;
+
+  const rows = result.rows || [];
+  if(!rows.length){
+    wrap.innerHTML = `<div style="padding:12px;" class="muted">No data yet.</div>`;
+    return;
+  }
+
+  const cols = result.columns || Object.keys(rows[0] || {});
+  const mode = result.mode || "yearly";
+
+  const yearKey = findKey(cols, ["Year"]);
+  const ageKey  = findKey(cols, ["Age"]);
+
+  const cashKey  = findKey(cols, ["Cash_Balance_End","Cumulative_Savings","Cash"]);
+  const stockKey = findKey(cols, ["Stock_Balance_End","Total_Stock_Balance","Stocks"]);
+  const equityKey= findKey(cols, ["Property_Equity_Total","Total_Property_Equity"]);
+  const nwKey    = findKey(cols, [
+    "Net_Worth_Incl_PPOR",
+    "Net_Worth_Ex_PPOR",
+    "Net_Worth",
+    "Net_Worth_Incl_Super_Incl_PPOR",
+    "Net_Worth_Incl_Super_Ex_PPOR"
+  ]);
+
+  const fireEligibleKey = findKey(cols, ["FIRE_Eligible","fire_eligible"]);
+  const fireIdx = fireEligibleKey ? rows.findIndex(r => toNumber(r[fireEligibleKey]) === 1) : -1;
+
+  const pickRow = (label, r) => {
+    const cash = getFirstNumber(r, [cashKey]);
+    const stocks = getFirstNumber(r, [stockKey]);
+    const equity = equityKey ? getFirstNumber(r, [equityKey]) : 0;
+    const nw = (nwKey && Object.prototype.hasOwnProperty.call(r, nwKey))
+      ? toNumber(r[nwKey])
+      : (cash + stocks + equity);
+
+    return {
+      Snapshot: label,
+      Year: yearKey ? (r[yearKey] ?? "") : "",
+      Age:  ageKey ? (r[ageKey] ?? "") : "",
+      Cash: cash,
+      Stocks: stocks,
+      Property_Equity: equity,
+      Net_Worth: nw
+    };
+  };
+
+  const first = rows[0];
+  const last  = rows[rows.length - 1];
+  const fire  = (fireIdx >= 0) ? rows[fireIdx] : null;
+
+  const mini = [
+    pickRow("Now", first),
+    ...(fire ? [pickRow("FIRE", fire)] : []),
+    pickRow("End", last)
+  ];
+
+  wrap.innerHTML = buildTableHTML(mini, ["Snapshot","Year","Age","Cash","Stocks","Property_Equity","Net_Worth"], {
+    formatters: {
+      Cash: fmtMoney,
+      Stocks: fmtMoney,
+      Property_Equity: fmtMoney,
+      Net_Worth: fmtMoney
+    },
+    rightAlign: new Set(["Cash","Stocks","Property_Equity","Net_Worth"])
+  });
+}
+
+renderMiniSummary(result);
+	
   renderSummaryTable(result, propPrefixes);
   renderPropertyEndTable(last, propPrefixes);
   renderFullTable();
