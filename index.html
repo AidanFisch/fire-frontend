@@ -838,8 +838,16 @@ th{
           </div>
 
           <!-- Toggle chips injected here -->
-          <div class="chips" id="chartChips"></div>
-		  <div class="chips" id="propertyChips"></div>
+			<!-- Toggle chips grouped -->
+			<div class="small muted" style="margin-top:10px;">Balances (left axis)</div>
+			<div class="chips" id="chipsBalances"></div>
+
+			<div class="small muted" style="margin-top:10px;">Cashflow (right axis)</div>
+			<div class="chips" id="chipsCashflow"></div>
+
+			<div class="small muted" style="margin-top:10px;">Per-property (optional)</div>
+			<div class="chips" id="propertyChips"></div>
+
 
 
           <div class="sub" style="margin-top:6px;">
@@ -2142,24 +2150,24 @@ const fireIncomeWithCashSeries =
   // Registry of possible chart datasets
 	// Registry of possible chart datasets
 	const METRICS = [
-	  { id:"netWorth", label:"Net worth", axis:"y",  data: netWorthSeries, defaultOn:true },
-	  { id:"cash", label:"Cash", axis:"y", data: cashSeries, defaultOn:true },
-	  { id:"stocks", label:"Stocks", axis:"y", data: stockSeries, defaultOn:true },
-	  { id:"propertyEquity", label:"Property equity (total)", axis:"y", data: equitySeries, defaultOn:true },
+	  // --- Balances (left axis)
+	  { id:"netWorth",        label:"Net worth",               axis:"y",  data: netWorthSeries,   defaultOn:true,  group:"balances", order:1 },
+	  { id:"cash",            label:"Cash",                    axis:"y",  data: cashSeries,       defaultOn:true,  group:"balances", order:2 },
+	  { id:"stocks",          label:"Stocks",                  axis:"y",  data: stockSeries,      defaultOn:true,  group:"balances", order:3 },
+	  { id:"propertyEquity",  label:"Property equity (total)", axis:"y",  data: equitySeries,     defaultOn:true,  group:"balances", order:4 },
+	  ...(superSeries ? [{ id:"superBalance", label:"Super balance (end)", axis:"y", data: superSeries, defaultOn:false, group:"balances", order:5 }] : []),
 
+	  // --- Cashflow (right axis)
+	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true, group:"cashflow", order:1 }] : []),
+	  ...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true, group:"cashflow", order:2 }] : []),
+	  ...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash", label:"FIRE income + cash (monthly)", axis:"y2", data: fireIncomeWithCashSeries, defaultOn:true, group:"cashflow", order:3 }] : []),
 
-	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true }] : []),
-
-	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false }] : []),
-	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false }] : []),
-		// ...(passiveIncomeSeries ? [{id:"passiveIncome",label:"Passive income gross (monthly)",axis:"y2",data: passiveIncomeSeries,defaultOn:false}] : []),		
-	...(withdrawalsSeries ? [{id:"withdrawals",label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries,  defaultOn:false}] : []),
-		...(superSeries ? [{id: "superBalance",label: "Super balance (end)",axis: "y",data: superSeries, defaultOn: false}] : []),
-		...(cashDrawSeries ? [{ id: "cashDrawdown", label: "Cash drawdown (monthly)", axis: "y2", data: cashDrawSeries, defaultOn: false}] : []),
-		...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true}] : []),
-		...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash",  label:"FIRE income + cash (monthly)",  axis:"y2",  data: fireIncomeWithCashSeries,  defaultOn:true}] : []),
-
+	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false, group:"cashflow", order:4 }] : []),
+	  ...(withdrawalsSeries ? [{ id:"withdrawals", label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries, defaultOn:false, group:"cashflow", order:5 }] : []),
+	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false, group:"cashflow", order:6 }] : []),
+	  ...(cashDrawSeries ? [{ id:"cashDrawdown", label:"Cash drawdown (monthly)", axis:"y2", data: cashDrawSeries, defaultOn:false, group:"cashflow", order:7 }] : []),
 	];
+
 
 
   lastMetricsRegistry = METRICS;
@@ -2361,23 +2369,40 @@ renderMiniSummary(result);
  *  Chart chips + presets
  *  --------------------------*/
 function renderChartChips(METRICS){
-  const wrap = document.getElementById("chartChips");
-  if(!wrap) return;
+  const wrapBalances = document.getElementById("chipsBalances");
+  const wrapCashflow = document.getElementById("chipsCashflow");
 
-  wrap.innerHTML = "";
-  METRICS.forEach(m => {
+  // fallback (in case you forget HTML change)
+  const fallback = document.getElementById("chartChips");
+
+  const clear = (el) => { if(el) el.innerHTML = ""; };
+  clear(wrapBalances); clear(wrapCashflow);
+  if(fallback) fallback.innerHTML = "";
+
+  const sorted = (METRICS || []).slice().sort((a,b) => {
+    const ga = a.group || "other";
+    const gb = b.group || "other";
+    if (ga !== gb) return ga.localeCompare(gb);
+    return (a.order || 999) - (b.order || 999);
+  });
+
+  sorted.forEach(m => {
     const chip = document.createElement("div");
     chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
     chip.textContent = m.label;
-	chip.onclick = () => {
-	  state.chartToggles[m.id] = !state.chartToggles[m.id];
-	  saveState();
-	  if(state.lastResult) renderResults(state.lastResult);
-	};
 
-    wrap.appendChild(chip);
+    chip.onclick = () => {
+      state.chartToggles[m.id] = !state.chartToggles[m.id];
+      saveState();
+      if(state.lastResult) renderResults(state.lastResult);
+    };
+
+    if (m.group === "balances" && wrapBalances) wrapBalances.appendChild(chip);
+    else if (m.group === "cashflow" && wrapCashflow) wrapCashflow.appendChild(chip);
+    else if (fallback) fallback.appendChild(chip);
   });
 }
+
 
 function setChartPreset(which){
   const METRICS = lastMetricsRegistry || [];
