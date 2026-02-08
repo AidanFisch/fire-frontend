@@ -607,7 +607,7 @@ th{
   filter: blur(8px);
   animation: floatGlow 9s ease-in-out infinite alternate;
   pointer-events:none;
-  opacity:.85;
+  opacity:.55;
 }
 
 @keyframes floatGlow{
@@ -739,6 +739,7 @@ th{
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.04);
   color: rgba(255,255,255,.72);
+  opacity: .7;
 }
 
 .sparkline{
@@ -827,123 +828,96 @@ html, body {
     </div>
 	
 <!-- LANDING -->
-<!-- LANDING -->
+<!-- LANDING (v3: minimal/premium) -->
 <section id="tab-landing" class="tabs active" style="margin-top:18px;">
   <div class="grid cols1">
-    <div class="card landing-hero" style="padding:28px;">
+    <div class="card landing-hero" style="padding:34px;">
 
       <div class="hero-grid">
 
-        <!-- LEFT: copy + CTA -->
+        <!-- LEFT -->
         <div>
-          <div class="kicker">
-            <span class="pulseDot"></span>
-            <span>Scenario-based FIRE modelling • Australia-focused</span>
-          </div>
-
-          <div class="brand" style="margin-bottom:10px;">
+          <div class="brand" style="margin-bottom:14px;">
             <span class="dot"></span>
             <span style="font-size:18px;">FIRE Model</span>
-            <span class="pill">General info only</span>
           </div>
 
-          <h1 class="hero-title">Know your FIRE age — <span style="background:linear-gradient(135deg, rgba(139,92,246,1), rgba(34,211,238,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">with property + super</span></h1>
+          <h1 class="hero-title" style="margin-top:0;">
+            Know your FIRE age — <span style="background:linear-gradient(135deg, rgba(139,92,246,1), rgba(34,211,238,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+          </h1>
 
-          <p class="hero-lede">
-            Enter your income, expenses, properties and assumptions. Instantly compare scenarios like
-            <b>Rent vs Buy</b>, <b>Offset vs no offset</b>, and <b>PPOR vs investment</b> — and see the earliest point your plan becomes self-funding.
+          <p class="hero-lede" style="margin-bottom:18px;">
+            Model your path with income, expenses, property, and super. Compare scenarios and see
+            when your plan becomes self-funding — with a simple FIRE marker on the timeline.
           </p>
 
-          <div class="hero-actions">
+          <div class="hero-actions" style="margin-top:0;">
             <button class="btn primary big" onclick="enterApp()">Get Started</button>
-            <button class="btn soft" onclick="scrollLanding('landingProof')">See what you get</button>
-            <span class="small">No signup. Not financial advice.</span>
+            <span class="small">No signup · Export CSV · General information only</span>
           </div>
 
-          <div class="steps" id="landingProof">
-            <div class="step">
-              <div class="n">01</div>
-              <div class="t">Set your inputs</div>
-              <div class="d">Income, expenses, inflation, returns, super settings.</div>
+          <div class="hr" style="margin:18px 0;"></div>
+
+          <div class="grid cols3" style="gap:10px;">
+            <div class="feature-card">
+              <div style="font-weight:850;">FIRE marker</div>
+              <div class="sub" style="margin-top:4px;">See the first point you become eligible.</div>
             </div>
-            <div class="step">
-              <div class="n">02</div>
-              <div class="t">Add properties</div>
-              <div class="d">Loans, rent, rates/strata, growth, owner-occupied vs investment.</div>
+            <div class="feature-card">
+              <div style="font-weight:850;">Scenario comparisons</div>
+              <div class="sub" style="margin-top:4px;">Rent vs buy, offset, PPOR vs investment.</div>
             </div>
-            <div class="step">
-              <div class="n">03</div>
-              <div class="t">Get clarity</div>
-              <div class="d">Charts + tables + FIRE eligibility marker for decision-making.</div>
+            <div class="feature-card">
+              <div style="font-weight:850;">Cashflow warning</div>
+              <div class="sub" style="margin-top:4px;">Flags when cash goes negative.</div>
             </div>
+          </div>
+
+          <div class="small" style="margin-top:14px; color:rgba(255,255,255,.52); line-height:1.35;">
+            General information only. Not financial advice.
           </div>
         </div>
 
-        <!-- RIGHT: preview -->
+        <!-- RIGHT: Preview only -->
         <div class="preview">
           <div class="previewTop">
             <div class="previewTitle">Preview</div>
-            <div class="miniTag">FIRE marker + cashflow</div>
+            <div class="miniTag">Example output</div>
           </div>
 
           <div class="sparkline" aria-hidden="true">
             <svg viewBox="0 0 600 220" width="100%" height="150" style="opacity:.95;">
-              <!-- grid -->
-              <g opacity="0.22">
+              <g opacity="0.18">
                 <path d="M30 40 H570" stroke="white" stroke-width="1"/>
                 <path d="M30 90 H570" stroke="white" stroke-width="1"/>
                 <path d="M30 140 H570" stroke="white" stroke-width="1"/>
                 <path d="M30 190 H570" stroke="white" stroke-width="1"/>
               </g>
 
-              <!-- line 1 -->
               <path d="M30 175 C120 160, 160 120, 230 135 C300 150, 340 105, 420 95 C500 85, 540 60, 570 52"
                     fill="none" stroke="rgba(139,92,246,.95)" stroke-width="5" stroke-linecap="round"/>
 
-              <!-- line 2 -->
               <path d="M30 190 C110 175, 160 170, 230 160 C320 148, 360 140, 420 130 C500 112, 535 105, 570 98"
                     fill="none" stroke="rgba(34,211,238,.85)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
 
-              <!-- FIRE marker -->
-              <path d="M410 25 V200" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="8 8"/>
+              <path d="M410 25 V200" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-dasharray="8 8"/>
               <g>
                 <rect x="418" y="28" rx="10" ry="10" width="120" height="36" fill="rgba(0,0,0,.45)" stroke="rgba(255,255,255,.15)"/>
-                <text x="432" y="52" fill="rgba(255,255,255,.90)" font-size="16" font-family="ui-sans-serif, system-ui">FIRE @ 47</text>
+                <text x="432" y="52" fill="rgba(255,255,255,.88)" font-size="16" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI">FIRE @ 47</text>
               </g>
             </svg>
           </div>
 
-          <div class="grid cols1" style="margin-top:12px; gap:10px;">
-            <div class="feature-card">
-              <div class="sub" style="margin:0 0 6px 0;">Outcome</div>
-              <div style="font-weight:850; font-size:18px;">Your FIRE age + “bridge to super”</div>
-              <div class="sub" style="margin-top:6px;">See if cash goes negative and where the plan breaks.</div>
-            </div>
-
-            <div class="grid cols2" style="gap:10px;">
-              <div class="feature-card">
-                <div class="sub" style="margin:0 0 6px 0;">Scenario delta</div>
-                <div style="font-weight:850;">Rent vs Buy</div>
-                <div class="sub">Compare impacts on FIRE date.</div>
-              </div>
-              <div class="feature-card">
-                <div class="sub" style="margin:0 0 6px 0;">Cashflow view</div>
-                <div style="font-weight:850;">Income vs target</div>
-                <div class="sub">See FIRE income vs FIRE target.</div>
-              </div>
-            </div>
-
-            <div class="small" style="color:rgba(255,255,255,.55);">
-              General information only. Not financial advice.
-            </div>
+          <div class="small" style="margin-top:10px; color:rgba(255,255,255,.55); line-height:1.35;">
+            This is a sample visual preview. Your actual chart appears after you run the model.
           </div>
-
         </div>
 
       </div>
     </div>
   </div>
 </section>
+
 
 
     <!-- HOME -->
