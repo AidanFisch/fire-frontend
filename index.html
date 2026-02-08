@@ -329,51 +329,69 @@
 
 /* tables */
 .tablewrap{
-  overflow: auto;
+  overflow:auto;
   border: 1px solid var(--stroke);
   border-radius: var(--r);
   background: rgba(0,0,0,.18);
 }
 
-/* NEW: vertical scroll limits */
 .tablewrap.scrollY{
-  max-height: 360px;     /* adjust: 280–520 depending on taste */
-  overflow-y: auto;
+  max-height: 340px;
+  overflow: auto;
 }
 
-/* NEW: tighter table */
 table{
   width: 100%;
   border-collapse: collapse;
-  min-width: 0;          /* was 820px -> forces wide */
-  font-size: 12px;       /* slightly smaller */
+  min-width: 820px;
+  font-size: 13px;
 }
-
 th, td{
-  padding: 8px 10px;     /* tighter rows */
+  padding: 10px 10px;
   border-bottom: 1px solid rgba(255,255,255,.08);
-  white-space: nowrap;   /* keep compact; horizontal scroll handles overflow */
+  white-space: nowrap;
 }
-
 th{
   position: sticky;
   top: 0;
   background: rgba(10,13,24,.85);
   backdrop-filter: blur(8px);
   color: rgba(255,255,255,.78);
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .08em;
 }
+
+/* ===============================
+   Mini / quick summary table
+   =============================== */
+.mini-summary table th,
+.mini-summary table td{
+  text-align: center;
+}
+
+.mini-summary table{
+  font-size: 13px;
+}
+
+.mini-summary td:first-child,
+.mini-summary th:first-child{
+  text-align: left; /* Snapshot column */
+}
+
 
 
     .muted{color: var(--muted)}
     .mono{font-family: var(--mono)}
     .right{text-align:right}
+	.mini-summary td.right{ text-align:center !important; }
+	.mini-summary td:first-child{ text-align:left !important; }
     .chips{
       display:flex; gap:8px; flex-wrap:wrap;
       margin-top: 10px;
     }
+
+
     .chip{
       font-size: 12px;
       padding: 6px 10px;
@@ -662,7 +680,7 @@ th{
 		  <div class="chev" id="inputsChev">▾</div>
 		</div>
 
-
+		</div>
 	  <div class="sectionBody" id="inputsSectionBody">
 
   <div class="fieldgrid coregrid">
@@ -777,7 +795,7 @@ th{
 		</div>
 
 
-          
+          </div>
     </section>
 
     <!-- RESULTS -->
@@ -788,10 +806,12 @@ th{
             <h2 style="margin-bottom:4px;">Results</h2>
             <div class="sub" id="resultsMeta">Run the model to see charts + tables.</div>
           </div>
-          <div class="row" style="gap:10px;">
-            <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-            <button class="btn" onclick="showTab('inputs')">Edit inputs</button>
-          </div>
+			<div class="row" style="gap:10px;">
+			  <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
+			  <button class="btn" onclick="showTab('inputs')">Edit inputs</button>
+			  <button class="btn ghost" onclick="toggleDebug()">Debug</button>
+			</div>
+
         </div>
 
         <div class="hr"></div>
@@ -843,7 +863,8 @@ th{
     <div class="chev" id="miniSummaryChev">▾</div>
   </div>
   <div class="sectionBody" id="miniSummaryBody">
-    <div class="tablewrap" id="miniSummaryWrap"></div>
+    <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
+
   </div>
 </div>
 
@@ -880,7 +901,7 @@ th{
 
 </div>
 
-
+		<div id="debugArea" class="hidden">
         <div class="hr"></div>
 
         <div class="row">
@@ -1014,6 +1035,12 @@ let state = {
 };
 
 let toastTimer = null;
+
+function toggleDebug(){
+  const el = document.getElementById("debugArea");
+  if(!el) return;
+  el.classList.toggle("hidden");
+}
 
 function showToast(title, msg, ms = 2500){
   const el = document.getElementById("toast");
@@ -1641,13 +1668,13 @@ function renderProperties(){
 		if (otherPPORExists) {
 		  showToast("PPOR limit", "Only 1 PPOR allowed.");
 		  occEl.checked = false;           // revert checkbox UI immediately
-		  prop.is_owner_occupied = true;  // revert state
+		  prop.is_owner_occupied = false;  // revert state
 		  saveState();
 		  return; // do NOT re-render
 		}
 
 		// Allowed to become PPOR
-		prop.is_owner_occupied = false;
+		prop.is_owner_occupied = true;
 		prop.monthly_rent = 0;
 		prop.rental_growth = 0;
 	  } else {
@@ -2312,15 +2339,15 @@ function renderMiniSummary(result){
     pickRow("End", last)
   ];
 
-  wrap.innerHTML = buildTableHTML(mini, ["Snapshot","Year","Age","Cash","Stocks","Property_Equity","Net_Worth"], {
-    formatters: {
-      Cash: fmtMoney,
-      Stocks: fmtMoney,
-      Property_Equity: fmtMoney,
-      Net_Worth: fmtMoney
-    },
-    rightAlign: new Set(["Cash","Stocks","Property_Equity","Net_Worth"])
-  });
+wrap.innerHTML = buildTableHTML(mini, ["Snapshot","Year","Age","Cash","Stocks","Property_Equity","Net_Worth"], {
+  formatters: {
+    Cash: fmtMoney,
+    Stocks: fmtMoney,
+    Property_Equity: fmtMoney,
+    Net_Worth: fmtMoney
+  }
+});
+
 }
 
 renderMiniSummary(result);
