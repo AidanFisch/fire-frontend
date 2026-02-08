@@ -10,44 +10,38 @@
 
   <style>
     :root{
-  --bg0:#070A12;
-  --bg1:#0B1020;
-
-  /* NEW background layers */
-  --bgBase: #070A12;
-  --bgGlow1: rgba(139,92,246,.10); /* purple - subtle */
-  --bgGlow2: rgba(34,211,238,.08); /* cyan - subtle */
-
-  /* keep your existing tokens */
-  --card: rgba(255,255,255,.04);
-  --card2: rgba(255,255,255,.06);
-  --stroke: rgba(255,255,255,.10);
-  --stroke2: rgba(255,255,255,.16);
-  --txt: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.62);
-  --muted2: rgba(255,255,255,.48);
-  --good:#2ee59d;
-  --warn:#ffcf5c;
-  --bad:#ff5c7a;
-  --accent:#8b5cf6;
-  --accent2:#22d3ee;
-
-  /* slightly calmer shadow helps overall feel */
-  --shadow: 0 14px 34px rgba(0,0,0,.45);
-}
-
-body{
-  margin:0;
-  font-family: var(--sans);
-  color: var(--txt);
-  background:
-    radial-gradient(900px 520px at 18% 12%, var(--bgGlow1), transparent 60%),
-    radial-gradient(820px 480px at 88% 18%, var(--bgGlow2), transparent 62%),
-    radial-gradient(1200px 900px at 50% 110%, rgba(0,0,0,.55), transparent 55%),
-    linear-gradient(180deg, #060912 0%, #070A12 30%, #0B1020 100%);
-  min-height:100vh;
-}
-
+      --bg0:#070A12;
+      --bg1:#0B0F1B;
+      --card: rgba(255,255,255,.04);
+      --card2: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.16);
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --muted2: rgba(255,255,255,.48);
+      --good:#2ee59d;
+      --warn:#ffcf5c;
+      --bad:#ff5c7a;
+      --accent:#8b5cf6;
+      --accent2:#22d3ee;
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --r:18px;
+      --r2:26px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--txt);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(139,92,246,.22), transparent 55%),
+        radial-gradient(900px 550px at 90% 30%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(900px 700px at 60% 95%, rgba(46,229,157,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
     a{color:inherit}
     .wrap{
       max-width: 1180px;
