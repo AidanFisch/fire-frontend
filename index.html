@@ -2438,7 +2438,11 @@ function renderAnalysisFlags({ rows, cols, fireIndex, cashKey }){
   }
 
   // Show warn only if FIRE exists AND cash at FIRE is negative
-  const hasProblem = (fireIndex >= 0) && (cashAtFire < 0);
+  const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
+	const minCash = Math.min(...cashSeries);
+
+	const hasProblem = minCash < 0;
+
 
   el.classList.remove("hidden", "ok", "warn");
 
@@ -2455,7 +2459,8 @@ function renderAnalysisFlags({ rows, cols, fireIndex, cashKey }){
   el.innerHTML = `
     <div class="title">⚠ Analysis flags</div>
     <ul>
-      <li>Cash is negative at FIRE (${fmtMoney(cashAtFire)})</li>
+      <<li>Cash becomes negative during the projection (${fmtMoney(minCash)})</li>
+
     </ul>
   `;
 }
