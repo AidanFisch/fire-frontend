@@ -63,6 +63,16 @@
       top: 12px;
       z-index: 40;
     }
+	
+	.chip-section-label{
+	  font-size: 14px;          /* increase size */
+	  font-weight: 700;         /* make it feel like a section header */
+	  letter-spacing: .3px;
+	  margin-top: 14px;
+	  margin-bottom: 6px;
+	  color: rgba(255,255,255,.82);
+	}
+
     .brand{
       display:flex;
       align-items:center;
@@ -838,14 +848,13 @@ th{
           </div>
 
           <!-- Toggle chips injected here -->
-			<!-- Toggle chips grouped -->
-			<div class="small muted" style="margin-top:16px;">Balances</div>
+			<div class="chip-section-label">Balances</div>
 			<div class="chips" id="chipsBalances"></div>
 
-			<div class="small muted" style="margin-top:16px;">Cashflow</div>
+			<div class="chip-section-label">Cashflow</div>
 			<div class="chips" id="chipsCashflow"></div>
 
-			<div class="small muted" style="margin-top:16px;">Per-property</div>
+			<div class="chip-section-label">Per-property</div>
 			<div class="chips" id="propertyChips"></div>
 
 
