@@ -48,6 +48,9 @@
       margin: 0 auto;
       padding: 22px 18px 42px;
     }
+	
+
+
     .topbar{
       display:flex;
       align-items:center;
@@ -63,6 +66,10 @@
       top: 12px;
       z-index: 40;
     }
+	
+		body.landing .topbar {
+  display: none;
+}
 	/* --- Analysis flags --- */
 	.analysis-flags{
 	  margin-top: 12px;
@@ -616,11 +623,67 @@ html, body {
         <span class="pill" id="apiPill">API: …</span>
       </div>
       <div class="nav">
-        <button id="btnHome" class="active" onclick="showTab('home')">Home</button>
+	  
+	  <!-- the below code readds the home page back in -->
+	  <!--<button id="btnHome" class="active" onclick="showTab('home')">Home</button> -->
+
+        <button id="btnHome" style="display:none"></button>
         <button id="btnInputs" onclick="showTab('inputs')">Setup</button>
         <button id="btnResults" onclick="showTab('results')">Results</button>
       </div>
     </div>
+	
+<!-- LANDING -->
+<section id="tab-landing" class="tabs active" style="margin-top:60px;">
+  <div class="grid cols1">
+    <div class="card" style="text-align:center; padding:48px 32px;">
+      
+      <div class="brand" style="justify-content:center; margin-bottom:18px;">
+        <span class="dot"></span>
+        <span style="font-size:22px;">FIRE Model</span>
+      </div>
+
+      <h1 style="font-size:36px; margin:0 0 12px 0;">
+        See when you actually reach FIRE
+      </h1>
+
+      <p class="sub" style="font-size:16px; max-width:720px; margin:0 auto;">
+        Model your path to financial independence using Australian-specific assumptions —
+        including property, rent, super, and realistic cashflow.
+        <br/><br/>
+        No sign-up. No advice. Just clear scenarios.
+      </p>
+
+      <div class="hr"></div>
+
+      <div class="grid cols3" style="margin-top:24px;">
+        <div class="kpi">
+          <div class="k">Compare scenarios</div>
+          <div class="v">Rent vs Buy</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Model reality</div>
+          <div class="v">Property + Super</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Find clarity</div>
+          <div class="v">FIRE age</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <button class="btn primary" style="font-size:16px; padding:14px 22px;"
+        onclick="enterApp()">
+        Get Started
+      </button>
+
+      <p class="small" style="margin-top:14px;">
+        General information only. Not financial advice.
+      </p>
+    </div>
+  </div>
+</section>
 
     <!-- HOME -->
  <!-- HOME -->
@@ -1372,6 +1435,17 @@ function showTab(name){
   document.getElementById(`tab-${name}`).classList.add("active");
   document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`).classList.add("active");
 }
+
+function enterApp(){
+  document.body.classList.remove("landing");
+  showTab("inputs");
+}
+
+function initLanding(){
+  document.body.classList.add("landing");
+  showTab("landing");
+}
+
 
 /** ---------------------------
  *  Mode
@@ -3047,6 +3121,7 @@ loadState();
 window.addEventListener("load", ()=>{
   bindCoreInputs();
   hydrateUI();
+  initLanding();
 });
 </script>
 
