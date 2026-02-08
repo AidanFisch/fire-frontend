@@ -63,7 +63,42 @@
       top: 12px;
       z-index: 40;
     }
-	
+	/* --- Analysis flags --- */
+	.analysis-flags{
+	  margin-top: 12px;
+	  padding: 12px 14px;
+	  border-radius: 16px;
+	  border: 1px solid rgba(255,255,255,.12);
+	  background: rgba(0,0,0,.14);
+	}
+
+	.analysis-flags.ok{
+	  border-color: rgba(46,229,157,.35);
+	  background: rgba(46,229,157,.08);
+	  color: rgba(255,255,255,.90);
+	}
+
+	.analysis-flags.warn{
+	  border-color: rgba(255,207,92,.35);
+	  background: rgba(255,207,92,.08);
+	  color: rgba(255,255,255,.90);
+	}
+
+	.analysis-flags .title{
+	  font-weight: 850;
+	  margin-bottom: 6px;
+	}
+
+	.analysis-flags ul{
+	  margin: 6px 0 0 18px;
+	  padding: 0;
+	}
+
+	.analysis-flags li{
+	  margin: 4px 0;
+	  color: rgba(255,255,255,.82);
+	}
+
 	.chip-section-label{
 	  font-size: 14px;          /* increase size */
 	  font-weight: 700;         /* make it feel like a section header */
@@ -877,10 +912,13 @@ th{
     </div>
     <div class="chev" id="miniSummaryChev">▾</div>
   </div>
-  <div class="sectionBody" id="miniSummaryBody">
-    <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
+<div class="sectionBody" id="miniSummaryBody">
+  <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
 
-  </div>
+  <!-- Analysis flags (auto-filled by JS) -->
+  <div id="analysisFlags" class="analysis-flags hidden"></div>
+</div>
+
 </div>
 
 <!-- Expandable big tables -->
@@ -2281,19 +2319,31 @@ selected
 			  }
 			},
 
-        y: {
-          position: "left",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ color:"rgba(255,255,255,.06)" }
-        },
-        y2: {
-          position: "right",
-          ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
-          grid:{ drawOnChartArea:false }
-        }
+		  y: {
+			position: "left",
+			title: {
+			  display: true,
+			  text: "Balances",
+			  font: { size: 14, weight: "700" }
+			},
+			ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+			grid:{ color:"rgba(255,255,255,.06)" }
+		  },
+		  y2: {
+			position: "right",
+			title: {
+			  display: true,
+			  text: "Cashflow",
+			  font: { size: 14, weight: "700" }
+			},
+			ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
+			grid:{ drawOnChartArea:false }
+		  }
       }
     }
   });
+
+
 
 function renderMiniSummary(result){
   const wrap = document.getElementById("miniSummaryWrap");
@@ -2366,11 +2416,50 @@ wrap.innerHTML = buildTableHTML(mini, ["Snapshot","Year","Age","Cash","Stocks","
 }
 
 renderMiniSummary(result);
+renderAnalysisFlags({ rows, cols, fireIndex, cashKey });
+
 	
   renderSummaryTable(result, propPrefixes);
   renderPropertyEndTable(last, propPrefixes);
   renderFullTable();
 }
+
+
+function renderAnalysisFlags({ rows, cols, fireIndex, cashKey }){
+  const el = document.getElementById("analysisFlags");
+  if(!el) return;
+
+  // Your rule:
+  // - If cash at FIRE is negative => warn
+  // - Otherwise => green "No analysis problems"
+  let cashAtFire = 0;
+  if (fireIndex >= 0 && rows[fireIndex]) {
+    cashAtFire = getFirstNumber(rows[fireIndex], [cashKey]);
+  }
+
+  // Show warn only if FIRE exists AND cash at FIRE is negative
+  const hasProblem = (fireIndex >= 0) && (cashAtFire < 0);
+
+  el.classList.remove("hidden", "ok", "warn");
+
+  if(!hasProblem){
+    el.classList.add("ok");
+    el.innerHTML = `
+      <div class="title">✅ Analysis flags</div>
+      <div>No analysis problems</div>
+    `;
+    return;
+  }
+
+  el.classList.add("warn");
+  el.innerHTML = `
+    <div class="title">⚠ Analysis flags</div>
+    <ul>
+      <li>Cash is negative at FIRE (${fmtMoney(cashAtFire)})</li>
+    </ul>
+  `;
+}
+
 
 /** ---------------------------
  *  Chart chips + presets
