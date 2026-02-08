@@ -650,6 +650,7 @@ th{
   font-size: 15px;
   transform: translateY(0);
   transition: transform 160ms ease, filter 160ms ease;
+  box-shadow: 0 12px 40px rgba(139,92,246,.35);
 }
 .btn.primary.big:hover{ transform: translateY(-1px); filter: brightness(1.05); }
 
@@ -851,7 +852,6 @@ html, body {
           </p>
 
           <div class="hero-actions" style="margin-top:0;">
-            <button class="btn primary big" onclick="enterApp()">Get Started</button>
             <span class="small">No signup · Export CSV · General information only</span>
           </div>
 
@@ -875,42 +875,25 @@ html, body {
           <div class="small" style="margin-top:14px; color:rgba(255,255,255,.52); line-height:1.35;">
             General information only. Not financial advice.
           </div>
+		  
+		  
+		  <div style="display:flex; justify-content:center; margin-top:26px;">
+		  <button class="btn primary big"
+				  style="font-size:18px; padding:18px 36px; min-width:260px;"
+				  onclick="enterApp()">
+			Get Started
+		  </button>
+		</div>
+
+		<div class="small"
+			 style="text-align:center; margin-top:10px; color:rgba(255,255,255,.55);">
+		  No signup · Export CSV · General information only
+		</div>
+
         </div>
 
         <!-- RIGHT: Preview only -->
-        <div class="preview">
-          <div class="previewTop">
-            <div class="previewTitle">Preview</div>
-            <div class="miniTag">Example output</div>
-          </div>
-
-          <div class="sparkline" aria-hidden="true">
-            <svg viewBox="0 0 600 220" width="100%" height="150" style="opacity:.95;">
-              <g opacity="0.18">
-                <path d="M30 40 H570" stroke="white" stroke-width="1"/>
-                <path d="M30 90 H570" stroke="white" stroke-width="1"/>
-                <path d="M30 140 H570" stroke="white" stroke-width="1"/>
-                <path d="M30 190 H570" stroke="white" stroke-width="1"/>
-              </g>
-
-              <path d="M30 175 C120 160, 160 120, 230 135 C300 150, 340 105, 420 95 C500 85, 540 60, 570 52"
-                    fill="none" stroke="rgba(139,92,246,.95)" stroke-width="5" stroke-linecap="round"/>
-
-              <path d="M30 190 C110 175, 160 170, 230 160 C320 148, 360 140, 420 130 C500 112, 535 105, 570 98"
-                    fill="none" stroke="rgba(34,211,238,.85)" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
-
-              <path d="M410 25 V200" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-dasharray="8 8"/>
-              <g>
-                <rect x="418" y="28" rx="10" ry="10" width="120" height="36" fill="rgba(0,0,0,.45)" stroke="rgba(255,255,255,.15)"/>
-                <text x="432" y="52" fill="rgba(255,255,255,.88)" font-size="16" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI">FIRE @ 47</text>
-              </g>
-            </svg>
-          </div>
-
-          <div class="small" style="margin-top:10px; color:rgba(255,255,255,.55); line-height:1.35;">
-            This is a sample visual preview. Your actual chart appears after you run the model.
-          </div>
-        </div>
+        
 
       </div>
     </div>
