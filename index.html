@@ -2301,62 +2301,78 @@ function buildPayload(){
   };
 }
 
+function nowMs(){ return performance.now(); }
+
+
 
 async function callPath(base, path, payload){
   const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
-  
-    const body = JSON.stringify(payload);
-	console.log("SENDING body:", body);
+
+  const body = JSON.stringify(payload);
+  console.log("SENDING body:", body);
+
+  // ✅ TIMING START
+  const t0 = nowMs();
 
   let r, text;
   try {
-	r = await fetch(url, {
-	  method: "POST",
-	  headers: {
-		"Content-Type":"application/json",
-		"Cache-Control":"no-store",
-		"Pragma":"no-cache"
-	  },
-	  cache: "no-store",
-	  body
-	});
-
+    r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Cache-Control":"no-store",
+        "Pragma":"no-cache"
+      },
+      cache: "no-store",
+      body
+    });
   } catch (e) {
-    // This is the big one: CORS / network / SSL / blocked request
+    const tFail = (nowMs() - t0).toFixed(1);
+    console.log(`[timing] FETCH FAILED after ${tFail}ms -> ${path}`);
     throw new Error(`FETCH_FAILED @ ${path}: ${e.message || e}`);
   }
 
+  // ✅ Got response headers back (network + server processing up to first byte)
+  const tHeaders = nowMs();
+
   text = await r.text();
 
-// If we accidentally hit the frontend (Netlify), we'll get HTML back
-if ((text || "").trim().startsWith("<!DOCTYPE html")) {
-  throw new Error(
-    "HIT_FRONTEND_HTML @ " + path +
-    "\nYour apiBase is probably pointing to the Netlify site, not Render." +
-    "\napiBase=" + base +
-    "\n--- body (first 200 chars) ---\n" +
-    text.slice(0, 200)
-  );
-}
+  // ✅ Finished reading body
+  const tBody = nowMs();
 
+  // --- your existing HTML detection ---
+  if ((text || "").trim().startsWith("<!DOCTYPE html")) {
+    console.log(`[timing] ${path} headers ${(tHeaders-t0).toFixed(1)}ms | body ${(tBody-tHeaders).toFixed(1)}ms | total ${(tBody-t0).toFixed(1)}ms`);
+    throw new Error(
+      "HIT_FRONTEND_HTML @ " + path +
+      "\nYour apiBase is probably pointing to the Netlify site, not Render." +
+      "\napiBase=" + base +
+      "\n--- body (first 200 chars) ---\n" +
+      text.slice(0, 200)
+    );
+  }
 
-
-  // Try JSON, but don't assume it
   let j = null;
   try { j = JSON.parse(text); } catch(e) {}
 
   if(!r.ok){
-    // Show body even if it's HTML
+    console.log(`[timing] ${path} headers ${(tHeaders-t0).toFixed(1)}ms | body ${(tBody-tHeaders).toFixed(1)}ms | total ${(tBody-t0).toFixed(1)}ms`);
     throw new Error(`HTTP_${r.status} @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
   }
 
   if(!j){
-    // 200 OK but not JSON (often HTML error page)
+    console.log(`[timing] ${path} headers ${(tHeaders-t0).toFixed(1)}ms | body ${(tBody-tHeaders).toFixed(1)}ms | total ${(tBody-t0).toFixed(1)}ms`);
     throw new Error(`NON_JSON_200 @ ${path}\n--- body ---\n${text.slice(0, 2000)}`);
   }
 
+  // ✅ SUCCESS timing log
+  console.log(
+    `[timing] ${path} headers ${(tHeaders-t0).toFixed(1)}ms | body ${(tBody-tHeaders).toFixed(1)}ms | total ${(tBody-t0).toFixed(1)}ms`
+  );
+
   return j;
 }
+
 
 
 
