@@ -48,27 +48,91 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root{
-      --bg0:#070A12;
-      --bg1:#0B0F1B;
-      --card: rgba(255,255,255,.04);
-      --card2: rgba(255,255,255,.06);
-      --stroke: rgba(255,255,255,.10);
-      --stroke2: rgba(255,255,255,.16);
-      --txt: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.62);
-      --muted2: rgba(255,255,255,.48);
-      --good:#2ee59d;
-      --warn:#ffcf5c;
-      --bad:#ff5c7a;
-      --accent:#8b5cf6;
-      --accent2:#22d3ee;
-      --shadow: 0 18px 50px rgba(0,0,0,.55);
-      --r:18px;
-      --r2:26px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
+    /* ========= THEME TOKENS ========= */
+/* Auto: if no data-theme attribute, we’ll default using @media below */
+:root {
+  /* baseline (will be overridden by explicit themes or media preference) */
+  --bg0:#070A12;
+  --bg1:#0B0F1B;
+  --card: rgba(255,255,255,.04);
+  --card2: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.10);
+  --stroke2: rgba(255,255,255,.16);
+  --txt: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.62);
+  --muted2: rgba(255,255,255,.48);
+  --good:#2ee59d;
+  --warn:#ffcf5c;
+  --bad:#ff5c7a;
+  --accent:#8b5cf6;
+  --accent2:#22d3ee;
+  --shadow: 0 18px 50px rgba(0,0,0,.55);
+  --r:18px;
+  --r2:26px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* ----- Dark theme (your current look) ----- */
+:root[data-theme="dark"] {
+  --bg0:#070A12;
+  --bg1:#0B0F1B;
+  --card: rgba(255,255,255,.04);
+  --card2: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.10);
+  --stroke2: rgba(255,255,255,.16);
+  --txt: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.62);
+  --muted2: rgba(255,255,255,.48);
+  --shadow: 0 18px 50px rgba(0,0,0,.55);
+}
+
+/* ----- Light theme (new) ----- */
+:root[data-theme="light"] {
+  --bg0:#f7f8fb;              /* page top */
+  --bg1:#ffffff;              /* page lower */
+  --card: rgba(0,0,0,.04);
+  --card2: rgba(0,0,0,.06);
+  --stroke: rgba(0,0,0,.10);
+  --stroke2: rgba(0,0,0,.14);
+  --txt: rgba(15,20,30,.92);
+  --muted: rgba(15,20,30,.62);
+  --muted2: rgba(15,20,30,.48);
+  --shadow: 0 12px 30px rgba(0,0,0,.08);
+}
+
+/* Respect OS preference **when no explicit choice is set** */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) { color-scheme: light; }
+  :root:not([data-theme]) {
+    --bg0:#f7f8fb;
+    --bg1:#ffffff;
+    --card: rgba(0,0,0,.04);
+    --card2: rgba(0,0,0,.06);
+    --stroke: rgba(0,0,0,.10);
+    --stroke2: rgba(0,0,0,.14);
+    --txt: rgba(15,20,30,.92);
+    --muted: rgba(15,20,30,.62);
+    --muted2: rgba(15,20,30,.48);
+    --shadow: 0 12px 30px rgba(0,0,0,.08);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) { color-scheme: dark; }
+  :root:not([data-theme]) {
+    --bg0:#070A12;
+    --bg1:#0B0F1B;
+    --card: rgba(255,255,255,.04);
+    --card2: rgba(255,255,255,.06);
+    --stroke: rgba(255,255,255,.10);
+    --stroke2: rgba(255,255,255,.16);
+    --txt: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.62);
+    --muted2: rgba(255,255,255,.48);
+    --shadow: 0 18px 50px rgba(0,0,0,.55);
+  }
+}
+	  
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -824,20 +888,15 @@ th{
 
 
 	  /* === FORCE CLEAN BACKGROUND === */
+/* Page background (works for both themes) */
 html, body {
   background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,0.035) 0%,
-      rgba(255,255,255,0.015) 20%,
-      rgba(255,255,255,0.0) 45%
-    ),
-    linear-gradient(
-      180deg,
-      #0a0d13 0%,
-      #0b0e14 50%,
-      #0c1018 100%
-    ) !important;
+    radial-gradient(1200px 700px at 20% 10%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 55%),
+    radial-gradient(900px 550px at 90% 30%, color-mix(in oklab, var(--accent2) 18%, transparent), transparent 60%),
+    radial-gradient(900px 700px at 60% 95%, color-mix(in oklab, var(--good) 10%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1)) !important;
+  min-height:100vh;
+  color: var(--txt);
 }
 
 
@@ -856,6 +915,9 @@ html, body {
         <span class="pill" id="apiPill">API: …</span>
       </div>
       <div class="nav">
+		  <button id="themeToggle" class="btn soft" style="white-space:nowrap;">
+  🌙 Dark
+</button>
 	  
 	  <!-- the below code readds the home page back in -->
 	  <!--<button id="btnHome" class="active" onclick="showTab('home')">Home</button> -->
@@ -1434,6 +1496,69 @@ let state = {
   lastResult: null,
   collapsed: {},
 };
+
+	// ===== Theme handling =====
+const THEME_KEY = "wm_theme"; // "light" | "dark" | null (auto)
+function applyTheme(theme) {
+  if (theme === "light") {
+    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.style.colorScheme = "light";
+  } else if (theme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.style.colorScheme = "dark";
+  } else {
+    // Auto: remove explicit attribute to let @media take over
+    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.style.colorScheme = "";
+  }
+  updateThemeToggleLabel();
+}
+function updateThemeToggleLabel() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const t = document.documentElement.getAttribute("data-theme");
+  if (!t) {
+    // Auto mode: show what OS prefers
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    btn.textContent = prefersDark ? "☀️ Light" : "🌙 Dark";
+  } else if (t === "dark") {
+    btn.textContent = "☀️ Light";
+  } else {
+    btn.textContent = "🌙 Dark";
+  }
+}
+function getStoredTheme() {
+  try { return localStorage.getItem(THEME_KEY); } catch(e){ return null; }
+}
+function setStoredTheme(v) {
+  try { localStorage.setItem(THEME_KEY, v ?? ""); } catch(e){}
+}
+
+// Apply on load (respect stored or fall back to auto)
+applyTheme(getStoredTheme());
+
+// React to OS changes when in auto mode (no data-theme attribute)
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (!document.documentElement.getAttribute("data-theme")) updateThemeToggleLabel();
+});
+
+// Hook up toggle
+window.addEventListener("load", () => {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  btn.onclick = () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    // cycle: auto -> dark -> light -> auto …
+    let next;
+    if (!current) next = "dark";
+    else if (current === "dark") next = "light";
+    else next = null; // auto
+    applyTheme(next);
+    setStoredTheme(next);
+  };
+  updateThemeToggleLabel();
+});
+
 
 let toastTimer = null;
 
