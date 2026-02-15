@@ -12,14 +12,14 @@
 <!-- OpenGraph (for previews on LinkedIn / socials) -->
 <meta property="og:title" content="WealthModel – FIRE Calculator">
 <meta property="og:description" content="Project your wealth and plan your financial independence timeline.">
-<meta property="og:url" content="https://wealthmodel.io">
+<meta property="og:url" content="https://wealthmodel.io"> <!-- will be patched dynamically -->
 <meta property="og:type" content="website">
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <link rel="icon" type="image/png" sizes="32x32" href="https://wealthmodel.io/favicon.png">
-	
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -41,8 +41,33 @@
   }
 }
 </script>
-	
-	<link rel="canonical" href="https://wealthmodel.io/">
+
+<link rel="canonical" href="https://wealthmodel.io/"><!-- will be patched dynamically -->
+
+<!-- Dynamic canonical + OG + JSON-LD URL so both wealthmodel.io and github.io work -->
+<script>
+  (function () {
+    var currentUrl = location.origin + location.pathname.replace(/index\.html$/, "");
+    try {
+      var canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.href = currentUrl;
+
+      var ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+      var ld = document.querySelector('script[type="application/ld+json"]');
+      if (ld && ld.textContent) {
+        var data = JSON.parse(ld.textContent);
+        if (data && typeof data === 'object') {
+          data.url = currentUrl;
+          ld.textContent = JSON.stringify(data);
+        }
+      }
+    } catch (e) {
+      console.warn('Meta/LD patch failed', e);
+    }
+  })();
+</script>
 	
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
