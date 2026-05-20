@@ -452,6 +452,31 @@
       letter-spacing: .2px;
     }
 
+    .fire-banner{
+      display:none;
+      border:1px solid rgba(139,92,246,.45);
+      background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(34,211,238,.07));
+      border-radius:var(--r);
+      padding:18px 22px;
+      margin-bottom:14px;
+    }
+    .fire-banner.not-achieved{
+      border-color:var(--stroke);
+      background:rgba(0,0,0,.18);
+    }
+    .fire-banner-inner{display:flex;align-items:center;gap:16px;}
+    .fire-banner-icon{font-size:36px;line-height:1;}
+    .fire-banner-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.9px;margin-bottom:4px;}
+    .fire-banner-age{
+      font-size:28px;font-weight:800;
+      background:linear-gradient(135deg,rgba(139,92,246,1),rgba(34,211,238,1));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .fire-banner.not-achieved .fire-banner-age{
+      background:none;color:var(--muted);font-size:16px;font-weight:600;
+    }
+    .fire-banner-note{color:var(--muted);font-size:12px;margin-top:2px;}
+
     .tabs{display:none}
     .tabs.active{display:block}
 	
@@ -981,7 +1006,7 @@ html, body {
 	  <!--<button id="btnHome" class="active" onclick="showTab('home')">Home</button> -->
 
         <button id="btnHome" style="display:none"></button>
-        <button id="btnInputs" onclick="showTab('inputs')">Setup</button>
+        <button id="btnInputs" style="display:none"></button>
         <button id="btnResults" onclick="showTab('results')">Results</button>
       </div>
     </div>
@@ -1122,7 +1147,7 @@ html, body {
 		  <div class="hr"></div>
 
 		  <div class="row">
-			<button class="btn primary" onclick="showTab('inputs')">Go to Inputs</button>
+			<button class="btn primary" onclick="openInputsDrawer()">Edit Inputs</button>
 			<button class="btn" onclick="showTab('results')">Go to Results</button>
 		  </div>
 		</div>
@@ -1295,6 +1320,18 @@ html, body {
 
     <!-- OVERVIEW -->
     <div id="subtab-overview" class="subtabs active" role="tabpanel" aria-labelledby="btnSubOverview">
+
+      <div id="fireBanner" class="fire-banner" style="margin-top:12px;">
+        <div class="fire-banner-inner">
+          <div class="fire-banner-icon" id="fireBannerIcon">🔥</div>
+          <div>
+            <div class="fire-banner-label">FIRE achieved</div>
+            <div class="fire-banner-age" id="kpiFireAge">—</div>
+            <div class="fire-banner-note" id="fireBannerNote"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="grid cols4" id="kpiRow" style="margin-top:12px;">
         <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
         <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
@@ -1441,7 +1478,7 @@ let state = {
   mode: "yearly",
   inputs: {
     current_age: 25,
-    end_age: 60,
+    end_age: 65,
     inflation: 0.025,
     todays_lifestyle_income: 80000,
     initial_savings: 500000,
@@ -1456,7 +1493,7 @@ let state = {
 	super_swr: 0.04,
     super_access_age: 60,
     super_starting_balance: 120000,
-    super_sg_rate: 0.11,
+    super_sg_rate: 0.115,
     super_growth: 0.065,
     super_additional_annual: 0
   },
@@ -1860,7 +1897,7 @@ function showTab(name){
 
 function enterApp(){
   document.body.classList.remove("landing");
-  showTab("inputs");
+  showTab("results");
 }
 
 function initLanding(){
@@ -2452,15 +2489,44 @@ async function runModel(){
     return;
   }
 
-    // Response fingerprint (hash the raw JSON string we actually got back)
+  // If FIRE not achieved within end_age, extend simulation until it is (up to age 90)
+  const fireNotFound = (r) => !r || !r.rows || !r.rows.some(row => (row["FIRE_Eligible"] || 0) === 1);
+  let fireExtended = false;
+  let fireSearchEndAge = null;
+
+  if (fireNotFound(result)) {
+    const superAccess = state.inputs.super_access_age || 60;
+    let searchEndAge = Math.max(state.inputs.end_age || 65, superAccess) + 5;
+    const FIRE_SEARCH_MAX = 90;
+    document.getElementById("resultsMeta").textContent = "Extending simulation to find FIRE age…";
+    while (searchEndAge <= FIRE_SEARCH_MAX) {
+      const extPayload = {
+        ...buildPayload(),
+        inputs: { ...normalizeInputs(state.inputs), end_age: searchEndAge }
+      };
+      try {
+        const extResult = await callPath(base, usedPath, extPayload);
+        if (!fireNotFound(extResult)) {
+          result = extResult;
+          fireExtended = true;
+          fireSearchEndAge = searchEndAge;
+          break;
+        }
+      } catch(e) { break; }
+      searchEndAge += 5;
+    }
+  }
+
+  // Response fingerprint (hash the raw JSON string we actually got back)
   const respText = result.__rawText ? result.__rawText : JSON.stringify(result);
   const respHash = hashString(respText);
 
   state.lastResult = result;
   saveState();
 
+  const extNote = fireExtended ? ` | extended to age ${fireSearchEndAge} to find FIRE` : "";
   document.getElementById("lastRunMeta").textContent =
-    `Last run: ${new Date().toLocaleString()} | endpoint=${usedPath} | payload=${fp} | response=${respHash} | mode=${result.mode}`;
+    `Last run: ${new Date().toLocaleString()} | endpoint=${usedPath} | payload=${fp} | response=${respHash} | mode=${result.mode}${extNote}`;
 
   console.log("RUN result endpoint:", usedPath);
   console.log("RUN response hash:", respHash);
@@ -2650,6 +2716,35 @@ if (fireIndex >= 0) {
   document.getElementById("kpiStocksEnd").textContent = fmtMoney(stocksEnd);
   document.getElementById("kpiEquityEnd").textContent = fmtMoney(equityEnd);
   document.getElementById("kpiNWEnd").textContent = fmtMoney(netWorthEnd);
+
+  // FIRE banner
+  const fireBanner = document.getElementById("fireBanner");
+  const kpiFireAgeEl = document.getElementById("kpiFireAge");
+  const fireBannerNote = document.getElementById("fireBannerNote");
+  const fireBannerIcon = document.getElementById("fireBannerIcon");
+  fireBanner.style.display = "block";
+  if (fireIndex >= 0) {
+    const fireRow = rows[fireIndex];
+    const fireAge = ageKey ? toNumber(fireRow[ageKey]) : null;
+    const fireYear = yearKey ? fireRow[yearKey] : null;
+    fireBanner.classList.remove("not-achieved");
+    fireBannerIcon.textContent = "🔥";
+    const label = document.querySelector("#fireBanner .fire-banner-label");
+    if (label) label.textContent = "FIRE achieved";
+    kpiFireAgeEl.textContent = Number.isFinite(fireAge) && fireAge > 0
+      ? `Age ${fireAge.toFixed(0)}`
+      : (fireYear ? `Year ${fireYear}` : "—");
+    const fireRow2 = rows[fireIndex];
+    const nwAtFire = nwKey ? toNumber(fireRow2[nwKey]) : null;
+    fireBannerNote.textContent = nwAtFire ? `Net worth at FIRE: ${fmtMoney(nwAtFire)}` : "";
+  } else {
+    fireBanner.classList.add("not-achieved");
+    fireBannerIcon.textContent = "—";
+    const label = document.querySelector("#fireBanner .fire-banner-label");
+    if (label) label.textContent = "FIRE status";
+    kpiFireAgeEl.textContent = "Not achieved within simulation";
+    fireBannerNote.textContent = "Try increasing end age or adjusting inputs.";
+  }
 
   // Build labels + series
   const labels = rows.map(r => yearKey ? String(r[yearKey] ?? "") : "");
