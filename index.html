@@ -453,18 +453,16 @@
       border-color:var(--stroke);
       background:rgba(0,0,0,.18);
     }
-    .fire-banner-inner{display:flex;align-items:center;gap:16px;}
-    .fire-banner-icon{font-size:36px;line-height:1;}
-    .fire-banner-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.9px;margin-bottom:4px;}
+    .fire-banner-inner{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; }
+    .fire-banner-icon{ font-size:26px; line-height:1; }
+    .fire-banner-label{ color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.9px; }
     .fire-banner-age{
-      font-size:28px;font-weight:800;
+      font-size:34px; font-weight:800; line-height:1.1;
       background:linear-gradient(135deg,rgba(139,92,246,1),rgba(34,211,238,1));
-      -webkit-background-clip:text;background-clip:text;color:transparent;
+      -webkit-background-clip:text; background-clip:text; color:transparent;
     }
-    .fire-banner.not-achieved .fire-banner-age{
-      background:none;color:var(--muted);font-size:16px;font-weight:600;
-    }
-    .fire-banner-note{color:var(--muted);font-size:12px;margin-top:2px;}
+    .fire-banner.not-achieved .fire-banner-age{ background:none; color:var(--muted); font-size:16px; font-weight:600; }
+    .fire-banner-note{ color:var(--muted); font-size:12px; }
 
     .tabs{display:none}
     .tabs.active{display:block}
@@ -1296,11 +1294,9 @@ html, body {
     <div id="fireBanner" class="fire-banner">
       <div class="fire-banner-inner">
         <div class="fire-banner-icon" id="fireBannerIcon">🔥</div>
-        <div>
-          <div class="fire-banner-label">FIRE achieved</div>
-          <div class="fire-banner-age" id="kpiFireAge">—</div>
-          <div class="fire-banner-note" id="fireBannerNote"></div>
-        </div>
+        <div class="fire-banner-label">FIRE achieved</div>
+        <div class="fire-banner-age" id="kpiFireAge">—</div>
+        <div class="fire-banner-note" id="fireBannerNote"></div>
       </div>
     </div>
 
@@ -1316,23 +1312,28 @@ html, body {
 
     <!-- Chart + toggles -->
     <div id="chartSection">
-      <div class="chips-bar">
-        <div class="chips-row">
-          <div class="chips">
-            <div class="chip" onclick="setChartPreset('key')">Key only</div>
-            <div class="chip" onclick="setChartPreset('all')">All</div>
-            <div class="chip" onclick="setChartPreset('none')">None</div>
+      <canvas id="chartMain" style="margin-bottom:12px;"></canvas>
+      <div class="section">
+        <div class="sectionHeader" onclick="toggleSection('chartFiltersBody','chartFiltersChev')">
+          <div class="results-section-header" style="margin:0;">
+            <div class="title">Additional filters</div>
+            <div class="sub">Toggle chart series</div>
           </div>
-          <div class="chip-divider"></div>
-          <div class="chips" id="chipsBalances"></div>
+          <div class="chev" id="chartFiltersChev">▸</div>
         </div>
-        <div class="chips-row">
-          <div class="chips" id="chipsCashflow"></div>
-          <div class="chip-divider"></div>
-          <div class="chips" id="propertyChips"></div>
+        <div class="sectionBody hidden" id="chartFiltersBody">
+          <div class="chips-bar" style="padding-top:4px;">
+            <div class="chips-row">
+              <div class="chips" id="chipsBalances"></div>
+            </div>
+            <div class="chips-row">
+              <div class="chips" id="chipsCashflow"></div>
+              <div class="chip-divider"></div>
+              <div class="chips" id="propertyChips"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <canvas id="chartMain" style="margin-bottom:8px;"></canvas>
     </div>
 
     <div class="hr"></div>
