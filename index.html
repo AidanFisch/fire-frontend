@@ -620,20 +620,27 @@ th{
 
 
     .chip{
+      display:inline-flex; align-items:center; gap:5px;
       font-size: 12px;
-      padding: 6px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       border: 1px solid var(--stroke);
       background: rgba(0,0,0,.18);
       color: var(--muted);
       cursor:pointer;
       user-select:none;
+      transition: border-color .12s, background .12s, color .12s;
     }
     .chip.active{
       color: var(--txt);
-      border-color: rgba(34,211,238,.50);
-      background: rgba(34,211,238,.10);
+      border-color: rgba(255,255,255,.22);
+      background: rgba(255,255,255,.07);
     }
+    .chip-dot{
+      width:7px; height:7px; border-radius:50%; flex-shrink:0;
+      opacity:.85;
+    }
+    .chip:not(.active) .chip-dot{ opacity:.45; }
 
     .propHeader{
       display:flex;
@@ -1321,11 +1328,18 @@ html, body {
 
     <div class="hr"></div>
 
-    <!-- Chart -->
+    <!-- Chart + legend/toggles -->
     <div id="chartSection">
-      <div id="chartWrap">
-        <button class="chart-filter-btn" id="chartFilterBtn" onclick="cycleChartFilter()">Key</button>
-        <canvas id="chartMain"></canvas>
+      <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
+      <div class="chips-bar">
+        <div class="chips-row">
+          <div class="chips" id="chipsBalances"></div>
+        </div>
+        <div class="chips-row">
+          <div class="chips" id="chipsCashflow"></div>
+          <div class="chip-divider" id="cashflowPropDivider" style="display:none;"></div>
+          <div class="chips" id="propertyChips"></div>
+        </div>
       </div>
     </div>
 
@@ -2784,21 +2798,20 @@ const fireIncomeWithCashSeries =
 	// Registry of possible chart datasets
 	const METRICS = [
 	  // --- Balances (left axis)
-	  { id:"netWorth",        label:"Net worth",               axis:"y",  data: netWorthSeries,   defaultOn:true,  group:"balances", order:1 },
-	  { id:"cash",            label:"Cash",                    axis:"y",  data: cashSeries,       defaultOn:true,  group:"balances", order:2 },
-	  { id:"stocks",          label:"Stocks",                  axis:"y",  data: stockSeries,      defaultOn:true,  group:"balances", order:3 },
-	  { id:"propertyEquity",  label:"Property equity (total)", axis:"y",  data: equitySeries,     defaultOn:true,  group:"balances", order:4 },
-	  ...(superSeries ? [{ id:"superBalance", label:"Super balance (end)", axis:"y", data: superSeries, defaultOn:false, group:"balances", order:5 }] : []),
+	  { id:"netWorth",        label:"Net worth",               axis:"y",  data: netWorthSeries,        defaultOn:true,  group:"balances", order:1, color:"#60a5fa" },
+	  { id:"cash",            label:"Cash",                    axis:"y",  data: cashSeries,            defaultOn:true,  group:"balances", order:2, color:"#34d399" },
+	  { id:"stocks",          label:"Stocks",                  axis:"y",  data: stockSeries,           defaultOn:true,  group:"balances", order:3, color:"#f59e0b" },
+	  { id:"propertyEquity",  label:"Property equity",         axis:"y",  data: equitySeries,          defaultOn:true,  group:"balances", order:4, color:"#a78bfa" },
+	  ...(superSeries ? [{ id:"superBalance", label:"Super",   axis:"y",  data: superSeries,           defaultOn:false, group:"balances", order:5, color:"#fb7185" }] : []),
 
 	  // --- Cashflow (right axis)
-	  ...(fireTargetSeries ? [{ id:"fireTarget", label:"FIRE target (monthly)", axis:"y2", data: fireTargetSeries, defaultOn:true, group:"cashflow", order:1 }] : []),
-	  ...(fireIncomeSeries ? [{ id:"fireIncome", label:"FIRE income (monthly)", axis:"y2", data: fireIncomeSeries, defaultOn:true, group:"cashflow", order:2 }] : []),
-	  ...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash", label:"FIRE income + cash (monthly)", axis:"y2", data: fireIncomeWithCashSeries, defaultOn:true, group:"cashflow", order:3 }] : []),
-
-	  ...(netRentSeries ? [{ id:"netRent", label:"Net rent (monthly)", axis:"y2", data: netRentSeries, defaultOn:false, group:"cashflow", order:4 }] : []),
-	  ...(withdrawalsSeries ? [{ id:"withdrawals", label:"Withdrawals (monthly)", axis:"y2", data: withdrawalsSeries, defaultOn:false, group:"cashflow", order:5 }] : []),
-	  ...(taxSeries ? [{ id:"taxPaid", label:"Tax paid (monthly)", axis:"y2", data: taxSeries, defaultOn:false, group:"cashflow", order:6 }] : []),
-	  ...(cashDrawSeries ? [{ id:"cashDrawdown", label:"Cash drawdown (monthly)", axis:"y2", data: cashDrawSeries, defaultOn:false, group:"cashflow", order:7 }] : []),
+	  ...(fireTargetSeries      ? [{ id:"fireTarget",         label:"FIRE target",        axis:"y2", data: fireTargetSeries,       defaultOn:true,  group:"cashflow", order:1, color:"#f97316" }] : []),
+	  ...(fireIncomeSeries      ? [{ id:"fireIncome",         label:"FIRE income",        axis:"y2", data: fireIncomeSeries,       defaultOn:true,  group:"cashflow", order:2, color:"#22d3ee" }] : []),
+	  ...(fireIncomeWithCashSeries ? [{ id:"fireIncomeWithCash", label:"FIRE income + cash", axis:"y2", data: fireIncomeWithCashSeries, defaultOn:true, group:"cashflow", order:3, color:"#6ee7b7" }] : []),
+	  ...(netRentSeries         ? [{ id:"netRent",            label:"Net rent",           axis:"y2", data: netRentSeries,          defaultOn:false, group:"cashflow", order:4, color:"#fbbf24" }] : []),
+	  ...(withdrawalsSeries     ? [{ id:"withdrawals",        label:"Withdrawals",        axis:"y2", data: withdrawalsSeries,      defaultOn:false, group:"cashflow", order:5, color:"#e879f9" }] : []),
+	  ...(taxSeries             ? [{ id:"taxPaid",            label:"Tax paid",           axis:"y2", data: taxSeries,             defaultOn:false, group:"cashflow", order:6, color:"#94a3b8" }] : []),
+	  ...(cashDrawSeries        ? [{ id:"cashDrawdown",       label:"Cash drawdown",      axis:"y2", data: cashDrawSeries,        defaultOn:false, group:"cashflow", order:7, color:"#f43f5e" }] : []),
 	];
 
 
@@ -2813,7 +2826,6 @@ const fireIncomeWithCashSeries =
   }
   saveState();
   renderChartChips(METRICS);
-  syncChartFilterBtn();
 
 const datasets = METRICS
   .filter(m => state.chartToggles[m.id])
@@ -2821,6 +2833,9 @@ const datasets = METRICS
     label: m.label,
     data: m.data,
     yAxisID: m.axis,
+    borderColor: m.color,
+    backgroundColor: m.color + "28",
+    pointBackgroundColor: m.color,
     borderWidth: 2,
     tension: .25,
     pointRadius: (mode === "monthly" ? 0 : 2),
@@ -3025,7 +3040,14 @@ function renderChartChips(METRICS){
   sorted.forEach(m => {
     const chip = document.createElement("div");
     chip.className = "chip" + (state.chartToggles[m.id] ? " active" : "");
-    chip.textContent = m.label;
+
+    if(m.color){
+      const dot = document.createElement("span");
+      dot.className = "chip-dot";
+      dot.style.background = m.color;
+      chip.appendChild(dot);
+    }
+    chip.appendChild(document.createTextNode(m.label));
 
     chip.onclick = () => {
       state.chartToggles[m.id] = !state.chartToggles[m.id];
