@@ -254,15 +254,24 @@
 	.mini-summary td:first-child{ font-weight:700; color:var(--txt); }
 
 	/* --- Chips bar (chart toggles) --- */
-	.chips-bar{
-	  display:flex; flex-wrap:wrap; align-items:center;
-	  gap:6px 10px; margin-bottom:12px;
-	}
-	.chips-bar .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0; }
-	.chips-bar .chip-divider{
+	.chips-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+	.chips-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+	.chips-row .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0; }
+	.chips-row .chip-divider{
 	  width:1px; height:16px; background:var(--stroke);
-	  align-self:center; flex-shrink:0;
+	  align-self:center; flex-shrink:0; margin:0 2px;
 	}
+	/* --- Section header (Milestones etc) --- */
+	.results-section-header{ margin-bottom:12px; }
+	.results-section-header .title{
+	  font-size:13px; font-weight:700; color:var(--txt); margin:0 0 2px 0;
+	}
+	.results-section-header .sub{
+	  font-size:11px; font-weight:600; letter-spacing:.7px;
+	  text-transform:uppercase; color:var(--muted);
+	}
+	/* --- Scrollable data tables --- */
+	.data-table-wrap{ overflow-x:auto; border-radius:var(--r); }
 
     .brand{
       display:flex;
@@ -1314,7 +1323,10 @@ html, body {
 
     <!-- Milestones snapshot — now / FIRE / end -->
     <div id="milestonesSection" style="margin-top:20px;">
-      <div class="milestones-label">Now · FIRE · End</div>
+      <div class="results-section-header">
+        <div class="title">Milestones</div>
+        <div class="sub">Now · FIRE · End</div>
+      </div>
       <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
     </div>
 
@@ -1323,19 +1335,22 @@ html, body {
     <!-- Chart + toggles -->
     <div id="chartSection">
       <div class="chips-bar">
-        <div class="chips">
-          <div class="chip" onclick="setChartPreset('key')">Key only</div>
-          <div class="chip" onclick="setChartPreset('all')">All</div>
-          <div class="chip" onclick="setChartPreset('none')">None</div>
+        <div class="chips-row">
+          <div class="chips">
+            <div class="chip" onclick="setChartPreset('key')">Key only</div>
+            <div class="chip" onclick="setChartPreset('all')">All</div>
+            <div class="chip" onclick="setChartPreset('none')">None</div>
+          </div>
+          <div class="chip-divider"></div>
+          <div class="chips" id="chipsBalances"></div>
         </div>
-        <div class="chip-divider"></div>
-        <div class="chips" id="chipsBalances"></div>
-        <div class="chip-divider"></div>
-        <div class="chips" id="chipsCashflow"></div>
-        <div class="chip-divider"></div>
-        <div class="chips" id="propertyChips"></div>
+        <div class="chips-row">
+          <div class="chips" id="chipsCashflow"></div>
+          <div class="chip-divider"></div>
+          <div class="chips" id="propertyChips"></div>
+        </div>
       </div>
-      <canvas id="chartMain"></canvas>
+      <canvas id="chartMain" style="margin-bottom:8px;"></canvas>
     </div>
 
     <div class="hr"></div>
@@ -1343,21 +1358,29 @@ html, body {
     <!-- Full data — collapsed by default -->
     <div class="section">
       <div class="sectionHeader" onclick="toggleSection('dataTablesBody','dataTablesChev')">
-        <div>
-          <span style="font-weight:600; font-size:14px;">Full data</span>
-          <span class="sub" style="margin-left:8px;">Year-by-year breakdown</span>
+        <div class="results-section-header" style="margin:0;">
+          <div class="title">Full data</div>
+          <div class="sub">Year-by-year breakdown</div>
         </div>
         <div class="chev" id="dataTablesChev">▸</div>
       </div>
       <div class="sectionBody hidden" id="dataTablesBody">
-        <div class="grid cols2" style="margin-top:12px; gap:24px;">
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:24px;">
           <div>
-            <div class="milestones-label" style="margin-bottom:8px;">Summary</div>
-            <div class="tablewrap scrollY" id="summaryTableWrap"></div>
+            <div class="results-section-header">
+              <div class="title">Summary</div>
+            </div>
+            <div class="data-table-wrap">
+              <div class="tablewrap" id="summaryTableWrap"></div>
+            </div>
           </div>
           <div>
-            <div class="milestones-label" style="margin-bottom:8px;">Property breakdown</div>
-            <div class="tablewrap scrollY" id="propEndTableWrap"></div>
+            <div class="results-section-header">
+              <div class="title">Property breakdown</div>
+            </div>
+            <div class="data-table-wrap">
+              <div class="tablewrap" id="propEndTableWrap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -2910,21 +2933,13 @@ selected
 
 		  y: {
 			position: "left",
-			title: {
-			  display: true,
-			  text: "Balances",
-			  font: { size: 14, weight: "700" }
-			},
+			title: { display: false },
 			ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
 			grid:{ color:"rgba(255,255,255,.06)" }
 		  },
 		  y2: {
 			position: "right",
-			title: {
-			  display: true,
-			  text: "Cashflow",
-			  font: { size: 14, weight: "700" }
-			},
+			title: { display: false },
 			ticks:{ color:"rgba(255,255,255,.55)", callback:(v)=> moneyAxis(v) },
 			grid:{ drawOnChartArea:false }
 		  }
