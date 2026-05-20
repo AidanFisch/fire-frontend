@@ -231,49 +231,37 @@
 		body.landing .topbar {
   display: none;
 }
-	/* --- Analysis flags --- */
-	.analysis-flags{
-	  margin-top: 12px;
-	  padding: 12px 14px;
-	  border-radius: 16px;
-	  border: 1px solid rgba(255,255,255,.12);
-	  background: rgba(0,0,0,.14);
+	/* --- Milestones table --- */
+	.milestones-label{
+	  font-size: 11px;
+	  font-weight: 700;
+	  letter-spacing: .9px;
+	  text-transform: uppercase;
+	  color: var(--muted);
+	  margin-bottom: 10px;
 	}
-
-	.analysis-flags.ok{
-	  border-color: rgba(46,229,157,.35);
-	  background: rgba(46,229,157,.08);
-	  color: rgba(255,255,255,.90);
+	.mini-summary table{ width:100%; border-collapse:collapse; font-size:13px; }
+	.mini-summary th{
+	  text-align:left; color:var(--muted); font-weight:600;
+	  font-size:11px; text-transform:uppercase; letter-spacing:.6px;
+	  padding:0 12px 8px 0; border-bottom:1px solid var(--stroke);
 	}
-
-	.analysis-flags.warn{
-	  border-color: rgba(255,207,92,.35);
-	  background: rgba(255,207,92,.08);
-	  color: rgba(255,255,255,.90);
+	.mini-summary td{
+	  padding:9px 12px 9px 0; border-bottom:1px solid rgba(255,255,255,.04);
+	  font-size:14px; font-variant-numeric: tabular-nums;
 	}
+	.mini-summary tr:last-child td{ border-bottom:none; }
+	.mini-summary td:first-child{ font-weight:700; color:var(--txt); }
 
-	.analysis-flags .title{
-	  font-weight: 850;
-	  margin-bottom: 6px;
+	/* --- Chips bar (chart toggles) --- */
+	.chips-bar{
+	  display:flex; flex-wrap:wrap; align-items:center;
+	  gap:6px 10px; margin-bottom:12px;
 	}
-
-	.analysis-flags ul{
-	  margin: 6px 0 0 18px;
-	  padding: 0;
-	}
-
-	.analysis-flags li{
-	  margin: 4px 0;
-	  color: rgba(255,255,255,.82);
-	}
-
-	.chip-section-label{
-	  font-size: 14px;          /* increase size */
-	  font-weight: 700;         /* make it feel like a section header */
-	  letter-spacing: .3px;
-	  margin-top: 14px;
-	  margin-bottom: 6px;
-	  color: rgba(255,255,255,.82);
+	.chips-bar .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0; }
+	.chips-bar .chip-divider{
+	  width:1px; height:16px; background:var(--stroke);
+	  align-self:center; flex-shrink:0;
 	}
 
     .brand{
@@ -1303,7 +1291,7 @@ html, body {
         <div class="sub" id="resultsMeta">Run the model to see results.</div>
       </div>
       <div class="row" style="gap:8px;">
-        <div class="badge" id="rowsBadge" style="margin-right:4px;"><span class="no"></span><span>No data</span></div>
+        <div class="badge" id="rowsBadge"><span class="no"></span><span>No data</span></div>
         <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
         <button class="btn" onclick="openInputsDrawer()">Edit inputs</button>
         <button class="btn ghost" onclick="toggleDebug()">Debug</button>
@@ -1324,46 +1312,30 @@ html, body {
       </div>
     </div>
 
-    <!-- KPI cards -->
-    <div class="grid cols4" id="kpiRow" style="margin-top:12px;">
-      <div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
-      <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
-      <div class="kpi"><div class="k">Property equity (end)</div><div class="v" id="kpiEquityEnd">—</div></div>
-      <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
+    <!-- Milestones snapshot — now / FIRE / end -->
+    <div id="milestonesSection" style="margin-top:20px;">
+      <div class="milestones-label">Now · FIRE · End</div>
+      <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
     </div>
 
     <div class="hr"></div>
 
-    <!-- Chart -->
+    <!-- Chart + toggles -->
     <div id="chartSection">
-      <div class="row" style="margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-        <div class="chips" style="margin-top:0;">
+      <div class="chips-bar">
+        <div class="chips">
           <div class="chip" onclick="setChartPreset('key')">Key only</div>
           <div class="chip" onclick="setChartPreset('all')">All</div>
           <div class="chip" onclick="setChartPreset('none')">None</div>
         </div>
-        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Balances</div>
-        <div class="chips" id="chipsBalances" style="margin-top:0;"></div>
-        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Cashflow</div>
-        <div class="chips" id="chipsCashflow" style="margin-top:0;"></div>
-        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Property</div>
-        <div class="chips" id="propertyChips" style="margin-top:0;"></div>
+        <div class="chip-divider"></div>
+        <div class="chips" id="chipsBalances"></div>
+        <div class="chip-divider"></div>
+        <div class="chips" id="chipsCashflow"></div>
+        <div class="chip-divider"></div>
+        <div class="chips" id="propertyChips"></div>
       </div>
       <canvas id="chartMain"></canvas>
-    </div>
-
-    <div class="hr"></div>
-
-    <!-- Milestones — always visible, compact -->
-    <div id="milestonesSection">
-      <div class="row" style="margin-bottom:10px;">
-        <div>
-          <span style="font-weight:600; font-size:14px;">Milestones</span>
-          <span class="sub" style="margin-left:8px;">Now · FIRE · End</span>
-        </div>
-        <div id="analysisFlags" class="analysis-flags hidden"></div>
-      </div>
-      <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
     </div>
 
     <div class="hr"></div>
@@ -1378,20 +1350,20 @@ html, body {
         <div class="chev" id="dataTablesChev">▸</div>
       </div>
       <div class="sectionBody hidden" id="dataTablesBody">
-        <div class="grid cols2" style="margin-top:12px;">
+        <div class="grid cols2" style="margin-top:12px; gap:24px;">
           <div>
-            <div class="sub" style="margin-bottom:6px;">Summary</div>
+            <div class="milestones-label" style="margin-bottom:8px;">Summary</div>
             <div class="tablewrap scrollY" id="summaryTableWrap"></div>
           </div>
           <div>
-            <div class="sub" style="margin-bottom:6px;">Property breakdown</div>
+            <div class="milestones-label" style="margin-bottom:8px;">Property breakdown</div>
             <div class="tablewrap scrollY" id="propEndTableWrap"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Debug area (hidden until toggled) -->
+    <!-- Debug area -->
     <div id="debugArea" class="hidden">
       <div class="hr"></div>
       <div class="row">
@@ -1409,11 +1381,27 @@ html, body {
       <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
     </div>
 
+    <!-- Hidden placeholders to keep JS getElementById calls happy -->
+    <div style="display:none">
+      <div id="kpiNWEnd"></div><div id="kpiStocksEnd"></div>
+      <div id="kpiEquityEnd"></div><div id="kpiCashEnd"></div>
+    </div>
+
   </div>
 </section>
 
 </div><!-- /.wrap -->
 
+
+<!-- Toast notification -->
+<div id="toast" class="toast" role="alert" aria-live="assertive">
+  <div class="icon"></div>
+  <div style="flex:1; min-width:0;">
+    <div class="t" id="toastTitle"></div>
+    <div class="m" id="toastMsg"></div>
+  </div>
+  <button class="x btn ghost" onclick="hideToast()" style="padding:4px 8px; font-size:12px;">✕</button>
+</div>
 
 <!-- Slide-over Inputs Drawer (place OUTSIDE .wrap, BEFORE <script>) -->
 <div id="inputsDrawerBackdrop" class="drawer-backdrop" hidden></div>
@@ -3027,43 +3015,17 @@ renderAnalysisFlags({ rows, cols, fireIndex, cashKey });
 
 
 function renderAnalysisFlags({ rows, cols, fireIndex, cashKey }){
-  const el = document.getElementById("analysisFlags");
-  if(!el) return;
-
-  // Your rule:
-  // - If cash at FIRE is negative => warn
-  // - Otherwise => green "No analysis problems"
-  let cashAtFire = 0;
-  if (fireIndex >= 0 && rows[fireIndex]) {
-    cashAtFire = getFirstNumber(rows[fireIndex], [cashKey]);
-  }
-
-  // Show warn only if FIRE exists AND cash at FIRE is negative
   const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
-	const minCash = Math.min(...cashSeries);
+  const minCash = Math.min(...cashSeries);
 
-	const hasProblem = minCash < 0;
-
-
-  el.classList.remove("hidden", "ok", "warn");
-
-  if(!hasProblem){
-    el.classList.add("ok");
-    el.innerHTML = `
-      <div class="title">✅ Analysis flags</div>
-      <div>No analysis problems</div>
-    `;
-    return;
+  if(minCash < 0){
+    showToast(
+      "⚠ Cash goes negative",
+      `Minimum cash balance: ${fmtMoney(minCash)}. Consider reducing expenses or increasing income.`,
+      6000
+    );
   }
-
-  el.classList.add("warn");
-  el.innerHTML = `
-    <div class="title">⚠ Analysis flags</div>
-    <ul>
-      <li>Cash becomes negative during the projection (${fmtMoney(minCash)})</li>
-
-    </ul>
-  `;
+  // No problem — stay silent
 }
 
 
