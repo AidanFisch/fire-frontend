@@ -1293,17 +1293,18 @@ html, body {
 
 
     <!-- RESULTS -->
-    <!-- RESULTS -->
 <section id="tab-results" class="tabs" style="margin-top:18px;">
   <div class="card">
+
+    <!-- Header -->
     <div class="row">
       <div>
         <h2 style="margin-bottom:4px;">Results</h2>
-        <div class="sub" id="resultsMeta">Run the model to see charts + tables.</div>
+        <div class="sub" id="resultsMeta">Run the model to see results.</div>
       </div>
-      <div class="row" style="gap:10px;">
+      <div class="row" style="gap:8px;">
+        <div class="badge" id="rowsBadge" style="margin-right:4px;"><span class="no"></span><span>No data</span></div>
         <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-        <!-- CHANGED: open the drawer instead of navigating to Inputs -->
         <button class="btn" onclick="openInputsDrawer()">Edit inputs</button>
         <button class="btn ghost" onclick="toggleDebug()">Debug</button>
       </div>
@@ -1311,129 +1312,101 @@ html, body {
 
     <div class="hr"></div>
 
-    <!-- Sub-tabs inside Results -->
-    <div class="subnav" role="tablist" aria-label="Results views">
-      <button id="btnSubOverview" role="tab" aria-selected="true" class="active" onclick="showResultsSubtab('overview')">Overview</button>
-      <button id="btnSubCharts"   role="tab" aria-selected="false" onclick="showResultsSubtab('charts')">Charts</button>
-      <button id="btnSubTables"   role="tab" aria-selected="false" onclick="showResultsSubtab('tables')">Tables</button>
+    <!-- FIRE banner -->
+    <div id="fireBanner" class="fire-banner">
+      <div class="fire-banner-inner">
+        <div class="fire-banner-icon" id="fireBannerIcon">🔥</div>
+        <div>
+          <div class="fire-banner-label">FIRE achieved</div>
+          <div class="fire-banner-age" id="kpiFireAge">—</div>
+          <div class="fire-banner-note" id="fireBannerNote"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- OVERVIEW -->
-    <div id="subtab-overview" class="subtabs active" role="tabpanel" aria-labelledby="btnSubOverview">
+    <!-- KPI cards -->
+    <div class="grid cols4" id="kpiRow" style="margin-top:12px;">
+      <div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
+      <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
+      <div class="kpi"><div class="k">Property equity (end)</div><div class="v" id="kpiEquityEnd">—</div></div>
+      <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
+    </div>
 
-      <div id="fireBanner" class="fire-banner" style="margin-top:12px;">
-        <div class="fire-banner-inner">
-          <div class="fire-banner-icon" id="fireBannerIcon">🔥</div>
+    <div class="hr"></div>
+
+    <!-- Chart -->
+    <div id="chartSection">
+      <div class="row" style="margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <div class="chips" style="margin-top:0;">
+          <div class="chip" onclick="setChartPreset('key')">Key only</div>
+          <div class="chip" onclick="setChartPreset('all')">All</div>
+          <div class="chip" onclick="setChartPreset('none')">None</div>
+        </div>
+        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Balances</div>
+        <div class="chips" id="chipsBalances" style="margin-top:0;"></div>
+        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Cashflow</div>
+        <div class="chips" id="chipsCashflow" style="margin-top:0;"></div>
+        <div class="chip-section-label" style="margin:0 4px 0 8px; align-self:center;">Property</div>
+        <div class="chips" id="propertyChips" style="margin-top:0;"></div>
+      </div>
+      <canvas id="chartMain"></canvas>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Milestones — always visible, compact -->
+    <div id="milestonesSection">
+      <div class="row" style="margin-bottom:10px;">
+        <div>
+          <span style="font-weight:600; font-size:14px;">Milestones</span>
+          <span class="sub" style="margin-left:8px;">Now · FIRE · End</span>
+        </div>
+        <div id="analysisFlags" class="analysis-flags hidden"></div>
+      </div>
+      <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Full data — collapsed by default -->
+    <div class="section">
+      <div class="sectionHeader" onclick="toggleSection('dataTablesBody','dataTablesChev')">
+        <div>
+          <span style="font-weight:600; font-size:14px;">Full data</span>
+          <span class="sub" style="margin-left:8px;">Year-by-year breakdown</span>
+        </div>
+        <div class="chev" id="dataTablesChev">▸</div>
+      </div>
+      <div class="sectionBody hidden" id="dataTablesBody">
+        <div class="grid cols2" style="margin-top:12px;">
           <div>
-            <div class="fire-banner-label">FIRE achieved</div>
-            <div class="fire-banner-age" id="kpiFireAge">—</div>
-            <div class="fire-banner-note" id="fireBannerNote"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid cols4" id="kpiRow" style="margin-top:12px;">
-        <div class="kpi"><div class="k">Cash (end)</div><div class="v" id="kpiCashEnd">—</div></div>
-        <div class="kpi"><div class="k">Stocks (end)</div><div class="v" id="kpiStocksEnd">—</div></div>
-        <div class="kpi"><div class="k">Property equity (end)</div><div class="v" id="kpiEquityEnd">—</div></div>
-        <div class="kpi"><div class="k">Net worth (end)</div><div class="v" id="kpiNWEnd">—</div></div>
-      </div>
-
-      <div class="hr"></div>
-
-      <!-- Quick summary + flags -->
-      <div class="section" style="margin-top:14px;">
-        <div class="sectionHeader" onclick="toggleSection('miniSummaryBody','miniSummaryChev')">
-          <div>
-            <h2>Quick summary</h2>
-            <div class="sub">Now / FIRE / End snapshot.</div>
-          </div>
-          <div class="chev" id="miniSummaryChev">▾</div>
-        </div>
-        <div class="sectionBody" id="miniSummaryBody">
-          <div class="tablewrap mini-summary" id="miniSummaryWrap"></div>
-          <div id="analysisFlags" class="analysis-flags hidden"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CHARTS -->
-    <div id="subtab-charts" class="subtabs" role="tabpanel" aria-labelledby="btnSubCharts">
-      <div class="card" style="padding:14px; background: rgba(0,0,0,.18); border-radius: var(--r2); border-color: rgba(255,255,255,.08); margin-top:12px;">
-        <div class="row">
-          <div class="badge" id="rowsBadge"><span class="no"></span><span>No rows yet</span></div>
-          <div class="chips" style="margin-top:0;">
-            <div class="chip" onclick="setChartPreset('key')">Key only</div>
-            <div class="chip" onclick="setChartPreset('all')">All</div>
-            <div class="chip" onclick="setChartPreset('none')">None</div>
-          </div>
-        </div>
-
-        <div class="chip-section-label">Balances</div>
-        <div class="chips" id="chipsBalances"></div>
-
-        <div class="chip-section-label">Cashflow</div>
-        <div class="chips" id="chipsCashflow"></div>
-
-        <div class="chip-section-label">Per-property</div>
-        <div class="chips" id="propertyChips"></div>
-
-        <div style="margin-top:12px;">
-          <canvas id="chartMain"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- TABLES -->
-    <div id="subtab-tables" class="subtabs" role="tabpanel" aria-labelledby="btnSubTables">
-      <div class="grid cols2" style="margin-top:16px;">
-        <div class="section">
-          <div class="sectionHeader" onclick="toggleSection('summaryTableBody','summaryTableChev')">
-            <div>
-              <h2>Summary table</h2>
-              <div class="sub">Full series (cash/stocks/property/net worth). Click to expand.</div>
-            </div>
-            <div class="chev" id="summaryTableChev">▸</div>
-          </div>
-          <div class="sectionBody hidden" id="summaryTableBody">
+            <div class="sub" style="margin-bottom:6px;">Summary</div>
             <div class="tablewrap scrollY" id="summaryTableWrap"></div>
           </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionHeader" onclick="toggleSection('propEndTableBody','propEndTableChev')">
-            <div>
-              <h2>Property breakdown</h2>
-              <div class="sub">Per-property value/mortgage/equity + net rent. Click to expand.</div>
-            </div>
-            <div class="chev" id="propEndTableChev">▸</div>
-          </div>
-          <div class="sectionBody hidden" id="propEndTableBody">
+          <div>
+            <div class="sub" style="margin-bottom:6px;">Property breakdown</div>
             <div class="tablewrap scrollY" id="propEndTableWrap"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Optional debug area remains -->
-      <div id="debugArea" class="hidden">
-        <div class="hr"></div>
-        <div class="row">
-          <h3 style="margin:0;">Full table</h3>
-          <div class="row" style="gap:10px;">
-            <input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
-            <button class="btn" onclick="toggleFullTable()">Toggle full table</button>
-          </div>
+    <!-- Debug area (hidden until toggled) -->
+    <div id="debugArea" class="hidden">
+      <div class="hr"></div>
+      <div class="row">
+        <h3 style="margin:0;">Full table</h3>
+        <div class="row" style="gap:10px;">
+          <input id="tableSearch" placeholder="Search columns/values…" oninput="renderFullTable()" style="max-width:320px"/>
+          <button class="btn" onclick="toggleFullTable()">Toggle full table</button>
         </div>
-        <div class="sub" style="margin-top:6px;">This is the raw API table (filter/searchable). Good for debugging.</div>
-        <div id="fullTableBox" style="display:none; margin-top:12px;">
-          <div class="tablewrap" id="fullTableWrap"></div>
-        </div>
-        <div class="hr"></div>
-        <h3 style="margin:0 0 8px 0;">Raw API response (debug)</h3>
-        <div class="sub">If something breaks, this helps you see exactly what the backend returned.</div>
-        <div class="hr"></div>
-        <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
       </div>
+      <div id="fullTableBox" style="display:none; margin-top:12px;">
+        <div class="tablewrap" id="fullTableWrap"></div>
+      </div>
+      <div class="hr"></div>
+      <h3 style="margin:0 0 8px 0;">Raw API response</h3>
+      <pre id="rawOut" class="mono" style="white-space:pre-wrap; background:rgba(0,0,0,.22); border:1px solid var(--stroke); padding:12px; border-radius: var(--r); max-height:320px; overflow:auto; margin:0;"></pre>
     </div>
 
   </div>
@@ -2534,7 +2507,6 @@ async function runModel(){
 
   renderResults(result);
   showTab("results");
-  showResultsSubtab("overview");
 }
 
 // Draw a vertical "FIRE" marker line on the chart
