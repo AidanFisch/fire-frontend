@@ -248,7 +248,7 @@
 	.ms-label{ font-size:12px; color:var(--muted); flex-shrink:0; }
 	.ms-value{ font-size:13px; font-weight:600; color:var(--txt); font-variant-numeric:tabular-nums; }
 
-	/* --- Chips bar (chart toggles) --- */
+	/* --- Chips bar (chart toggles, inside Additional filters) --- */
 	.chips-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
 	.chips-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 	.chips-row .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:0; }
@@ -256,6 +256,17 @@
 	  width:1px; height:16px; background:var(--stroke);
 	  align-self:center; flex-shrink:0; margin:0 2px;
 	}
+	/* --- Chart filter overlay button --- */
+	#chartWrap{ position:relative; }
+	.chart-filter-btn{
+	  position:absolute; top:10px; left:10px; z-index:10;
+	  background:rgba(15,15,25,.72); border:1px solid rgba(255,255,255,.14);
+	  color:rgba(255,255,255,.75); font-size:11px; font-weight:600;
+	  letter-spacing:.4px; padding:4px 10px; border-radius:999px;
+	  cursor:pointer; backdrop-filter:blur(6px); transition:background .15s,color .15s;
+	  font-family:var(--sans);
+	}
+	.chart-filter-btn:hover{ background:rgba(255,255,255,.14); color:var(--txt); }
 	/* --- Section header (Milestones etc) --- */
 	.results-section-header{ margin-bottom:12px; }
 	.results-section-header .title{
@@ -1310,29 +1321,11 @@ html, body {
 
     <div class="hr"></div>
 
-    <!-- Chart + toggles -->
+    <!-- Chart -->
     <div id="chartSection">
-      <canvas id="chartMain" style="margin-bottom:12px;"></canvas>
-      <div class="section">
-        <div class="sectionHeader" onclick="toggleSection('chartFiltersBody','chartFiltersChev')">
-          <div class="results-section-header" style="margin:0;">
-            <div class="title">Additional filters</div>
-            <div class="sub">Toggle chart series</div>
-          </div>
-          <div class="chev" id="chartFiltersChev">▸</div>
-        </div>
-        <div class="sectionBody hidden" id="chartFiltersBody">
-          <div class="chips-bar" style="padding-top:4px;">
-            <div class="chips-row">
-              <div class="chips" id="chipsBalances"></div>
-            </div>
-            <div class="chips-row">
-              <div class="chips" id="chipsCashflow"></div>
-              <div class="chip-divider"></div>
-              <div class="chips" id="propertyChips"></div>
-            </div>
-          </div>
-        </div>
+      <div id="chartWrap">
+        <button class="chart-filter-btn" id="chartFilterBtn" onclick="cycleChartFilter()">Key</button>
+        <canvas id="chartMain"></canvas>
       </div>
     </div>
 
@@ -1518,10 +1511,8 @@ let state = {
 	cashDrawdown: false,
 	fireIncome: true,
 	fireIncomeWithCash: true,
-	
-
-
   },
+  chartFilterMode: 'key',
 	selectedPropPrefixes: [],
 	expandedPropertyId: null,
   lastResult: null,
@@ -1836,6 +1827,10 @@ function loadState(){
 
       if (isPlainObject(parsed.chartToggles)) {
         state.chartToggles = { ...state.chartToggles, ...parsed.chartToggles };
+      }
+
+      if (parsed.chartFilterMode && CHART_FILTER_CYCLE.includes(parsed.chartFilterMode)) {
+        state.chartFilterMode = parsed.chartFilterMode;
       }
 
       if (parsed.lastResult) state.lastResult = parsed.lastResult;
@@ -2818,7 +2813,7 @@ const fireIncomeWithCashSeries =
   }
   saveState();
   renderChartChips(METRICS);
-
+  syncChartFilterBtn();
 
 const datasets = METRICS
   .filter(m => state.chartToggles[m.id])
@@ -3066,6 +3061,41 @@ function setChartPreset(which){
 
   saveState();
   if(state.lastResult) renderResults(state.lastResult);
+}
+
+const CHART_FILTER_CYCLE = ['key','balances','cashflow','all'];
+const CHART_FILTER_LABELS = { key:'Key', balances:'Balances', cashflow:'Cashflow', all:'All' };
+
+function cycleChartFilter(){
+  const METRICS = lastMetricsRegistry || [];
+  const current = state.chartFilterMode || 'key';
+  const idx = CHART_FILTER_CYCLE.indexOf(current);
+  const next = CHART_FILTER_CYCLE[(idx + 1) % CHART_FILTER_CYCLE.length];
+  applyChartFilter(next, METRICS);
+}
+
+function applyChartFilter(mode, METRICS){
+  state.chartFilterMode = mode;
+  const ids = (METRICS || []).map(m => m.id);
+  if(mode === 'all'){
+    for(const id of ids) state.chartToggles[id] = true;
+  } else if(mode === 'balances'){
+    for(const m of (METRICS || [])) state.chartToggles[m.id] = m.group === 'balances';
+  } else if(mode === 'cashflow'){
+    for(const m of (METRICS || [])) state.chartToggles[m.id] = m.group === 'cashflow';
+  } else {
+    const keySet = new Set(["netWorth","cash","stocks","propertyEquity","fireTarget","fireIncome","fireIncomeWithCash"]);
+    for(const id of ids) state.chartToggles[id] = keySet.has(id);
+  }
+  saveState();
+  const btn = document.getElementById('chartFilterBtn');
+  if(btn) btn.textContent = CHART_FILTER_LABELS[mode] || mode;
+  if(state.lastResult) renderResults(state.lastResult);
+}
+
+function syncChartFilterBtn(){
+  const btn = document.getElementById('chartFilterBtn');
+  if(btn) btn.textContent = CHART_FILTER_LABELS[state.chartFilterMode || 'key'] || 'Key';
 }
 
 /** ---------------------------
