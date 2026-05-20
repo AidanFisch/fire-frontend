@@ -2534,6 +2534,7 @@ async function runModel(){
 
   renderResults(result);
   showTab("results");
+  showResultsSubtab("overview");
 }
 
 // Draw a vertical "FIRE" marker line on the chart
@@ -3767,14 +3768,6 @@ function showInputsPanel(which){
   });
 }
 
-/* Optional: after rendering results, default to Overview tab */
-(function(){
-  const _origRenderResults = renderResults;
-  renderResults = function(result){
-    _origRenderResults(result);
-    showResultsSubtab('overview');
-  };
-})();
 
 </script>
 
