@@ -1164,25 +1164,36 @@ html, body {
   border-bottom: 1px solid #D8D4CC !important;
   border-radius: 0 !important;
   position: static !important;
-  box-shadow: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
   padding: 12px 24px !important;
   backdrop-filter: none !important;
   top: unset !important;
 }
 body.landing .topbar { display: none; }
-.brand { font-size: 15px; font-weight: 700; color: #1C1C1A; }
+
+/* Brand lockup */
+.brand { gap: 6px !important; align-items: center !important; }
+.brand-lockup-svg { display: block; flex-shrink: 0; overflow: visible; }
+
+/* API status dot — inline flex item, vertically centred */
+.api-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #C8C4BC;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .dot {
   background: linear-gradient(135deg, #059669, #34D399) !important;
   box-shadow: 0 0 0 5px rgba(5,150,105,.12) !important;
-}
-.pill {
-  background: #E6F7F2 !important;
-  color: #059669 !important;
-  border: 1px solid #A7DFD0 !important;
-  border-radius: 6px !important;
-  font-size: 11px !important;
-  padding: 2px 8px !important;
-  margin-left: 8px;
 }
 
 /* ── Nav tabs ── */
@@ -1390,6 +1401,127 @@ label { color: #5C5955 !important; }
 /* ── HR / dividers ── */
 .hr { background: #D8D4CC !important; }
 
+/* ══════════════════════════════════════
+   BUDGET TAB
+   ══════════════════════════════════════ */
+
+/* Topbar center nav */
+.topbar { justify-content: space-between !important; }
+.topbar .brand   { flex: 1 0 auto; }
+.topbar .header-actions { flex: 1 0 auto; justify-content: flex-end; display: flex !important; }
+
+/* Budget section labels & summary strip */
+.budget-section-lbl {
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:#8A8582; margin:14px 0 5px; padding:0;
+}
+.budget-summary-strip {
+  display:flex; align-items:center; gap:0; margin:14px 0;
+  padding:12px 16px; background:#F8F7F4; border-radius:8px; border:1px solid #E8E4DE;
+  flex-wrap:wrap;
+}
+.budget-summary-item { flex:1; text-align:center; min-width:70px; }
+.budget-summary-sep  { font-size:16px; color:#C8C4BC; padding:0 6px; flex-shrink:0; font-weight:300; }
+.bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#8A8582; }
+.bsi-val   { font-size:16px; font-weight:700; color:#1C1C1A; margin-top:3px; }
+.bsi-sub   { font-size:10px; color:#8A8582; margin-top:1px; min-height:13px; }
+.bsi-pos   { color:#059669 !important; }
+.bsi-neg   { color:#E11D48 !important; }
+
+/* Budget month editor — card head */
+.budget-card-head {
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #E8E4DE;
+}
+.budget-month-nav {
+  display:flex; align-items:center; gap:6px; font-size:15px; font-weight:700;
+}
+.budget-month-nav .btn { padding:5px 10px !important; font-size:12px !important; }
+#budgetMonthLabel { min-width:130px; text-align:center; color:#1C1C1A; }
+
+.budget-save-status { font-size:11px; color:#8A8582; margin-left:auto; transition:color .3s; }
+.budget-save-status.saved { color:#059669; }
+.budget-save-status.error { color:#dc2626; }
+
+/* Budget year nav arrows */
+.budget-yr-nav { display:flex; align-items:center; gap:6px; }
+.budget-yr-nav .btn { padding:5px 10px !important; font-size:12px !important; }
+#budgetYearLabel { font-size:15px; font-weight:700; min-width:44px; text-align:center; color:#1C1C1A; }
+
+/* Year overview table */
+.budget-table { min-width:700px; }
+.budget-month-th {
+  cursor:pointer; text-align:center;
+  font-size:11px !important; padding:8px 5px !important; min-width:54px;
+  transition: background .12s;
+}
+.budget-month-th:hover { background:#F0EDE8 !important; }
+.budget-month-th.bm-logged { color:#059669 !important; }
+.budget-month-th.bm-future { color:#C8C4BC !important; }
+.budget-month-th.bm-past   { color:#5C5955 !important; }
+.bm-dot { color:#059669; font-size:6px; vertical-align:3px; margin-left:2px; }
+.budget-row-th  { width:120px; min-width:120px; }
+.budget-row-lbl { font-size:12px !important; color:#5C5955 !important; white-space:nowrap; padding:8px 12px !important; }
+.budget-sec-hdr {
+  font-size:10px !important; font-weight:700 !important; letter-spacing:.08em !important;
+  text-transform:uppercase !important; color:#8A8582 !important;
+  background:#F8F7F4 !important; padding:5px 12px !important;
+}
+.budget-cell {
+  text-align:right !important; cursor:pointer;
+  font-size:12.5px !important; font-variant-numeric:tabular-nums;
+  transition:background .1s; min-width:54px; padding:7px 8px !important;
+}
+.budget-cell:hover { background:#F0EDE8 !important; }
+.budget-cell.bc-data  { color:#1C1C1A !important; }
+.budget-cell.bc-empty { color:#C8C4BC !important; font-style:italic; }
+.budget-cell.bc-pos   { color:#059669 !important; font-weight:600 !important; }
+.budget-cell.bc-neg   { color:#E11D48 !important; font-weight:600 !important; }
+
+/* FIRE progress bar */
+.fp-bar-track { height:8px; background:#F0EDE8; border-radius:999px; overflow:hidden; margin-top:8px; }
+.fp-bar-fill  { height:100%; border-radius:999px; background:#059669; transition:width .6s ease; }
+.fp-bar-fill.fp-behind { background:#F59E0B; }
+.fp-status-pill {
+  font-size:12px; font-weight:700; padding:4px 12px;
+  border-radius:999px; background:#E6F7F2; color:#059669; border:1px solid #A7DFD0;
+}
+.fp-status-pill.fp-behind { background:#FEF3C7; color:#92400E; border-color:#FCD34D; }
+
+/* Log drawer — expense table */
+.expense-table {
+  width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed;
+}
+.expense-table th {
+  font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:#8A8582; padding:4px 6px 6px; text-align:left; border-bottom:1px solid #E8E4DE;
+}
+.expense-table th.th-num { text-align:right; }
+.expense-table td {
+  padding:3px 4px; border-bottom:1px solid #F0EDE8; vertical-align:middle;
+}
+.expense-table tbody tr:last-child td { border-bottom:none; }
+.exp-input {
+  width:100%; background:#FAFAF8; border:1px solid #E8E4DE; border-radius:5px;
+  padding:5px 7px; font-size:12px; color:#1C1C1A; font-family:inherit;
+  transition:background .15s, border-color .15s, box-shadow .15s;
+  -webkit-appearance:auto; appearance:auto;
+}
+.exp-input:hover { border-color:#C8C4BC; }
+.exp-input:focus {
+  background:#fff; outline:none;
+  border-color:#1D9E75; box-shadow:0 0 0 2px rgba(29,158,117,.18);
+}
+input.exp-input[type="number"] { text-align:right; }
+select.exp-input { cursor:pointer; }
+.exp-del {
+  width:24px; height:24px; padding:0; background:transparent; border:none;
+  border-radius:4px; font-size:15px; line-height:1; cursor:pointer;
+  color:#C8C4BC; display:flex; align-items:center; justify-content:center;
+  transition:background .15s, color .15s; margin:0 auto;
+}
+.exp-del:hover { background:#FEE2E2; color:#dc2626; }
+
   </style>
 </head>
 
@@ -1397,22 +1529,38 @@ label { color: #5C5955 !important; }
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
-        <span class="dot"></span>
-        <span>FIRE Model</span>
-        <span class="pill" id="apiPill">API: …</span>
+        <svg class="brand-lockup-svg" width="160" height="30" viewBox="0 0 160 30"
+             fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Wealth Model">
+          <!-- Area fill beneath trend line -->
+          <polygon points="0,22 10,14 22,18 36,4 36,30 0,30"
+                   fill="#1D9E75" opacity="0.15"/>
+          <!-- Trend line -->
+          <polyline points="0,22 10,14 22,18 36,4"
+                    stroke="#1D9E75" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Apex circle -->
+          <circle cx="36" cy="4" r="3" fill="#1D9E75"/>
+          <!-- Wordmark: "Wealth" charcoal + " Model" teal -->
+          <text x="46" y="15" dominant-baseline="middle"
+                style="font-family:inherit; font-weight:800; font-size:17px; letter-spacing:-0.03em;">
+            <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75"> Model</tspan>
+          </text>
+        </svg>
+        <span class="api-dot" id="apiStatusDot"></span>
       </div>
       <div class="nav">
-		  <button id="themeToggle" class="btn soft" style="white-space:nowrap;">
-  🌙 Dark
-</button>
-	  
-	  <!-- the below code readds the home page back in -->
-	  <!--<button id="btnHome" class="active" onclick="showTab('home')">Home</button> -->
-
-        <button id="btnHome" style="display:none"></button>
-        <button id="btnInputs" style="display:none"></button>
         <button id="btnResults" onclick="showTab('results')">Results</button>
+        <button id="btnBudget"  onclick="showBudgetTab()">Budget</button>
       </div>
+      <div class="header-actions">
+        <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
+        <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
+        <button class="btn primary" id="btnRunModel" onclick="runModel()">Run Model</button>
+      </div>
+      <!-- Hidden anchors for showTab() JS compatibility -->
+      <button id="btnHome"   style="display:none"></button>
+      <button id="btnInputs" style="display:none"></button>
+      <button id="themeToggle" style="display:none"></button>
     </div>
 	
 <!-- LANDING -->
@@ -1427,7 +1575,7 @@ label { color: #5C5955 !important; }
         <div>
           <div class="brand" style="margin-bottom:14px;">
             <span class="dot"></span>
-            <span style="font-size:18px;">FIRE Model</span>
+            <span style="font-size:18px;">Wealth Model</span>
           </div>
 
           <h1 class="hero-title" style="margin-top:0;">
@@ -1619,7 +1767,6 @@ label { color: #5C5955 !important; }
                   <option value="yearly">Yearly (recommended)</option>
                   <option value="monthly">Monthly (debug)</option>
                 </select>
-                <button class="btn primary" onclick="event.stopPropagation(); runModel()">Run model</button>
                 <div class="chev" id="inputsChev">▾</div>
               </div>
             </div>
@@ -1695,21 +1842,11 @@ label { color: #5C5955 !important; }
 <section id="tab-results" class="tabs" style="margin-top:18px;">
   <div class="card">
 
-    <!-- Header -->
-    <div class="row">
-      <div>
-        <h2 style="margin-bottom:4px;">Results</h2>
-        <div class="sub" id="resultsMeta">Run the model to see results.</div>
-      </div>
-      <div class="row" style="gap:8px;">
-        <div class="badge" id="rowsBadge"><span class="no"></span><span>No data</span></div>
-        <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-        <button class="btn" onclick="openInputsDrawer()">Edit inputs</button>
-        <button class="btn ghost" onclick="toggleDebug()">Debug</button>
-      </div>
+    <!-- Hidden elements kept for JS compatibility -->
+    <div style="display:none">
+      <div id="resultsMeta"></div>
+      <div id="rowsBadge"></div>
     </div>
-
-    <div class="hr"></div>
 
     <!-- FIRE banner -->
     <div id="fireBanner" class="fire-banner">
@@ -1810,6 +1947,96 @@ label { color: #5C5955 !important; }
   </div>
 </section>
 
+
+<!-- ══════════════════════════════════════
+     BUDGET TAB
+     ══════════════════════════════════════ -->
+<section id="tab-budget" class="tabs" style="margin-top:18px;">
+  <div style="display:flex; flex-direction:column; gap:20px;">
+
+    <!-- Month editor card -->
+    <div class="card">
+      <div class="budget-card-head">
+        <div class="budget-month-nav">
+          <button class="btn ghost" onclick="budgetMonthStep(-1)">◀</button>
+          <span id="budgetMonthLabel">—</span>
+          <button class="btn ghost" onclick="budgetMonthStep(1)">▶</button>
+        </div>
+        <span id="budgetSaveStatus" class="budget-save-status"></span>
+      </div>
+
+      <p class="budget-section-lbl">Income</p>
+      <div id="incomeTableWrap"></div>
+      <button class="btn ghost" onclick="addIncomeRow()"
+              style="margin-top:8px; font-size:12px;">+ Add income</button>
+
+      <!-- Summary strip -->
+      <div class="budget-summary-strip" id="budgetSummaryStrip">
+        <div class="budget-summary-item">
+          <div class="bsi-label">Income</div>
+          <div class="bsi-val" id="bsiIncome">—</div>
+          <div class="bsi-sub" id="bsiIncomeA"></div>
+        </div>
+        <div class="budget-summary-sep">−</div>
+        <div class="budget-summary-item">
+          <div class="bsi-label">Expenses</div>
+          <div class="bsi-val" id="bsiExpenses">—</div>
+          <div class="bsi-sub" id="bsiExpensesA"></div>
+        </div>
+        <div class="budget-summary-sep">=</div>
+        <div class="budget-summary-item">
+          <div class="bsi-label">Net savings</div>
+          <div class="bsi-val" id="bsiNet">—</div>
+          <div class="bsi-sub" id="bsiNetA"></div>
+        </div>
+        <div class="budget-summary-item">
+          <div class="bsi-label">Savings rate</div>
+          <div class="bsi-val" id="bsiRate">—</div>
+          <div class="bsi-sub" id="bsiRateA"></div>
+        </div>
+      </div>
+
+      <p class="budget-section-lbl">Expenses</p>
+      <div id="budgetExpenseWrap"></div>
+      <button class="btn ghost" onclick="addExpenseRow()"
+              style="margin-top:8px; font-size:12px;">+ Add expense</button>
+    </div>
+
+    <!-- Year overview card -->
+    <div class="card">
+      <div class="row" style="margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div class="results-section-header" style="margin:0 0 2px 0;">
+            <div class="title">Year Overview</div>
+          </div>
+          <div class="small">Click any month to jump to it</div>
+        </div>
+        <div class="budget-yr-nav">
+          <button class="btn ghost" onclick="budgetYearStep(-1)">◀</button>
+          <span id="budgetYearLabel">—</span>
+          <button class="btn ghost" onclick="budgetYearStep(1)">▶</button>
+        </div>
+      </div>
+      <div id="budgetYearTableWrap">
+        <div class="small muted" style="padding:16px 0;">Switch to this tab to load data.</div>
+      </div>
+    </div>
+
+    <!-- FIRE progress card -->
+    <div class="card">
+      <div class="results-section-header" style="margin-bottom:12px;">
+        <div class="title">Savings vs FIRE Target</div>
+        <div class="sub">Average monthly net savings vs what your FIRE model assumes</div>
+      </div>
+      <div id="fireProgressContent">
+        <div class="small muted">Log at least one month to see your savings rate vs target.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
 </div><!-- /.wrap -->
 
 
@@ -1836,7 +2063,6 @@ label { color: #5C5955 !important; }
       </div>
     </div>
     <div class="row" style="gap:8px;">
-      <button class="btn soft" onclick="runModel()">Run model</button>
       <button class="btn" onclick="closeInputsDrawer()" aria-label="Close inputs drawer">Close</button>
     </div>
   </div>
@@ -2354,8 +2580,10 @@ function loadState(){
 function showTab(name){
   document.querySelectorAll(".tabs").forEach(el => el.classList.remove("active"));
   document.querySelectorAll(".nav button").forEach(el => el.classList.remove("active"));
-  document.getElementById(`tab-${name}`).classList.add("active");
-  document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`).classList.add("active");
+  const tabEl = document.getElementById(`tab-${name}`);
+  if(tabEl) tabEl.classList.add("active");
+  const btnEl = document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`);
+  if(btnEl) btnEl.classList.add("active");
 }
 
 function enterApp(){
@@ -2780,10 +3008,15 @@ async function pingAPI(){
   }
 }
 function setApiStatus(ok, text){
-  const pill = document.getElementById("apiPill");
-  pill.textContent = `API: ${ok ? "ok" : "down"}`;
+  const dot = document.getElementById("apiStatusDot");
+  if(dot){
+    dot.style.background = ok ? "#22c55e" : "#ef4444";
+    dot.style.boxShadow  = ok
+      ? "0 0 0 3px rgba(34,197,94,.20)"
+      : "0 0 0 3px rgba(239,68,68,.20)";
+  }
   const badge = document.getElementById("apiBadge");
-  badge.innerHTML = ok
+  if(badge) badge.innerHTML = ok
     ? `<span class="ok"></span><span>API reachable (${escapeHtml(text)})</span>`
     : `<span class="no"></span><span>API issue (${escapeHtml(text)})</span>`;
 }
@@ -2884,6 +3117,9 @@ async function callPath(base, path, payload){
 
 
 async function runModel(){
+  const runBtn = document.getElementById("btnRunModel");
+  if(runBtn){ runBtn.textContent = "Running…"; runBtn.disabled = true; }
+
   syncInputsFromUI();
   saveState();
   const base = (state.apiBase || "").replace(/\/+$/,"");
@@ -2927,6 +3163,7 @@ async function runModel(){
   if(!result){
     document.getElementById("rawOut").textContent = String(lastErr || "Unknown error");
     document.getElementById("resultsMeta").textContent = "Run failed. See raw output.";
+    if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
     showTab("results");
     return;
   }
@@ -2976,6 +3213,7 @@ async function runModel(){
 
   renderResults(result);
   showTab("results");
+  if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
 }
 
 // Draw a vertical "FIRE" marker line on the chart
@@ -4109,6 +4347,8 @@ loadState();
 window.addEventListener("load", ()=>{
   bindCoreInputs();
   hydrateUI();
+  initIncomeTable();      // build income table once
+  initExpenseTable();     // build expense table once
   initLanding();
 });
 
@@ -4198,6 +4438,616 @@ showTab = function(name){
   ensureInputsAtHome();
   _origShowTab(name);
 };
+
+/* ═══════════════════════════════════════════════════════
+   BUDGET TAB
+   ═══════════════════════════════════════════════════════ */
+
+/** Pre-seeded category definitions — group → sub-categories */
+const BUDGET_CATS = [
+  { group:'Housing',       key:'hous_rent',    label:'Rent / Mortgage' },
+  { group:'Housing',       key:'hous_util',    label:'Utilities' },
+  { group:'Housing',       key:'hous_ins',     label:'Home Insurance' },
+  { group:'Housing',       key:'hous_maint',   label:'Maintenance & Repairs' },
+  { group:'Housing',       key:'hous_strata',  label:'Strata / Body Corporate' },
+  { group:'Housing',       key:'hous_rates',   label:'Council Rates' },
+
+  { group:'Transport',     key:'tran_loan',    label:'Car Loan / Lease' },
+  { group:'Transport',     key:'tran_fuel',    label:'Fuel' },
+  { group:'Transport',     key:'tran_ins',     label:'Car Insurance' },
+  { group:'Transport',     key:'tran_rego',    label:'Registration' },
+  { group:'Transport',     key:'tran_maint',   label:'Car Maintenance' },
+  { group:'Transport',     key:'tran_pub',     label:'Public Transport' },
+  { group:'Transport',     key:'tran_park',    label:'Parking & Tolls' },
+
+  { group:'Food & Drink',  key:'food_groc',    label:'Groceries' },
+  { group:'Food & Drink',  key:'food_dine',    label:'Dining Out' },
+  { group:'Food & Drink',  key:'food_coff',    label:'Coffee & Cafes' },
+  { group:'Food & Drink',  key:'food_take',    label:'Takeaway' },
+
+  { group:'Health',        key:'hlth_ins',     label:'Private Health Insurance' },
+  { group:'Health',        key:'hlth_gym',     label:'Gym & Fitness' },
+  { group:'Health',        key:'hlth_med',     label:'Medical & Dental' },
+  { group:'Health',        key:'hlth_pharm',   label:'Pharmacy' },
+
+  { group:'Insurance',     key:'ins_life',     label:'Life Insurance' },
+  { group:'Insurance',     key:'ins_inc',      label:'Income Protection' },
+
+  { group:'Personal',      key:'pers_cloth',   label:'Clothing' },
+  { group:'Personal',      key:'pers_care',    label:'Personal Care & Grooming' },
+
+  { group:'Entertainment', key:'ent_stream',   label:'Streaming Services' },
+  { group:'Entertainment', key:'ent_hobby',    label:'Hobbies' },
+  { group:'Entertainment', key:'ent_travel',   label:'Travel & Holidays' },
+  { group:'Entertainment', key:'ent_social',   label:'Social & Going Out' },
+
+  { group:'Education',     key:'edu_courses',  label:'Courses & Learning' },
+  { group:'Education',     key:'edu_books',    label:'Books & Media' },
+
+  { group:'Financial',     key:'fin_invest',   label:'Investment Contributions' },
+  { group:'Financial',     key:'fin_super',    label:'Extra Super Contributions' },
+  { group:'Financial',     key:'fin_debt',     label:'Other Debt Repayments' },
+
+  { group:'Other',         key:'oth_misc',     label:'Miscellaneous' },
+];
+
+/** Frequency helpers */
+const FREQ_OPTIONS    = ['Weekly','Fortnightly','Monthly','Quarterly','Annually'];
+const FREQ_TO_MONTHLY = { Weekly: 52/12, Fortnightly: 26/12, Monthly: 1, Quarterly: 1/3, Annually: 1/12 };
+
+/** Common income source suggestions */
+const INCOME_SOURCES = [
+  'Salary / Wages','Partner Salary / Wages','Bonus / Commission',
+  'Rental Income','Dividends','Interest','Business Income',
+  'Freelance / Consulting','Government Benefits','Other',
+];
+
+/** Budget state */
+let budgetYear      = new Date().getFullYear();
+let budgetYearData  = null;
+let budgetMonthStr  = todayMonthStr();
+let _expRowCounter  = 0;
+let _incRowCounter  = 0;
+let _autosaveTimer  = null;
+
+/** Helpers */
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function todayMonthStr(){
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+function fmtDollar(v){
+  if(v === null || v === undefined) return '—';
+  const abs = Math.abs(Math.round(v));
+  return (v < 0 ? '-$' : '$') + abs.toLocaleString();
+}
+
+/** Enter Budget tab */
+function showBudgetTab(){
+  showTab('budget');
+  if(!budgetMonthStr) budgetMonthStr = todayMonthStr();
+  loadBudgetMonth(budgetMonthStr);
+  loadBudgetYear(budgetYear);
+  renderFireProgress();
+}
+
+/** Year navigation arrows */
+function budgetYearStep(delta){
+  loadBudgetYear(budgetYear + delta);
+  renderFireProgress();
+}
+
+/** Month navigation arrows on the editor card */
+function budgetMonthStep(delta){
+  if(!budgetMonthStr) budgetMonthStr = todayMonthStr();
+  let [y, m] = budgetMonthStr.split('-').map(Number);
+  m += delta;
+  if(m > 12){ m = 1;  y++; }
+  if(m < 1) { m = 12; y--; }
+  loadBudgetMonth(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}`);
+}
+
+/** Update the month label in the editor card header */
+function updateBudgetMonthLabel(){
+  const lbl = document.getElementById('budgetMonthLabel');
+  if(!lbl || !budgetMonthStr) return;
+  const [y, m] = budgetMonthStr.split('-').map(Number);
+  lbl.textContent = new Date(y, m - 1, 1)
+    .toLocaleDateString('en-AU', { month:'long', year:'numeric' });
+}
+
+/** Load a month into the inline editor */
+async function loadBudgetMonth(monthStr){
+  clearTimeout(_autosaveTimer);
+  budgetMonthStr = monthStr;
+  updateBudgetMonthLabel();
+  const status = document.getElementById('budgetSaveStatus');
+  if(status){ status.textContent = ''; status.className = 'budget-save-status'; }
+
+  const base = (state.apiBase || '').replace(/\/+$/,'');
+  let data = null;
+  try {
+    const r = await fetch(`${base}/budget/month/${monthStr}`);
+    if(r.ok) data = await r.json();
+  } catch(e){ /* network error — start blank */ }
+  populateLogForm(data);
+}
+
+/** Schedule autosave — debounced 800 ms */
+function scheduleAutosave(){
+  const status = document.getElementById('budgetSaveStatus');
+  if(status){ status.textContent = 'Unsaved…'; status.className = 'budget-save-status'; }
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(doAutosave, 800);
+}
+
+/** Persist the current editor state to the API */
+async function doAutosave(){
+  if(!budgetMonthStr) return;
+  const status = document.getElementById('budgetSaveStatus');
+  if(status){ status.textContent = 'Saving…'; status.className = 'budget-save-status'; }
+
+  // Sum income rows → API totals
+  let incomePlannedTotal = 0, incomeActualTotal = 0, hasIncomeActual = false;
+  document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
+    const src  = row.querySelector('.inc-source').value.trim();
+    if(!src) return;
+    const b = row.querySelector('.inc-budget').value.trim();
+    const a = row.querySelector('.inc-actual').value.trim();
+    const m = FREQ_TO_MONTHLY[row.querySelector('.inc-freq').value] ?? 1;
+    if(b !== '') incomePlannedTotal += parseFloat(b) * m;
+    if(a !== ''){ incomeActualTotal += parseFloat(a) * m; hasIncomeActual = true; }
+  });
+  const incomePlanned = Math.round(incomePlannedTotal * 100) / 100;
+  const incomeActual  = hasIncomeActual ? Math.round(incomeActualTotal * 100) / 100 : null;
+  saveIncomeRowsToStorage(budgetMonthStr);
+
+  const expenses = [];
+  document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
+    const subcat    = row.querySelector('.exp-subcat').value.trim();
+    if(!subcat) return;
+    const budgetRaw = row.querySelector('.exp-budget').value.trim();
+    const actualRaw = row.querySelector('.exp-actual').value.trim();
+    const freq      = row.querySelector('.exp-freq').value;
+    const mult      = FREQ_TO_MONTHLY[freq] ?? 1;
+    const planned   = budgetRaw !== '' ? Math.round(parseFloat(budgetRaw) * mult * 100) / 100 : 0;
+    const actual    = actualRaw !== '' ? Math.round(parseFloat(actualRaw) * mult * 100) / 100 : null;
+    if(planned > 0 || actual != null)
+      expenses.push({ category: subcat, planned, actual });
+  });
+
+  const payload = {
+    month: budgetMonthStr, income_planned: incomePlanned, income_actual: incomeActual,
+    expenses, notes: '', merge: false
+  };
+  const base = (state.apiBase || '').replace(/\/+$/,'');
+  try {
+    const r = await fetch(`${base}/budget/save_month`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.detail || `API ${r.status}`); }
+    if(status){ status.textContent = 'Saved ✓'; status.className = 'budget-save-status saved'; }
+    loadBudgetYear(budgetYear);
+    renderFireProgress();
+  } catch(e){
+    if(status){ status.textContent = `Error: ${e.message}`; status.className = 'budget-save-status error'; }
+  }
+}
+
+/** Fetch year overview and render table */
+async function loadBudgetYear(year){
+  budgetYear = year;
+  const lbl = document.getElementById('budgetYearLabel');
+  if(lbl) lbl.textContent = year;
+  const wrap = document.getElementById('budgetYearTableWrap');
+  if(!wrap) return;
+  wrap.innerHTML = '<div class="small muted" style="padding:16px 0;">Loading…</div>';
+
+  const base = (state.apiBase || '').replace(/\/+$/,'');
+  try {
+    const r = await fetch(`${base}/budget/year/${year}`);
+    if(!r.ok) throw new Error('API ' + r.status);
+    budgetYearData = await r.json();
+    renderBudgetYearTable(budgetYearData);
+  } catch(e){
+    wrap.innerHTML = '<div class="small" style="color:#E11D48;padding:16px 0;">Could not load budget data — is the API running?</div>';
+  }
+}
+
+/** Render the 12-column year overview table */
+function renderBudgetYearTable(data){
+  const wrap = document.getElementById('budgetYearTableWrap');
+  if(!wrap) return;
+  const months = data.months;
+  const now = new Date();
+  const thisYear = now.getFullYear(), thisMon = now.getMonth() + 1;
+
+  const mStr   = i => `${budgetYear}-${String(i+1).padStart(2,'0')}`;
+  const mCls   = i => {
+    const hasData = months[i].income_actual !== null || months[i].expense_actual !== null;
+    if(hasData) return 'bm-logged';
+    const past = budgetYear < thisYear || (budgetYear === thisYear && i+1 <= thisMon);
+    return past ? 'bm-past' : 'bm-future';
+  };
+
+  // Header row
+  let thead = `<tr><th class="budget-row-th"></th>`;
+  months.forEach((_, i) => {
+    const cls = mCls(i);
+    const dot = cls === 'bm-logged' ? '<span class="bm-dot">●</span>' : '';
+    thead += `<th class="budget-month-th ${cls}" onclick="loadBudgetMonth('${mStr(i)}')">${MONTH_LABELS[i]}${dot}</th>`;
+  });
+  thead += '</tr>';
+
+  // Data row helper
+  const mkRow = (label, valFn, colorFn) => {
+    let r = `<tr><td class="budget-row-lbl">${label}</td>`;
+    months.forEach((m, i) => {
+      const v   = valFn(m);
+      const cls = v === null ? 'bc-empty' : colorFn(v);
+      r += `<td class="budget-cell ${cls}" onclick="loadBudgetMonth('${mStr(i)}')">${fmtDollar(v)}</td>`;
+    });
+    return r + '</tr>';
+  };
+  const secHdr = lbl =>
+    `<tr><td class="budget-sec-hdr" colspan="13">${lbl}</td></tr>`;
+
+  const html = `
+    <div class="data-table-wrap"><div class="tablewrap">
+      <table class="budget-table">
+        <thead>${thead}</thead>
+        <tbody>
+          ${secHdr('INCOME')}
+          ${mkRow('Actual', m => m.income_actual, () => 'bc-data')}
+          ${secHdr('EXPENSES')}
+          ${mkRow('Actual', m => m.expense_actual, () => 'bc-data')}
+          ${secHdr('NET SAVINGS')}
+          ${mkRow('Actual', m => m.net_actual, v => v >= 0 ? 'bc-pos' : 'bc-neg')}
+        </tbody>
+      </table>
+    </div></div>`;
+
+  wrap.innerHTML = html;
+}
+
+/** FIRE progress: avg monthly savings vs model target */
+async function renderFireProgress(){
+  const wrap = document.getElementById('fireProgressContent');
+  if(!wrap) return;
+
+  const base  = (state.apiBase || '').replace(/\/+$/,'');
+  const toM   = todayMonthStr();
+  const fromD = new Date();
+  fromD.setMonth(fromD.getMonth() - 11);
+  const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
+
+  try {
+    const r = await fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`);
+    if(!r.ok) throw new Error();
+    const data    = await r.json();
+    const logged  = data.series.filter(m => m.net_actual !== null);
+    if(!logged.length){
+      wrap.innerHTML = '<div class="small muted">Log at least one month to see your savings rate vs target.</div>';
+      return;
+    }
+    const avgMo    = logged.reduce((s,m) => s + m.net_actual, 0) / logged.length;
+    const targetMo = (state.inputs.stock_yearly_contribution || 0) / 12;
+    const pct      = targetMo > 0 ? Math.min(120, (avgMo / targetMo) * 100) : 0;
+    const onTrack  = avgMo >= targetMo;
+    const gap      = Math.abs(avgMo - targetMo);
+
+    wrap.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <span class="small">${logged.length} month${logged.length>1?'s':''} logged in the last 12</span>
+          <span class="fp-status-pill ${onTrack?'':'fp-behind'}">${onTrack ? '✓ On track' : fmtDollar(gap)+'/mo gap'}</span>
+        </div>
+        <div class="ms-grid" style="grid-template-columns:1fr 1fr;border:none !important;">
+          <div class="ms-col">
+            <div class="ms-col-label">Avg Monthly Savings</div>
+            <div class="ms-row">
+              <span class="ms-label">Actual</span>
+              <span class="ms-value" style="font-size:17px;font-weight:800;color:${avgMo>=0?'#059669':'#E11D48'}">${fmtDollar(avgMo)}</span>
+            </div>
+          </div>
+          <div class="ms-col fire">
+            <div class="ms-col-label">FIRE Model Target</div>
+            <div class="ms-row">
+              <span class="ms-label">Monthly</span>
+              <span class="ms-value" style="font-size:17px;font-weight:800;">${fmtDollar(targetMo)}</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span class="small">${Math.round(Math.max(0,pct))}% of target</span>
+            <span class="small">${fmtDollar(avgMo)} / ${fmtDollar(targetMo)} per month</span>
+          </div>
+          <div class="fp-bar-track">
+            <div class="fp-bar-fill ${onTrack?'':'fp-behind'}" style="width:${Math.max(0,Math.min(100,pct))}%"></div>
+          </div>
+        </div>
+      </div>`;
+  } catch(e){
+    wrap.innerHTML = '<div class="small muted">Could not load savings series from API.</div>';
+  }
+}
+
+
+/* ── Income row helpers ─────────────────────────────── */
+
+/** Build the income table — called once on init */
+function initIncomeTable(){
+  const wrap = document.getElementById('incomeTableWrap');
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <table class="expense-table">
+      <colgroup>
+        <col><col style="width:82px"><col style="width:82px">
+        <col style="width:110px"><col style="width:30px">
+      </colgroup>
+      <thead><tr>
+        <th>Source</th>
+        <th class="th-num">Budget</th><th class="th-num">Actual</th>
+        <th>Frequency</th><th></th>
+      </tr></thead>
+      <tbody id="incomeTableBody"></tbody>
+    </table>`;
+}
+
+/** Add one income row; pass data object to pre-fill */
+function addIncomeRow(data){
+  const tbody = document.getElementById('incomeTableBody');
+  if(!tbody) return;
+  const id      = ++_incRowCounter;
+  const srcVal   = data ? (data.source || '') : '';
+  const budgVal  = (data && data.budget != null && data.budget !== '') ? data.budget : '';
+  const actVal   = (data && data.actual != null && data.actual !== '') ? data.actual : '';
+  const selFreq  = (data && data.freq) ? data.freq : 'Monthly';
+  const freqOpts = FREQ_OPTIONS.map(f => `<option${f===selFreq?' selected':''}>${f}</option>`).join('');
+  const srcOpts  = INCOME_SOURCES.map(s =>
+    `<option value="${escapeHtml(s)}"${s===srcVal?' selected':''}>${escapeHtml(s)}</option>`
+  ).join('');
+
+  const tr = document.createElement('tr');
+  tr.className     = 'income-row';
+  tr.dataset.rowId = id;
+  tr.innerHTML = `
+    <td><select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select></td>
+    <td><input  class="exp-input inc-budget" type="number" step="1" min="0" placeholder="0"
+                value="${budgVal}" oninput="incRowChanged(${id})"></td>
+    <td><input  class="exp-input inc-actual" type="number" step="1" min="0" placeholder="—"
+                value="${actVal}" oninput="incRowChanged(${id})"></td>
+    <td><select class="exp-input inc-freq" onchange="incRowChanged(${id})">${freqOpts}</select></td>
+    <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove row">×</button></td>`;
+  tbody.appendChild(tr);
+}
+
+/** Trigger summary + autosave when any income field changes */
+function incRowChanged(id){
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+
+/** Remove an income row — always keeps at least one */
+function deleteIncomeRow(id){
+  const tbody = document.getElementById('incomeTableBody');
+  if(!tbody) return;
+  if(tbody.querySelectorAll('.income-row').length <= 1) return;
+  const row = tbody.querySelector(`[data-row-id="${id}"]`);
+  if(row){ row.remove(); updateBudgetSummary(); scheduleAutosave(); }
+}
+
+/** Recalculate the summary strip from live table values */
+function updateBudgetSummary(){
+  let incP = 0, incA = 0, hasIncA = false;
+  document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
+    const b = row.querySelector('.inc-budget').value.trim();
+    const a = row.querySelector('.inc-actual').value.trim();
+    const m = FREQ_TO_MONTHLY[row.querySelector('.inc-freq').value] ?? 1;
+    if(b !== '') incP += parseFloat(b) * m;
+    if(a !== ''){ incA += parseFloat(a) * m; hasIncA = true; }
+  });
+
+  let expP = 0, expA = 0, hasExpA = false;
+  document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
+    const b = row.querySelector('.exp-budget').value.trim();
+    const a = row.querySelector('.exp-actual').value.trim();
+    const m = FREQ_TO_MONTHLY[row.querySelector('.exp-freq').value] ?? 1;
+    if(b !== '') expP += parseFloat(b) * m;
+    if(a !== ''){ expA += parseFloat(a) * m; hasExpA = true; }
+  });
+
+  const netP  = incP - expP;
+  const netA  = incA - expA;
+  const rateP = incP > 0 ? netP / incP : null;
+  const rateA = (hasIncA && incA > 0) ? netA / incA : null;
+
+  const fmt  = v => v === 0 ? '—' : (v < 0 ? '-$' : '$') + Math.abs(Math.round(v)).toLocaleString();
+  const fmtR = v => v === null ? '' : Math.round(v * 100) + '%';
+  const setEl = (id, text, cls='bsi-val') => {
+    const el = document.getElementById(id);
+    if(el){ el.textContent = text; el.className = cls; }
+  };
+
+  setEl('bsiIncome',   fmt(incP));
+  setEl('bsiIncomeA',  hasIncA ? `actual ${fmt(incA)}` : '', 'bsi-sub');
+  setEl('bsiExpenses', fmt(expP));
+  setEl('bsiExpensesA',hasExpA ? `actual ${fmt(expA)}` : '', 'bsi-sub');
+
+  const netCls = `bsi-val${netP > 0 ? ' bsi-pos' : netP < 0 ? ' bsi-neg' : ''}`;
+  setEl('bsiNet',  fmt(netP), netCls);
+  setEl('bsiNetA', (hasIncA || hasExpA) ? `actual ${fmt(netA)}` : '', 'bsi-sub');
+
+  const rateCls = `bsi-val${rateP !== null && rateP > 0 ? ' bsi-pos' : rateP !== null && rateP < 0 ? ' bsi-neg' : ''}`;
+  setEl('bsiRate',  rateP !== null ? fmtR(rateP) : '—', rateCls);
+  setEl('bsiRateA', rateA !== null ? `actual ${fmtR(rateA)}` : '', 'bsi-sub');
+}
+
+/** Persist income row detail in localStorage for the given month */
+function saveIncomeRowsToStorage(monthStr){
+  const rows = [];
+  document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
+    const src  = row.querySelector('.inc-source').value.trim();
+    const budg = row.querySelector('.inc-budget').value.trim();
+    const act  = row.querySelector('.inc-actual').value.trim();
+    const freq = row.querySelector('.inc-freq').value;
+    if(src || budg || act) rows.push({ source: src, budget: budg, actual: act, freq });
+  });
+  try{ localStorage.setItem(`budg_inc_${monthStr}`, JSON.stringify(rows)); }catch(_){}
+}
+
+/** Restore income row detail from localStorage */
+function loadIncomeRowsFromStorage(monthStr){
+  try{ return JSON.parse(localStorage.getItem(`budg_inc_${monthStr}`)) || []; }
+  catch(_){ return []; }
+}
+
+/* ── Expense table ──────────────────────────────────── */
+
+/** Returns <option> tags for a subcategory select, pre-selecting `selected` */
+function getSubcatSelectOpts(group, selected){
+  const cats = BUDGET_CATS.filter(c => c.group === group);
+  let opts = cats.map(c =>
+    `<option value="${escapeHtml(c.label)}"${c.label===selected?' selected':''}>${escapeHtml(c.label)}</option>`
+  ).join('');
+  // If the saved value isn't in the standard list, preserve it as the first option
+  if(selected && !cats.find(c => c.label === selected)){
+    opts = `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` + opts;
+  }
+  return opts;
+}
+
+/** Build the expense table inside the budget editor card — called once on init */
+function initExpenseTable(){
+  const wrap = document.getElementById('budgetExpenseWrap');
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <table class="expense-table">
+      <colgroup>
+        <col style="width:118px"><col><col style="width:82px">
+        <col style="width:82px"><col style="width:110px"><col style="width:30px">
+      </colgroup>
+      <thead><tr>
+        <th>Category</th><th>Sub-category</th>
+        <th class="th-num">Budget</th><th class="th-num">Actual</th>
+        <th>Frequency</th><th></th>
+      </tr></thead>
+      <tbody id="expenseTableBody"></tbody>
+    </table>`;
+}
+
+/** Called when the category dropdown changes — repopulates the subcategory select */
+function expCatChanged(id){
+  const tbody = document.getElementById('expenseTableBody');
+  if(!tbody) return;
+  const row = tbody.querySelector(`[data-row-id="${id}"]`);
+  if(!row) return;
+  const group    = row.querySelector('.exp-cat').value;
+  const subSel   = row.querySelector('.exp-subcat');
+  if(subSel) subSel.innerHTML = getSubcatSelectOpts(group, '');
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+
+/** Add one expense row; pass a data object to pre-fill */
+function addExpenseRow(data){
+  const tbody = document.getElementById('expenseTableBody');
+  if(!tbody) return;
+
+  const id      = ++_expRowCounter;
+  const groups  = [...new Set(BUDGET_CATS.map(c => c.group))];
+  const selGrp  = data && data.group ? data.group : groups[0];
+  const grpOpts = groups.map(g =>
+    `<option value="${escapeHtml(g)}"${g===selGrp?' selected':''}>${escapeHtml(g)}</option>`
+  ).join('');
+
+  const subVal  = data ? escapeHtml(data.subcategory || '') : '';
+  const budgVal = (data && data.budget  !== '' && data.budget  != null) ? data.budget  : '';
+  const actVal  = (data && data.actual  !== '' && data.actual  != null) ? data.actual  : '';
+  const selFreq = (data && data.freq)   ? data.freq : 'Monthly';
+  const freqOpts = FREQ_OPTIONS.map(f =>
+    `<option${f===selFreq?' selected':''}>${f}</option>`
+  ).join('');
+
+  const tr = document.createElement('tr');
+  tr.className     = 'expense-row';
+  tr.dataset.rowId = id;
+  tr.innerHTML = `
+    <td><select class="exp-input exp-cat" onchange="expCatChanged(${id})">${grpOpts}</select></td>
+    <td><select class="exp-input exp-subcat" onchange="expRowChanged(${id})">
+          ${getSubcatSelectOpts(selGrp, subVal)}
+        </select></td>
+    <td><input  class="exp-input exp-budget" type="number" step="1" min="0" placeholder="0"
+                value="${budgVal}" oninput="expRowChanged(${id})"></td>
+    <td><input  class="exp-input exp-actual" type="number" step="1" min="0" placeholder="—"
+                value="${actVal}" oninput="expRowChanged(${id})"></td>
+    <td><select class="exp-input exp-freq" onchange="expRowChanged(${id})">${freqOpts}</select></td>
+    <td><button class="exp-del" onclick="deleteExpenseRow(${id})" title="Remove row">×</button></td>`;
+
+  tbody.appendChild(tr);
+}
+
+/** Trigger summary + autosave when any expense field changes */
+function expRowChanged(id){
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+
+/** Remove a row — always keeps at least one */
+function deleteExpenseRow(id){
+  const tbody = document.getElementById('expenseTableBody');
+  if(!tbody) return;
+  if(tbody.querySelectorAll('.expense-row').length <= 1) return;
+  const row = tbody.querySelector(`[data-row-id="${id}"]`);
+  if(row){ row.remove(); updateBudgetSummary(); scheduleAutosave(); }
+}
+
+/** Fill editor from API data (or reset to blank) */
+function populateLogForm(data){
+  // ── Income rows ──
+  const incTbody = document.getElementById('incomeTableBody');
+  if(incTbody){
+    incTbody.innerHTML = '';
+    _incRowCounter = 0;
+    const stored = loadIncomeRowsFromStorage(budgetMonthStr);
+    if(stored.length){
+      stored.forEach(r => addIncomeRow(r));
+    } else if(data && data.income.planned > 0){
+      // API only gives us a total — show it as one row
+      addIncomeRow({
+        source: 'Income',
+        budget: data.income.planned,
+        actual: data.income.actual != null ? data.income.actual : '',
+        freq:   'Monthly'
+      });
+    }
+  }
+
+  // ── Expense rows ──
+  const tbody = document.getElementById('expenseTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  _expRowCounter = 0;
+
+  if(data && data.categories && data.categories.length){
+    data.categories.forEach(cat => {
+      const match = BUDGET_CATS.find(c => c.label.toLowerCase() === cat.category.toLowerCase());
+      addExpenseRow({
+        group:       match ? match.group : (BUDGET_CATS[0]?.group || 'Other'),
+        subcategory: cat.category,
+        budget:      cat.planned != null ? cat.planned : '',
+        actual:      cat.actual  != null ? cat.actual  : '',
+        freq:        'Monthly'   // API always stores monthly amounts
+      });
+    });
+  }
+  updateBudgetSummary();
+}
+
+/* ─────────────────────────────────────────────────────── */
 
 /* Drawer inner tabs (Core / Stocks & Super / Properties) */
 function showInputsPanel(which){
