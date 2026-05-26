@@ -1412,9 +1412,11 @@ label { color: #5C5955 !important; }
 
 /* Budget section labels & summary strip */
 .budget-section-lbl {
-  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  color:#8A8582; margin:14px 0 5px; padding:0;
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
+  color:#8A8582; margin:16px 0 6px; padding:0;
+  display:flex; align-items:center; gap:8px;
 }
+.budget-section-lbl::after { content:''; flex:1; height:1px; background:#E8E4DE; }
 .budget-summary-strip {
   display:flex; align-items:center; gap:0; margin:14px 0;
   padding:12px 16px; background:#F8F7F4; border-radius:8px; border:1px solid #E8E4DE;
@@ -1424,7 +1426,7 @@ label { color: #5C5955 !important; }
 .budget-summary-sep  { font-size:16px; color:#C8C4BC; padding:0 6px; flex-shrink:0; font-weight:300; }
 .bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#8A8582; }
 .bsi-val   { font-size:16px; font-weight:700; color:#1C1C1A; margin-top:3px; }
-.bsi-sub   { font-size:10px; color:#8A8582; margin-top:1px; min-height:13px; }
+.bsi-sub   { font-size:14px; font-weight:600; color:#2563EB; margin-top:3px; min-height:17px; }
 .bsi-pos   { color:#059669 !important; }
 .bsi-neg   { color:#E11D48 !important; }
 
@@ -1443,17 +1445,29 @@ label { color: #5C5955 !important; }
 .budget-save-status.saved { color:#059669; }
 .budget-save-status.error { color:#dc2626; }
 
+/* Copy-from button in card head */
+.budget-copy-btn {
+  font-size:11px; font-weight:600; padding:4px 11px;
+  background:#F8F7F4; border:1px solid #D8D4CC; border-radius:6px;
+  color:#5C5955; cursor:pointer; white-space:nowrap;
+  transition:background .15s, border-color .15s;
+}
+.budget-copy-btn:hover  { background:#F0EDE8; border-color:#C8C4BC; }
+.budget-copy-btn:disabled { opacity:.5; cursor:default; }
+
 /* Budget year nav arrows */
 .budget-yr-nav { display:flex; align-items:center; gap:6px; }
 .budget-yr-nav .btn { padding:5px 10px !important; font-size:12px !important; }
 #budgetYearLabel { font-size:15px; font-weight:700; min-width:44px; text-align:center; color:#1C1C1A; }
 
 /* Year overview table */
-.budget-table { min-width:700px; }
+.budget-table { min-width:700px; border-collapse:collapse; }
+.budget-table thead tr th,
+.budget-table tbody tr td { border:1px solid #E8E4DE; }
 .budget-month-th {
   cursor:pointer; text-align:center;
   font-size:11px !important; padding:8px 5px !important; min-width:54px;
-  transition: background .12s;
+  transition:background .12s; background:#F8F7F4 !important;
 }
 .budget-month-th:hover { background:#F0EDE8 !important; }
 .budget-month-th.bm-logged { color:#059669 !important; }
@@ -1461,20 +1475,23 @@ label { color: #5C5955 !important; }
 .budget-month-th.bm-past   { color:#5C5955 !important; }
 .bm-dot { color:#059669; font-size:6px; vertical-align:3px; margin-left:2px; }
 .budget-row-th  { width:120px; min-width:120px; }
-.budget-row-lbl { font-size:12px !important; color:#5C5955 !important; white-space:nowrap; padding:8px 12px !important; }
+.budget-row-lbl {
+  font-size:12px !important; color:#5C5955 !important; white-space:nowrap;
+  padding:8px 12px !important; background:#FAFAF8 !important;
+}
 .budget-sec-hdr {
   font-size:10px !important; font-weight:700 !important; letter-spacing:.08em !important;
   text-transform:uppercase !important; color:#8A8582 !important;
-  background:#F8F7F4 !important; padding:5px 12px !important;
+  background:#F2F0EA !important; padding:5px 12px !important;
 }
 .budget-cell {
-  text-align:right !important; cursor:pointer;
+  text-align:center !important; cursor:pointer;
   font-size:12.5px !important; font-variant-numeric:tabular-nums;
-  transition:background .1s; min-width:54px; padding:7px 8px !important;
+  transition:background .1s; min-width:54px; padding:7px 10px !important;
 }
 .budget-cell:hover { background:#F0EDE8 !important; }
 .budget-cell.bc-data  { color:#1C1C1A !important; }
-.budget-cell.bc-empty { color:#C8C4BC !important; font-style:italic; }
+.budget-cell.bc-empty { color:#C8C4BC !important; }
 .budget-cell.bc-pos   { color:#059669 !important; font-weight:600 !important; }
 .budget-cell.bc-neg   { color:#E11D48 !important; font-weight:600 !important; }
 
@@ -1498,7 +1515,7 @@ label { color: #5C5955 !important; }
 }
 .expense-table th.th-num { text-align:right; }
 .expense-table td {
-  padding:3px 4px; border-bottom:1px solid #F0EDE8; vertical-align:middle;
+  padding:4px 5px; border-bottom:1px solid #F0EDE8; vertical-align:middle;
 }
 .expense-table tbody tr:last-child td { border-bottom:none; }
 .exp-input {
@@ -1512,8 +1529,30 @@ label { color: #5C5955 !important; }
   background:#fff; outline:none;
   border-color:#1D9E75; box-shadow:0 0 0 2px rgba(29,158,117,.18);
 }
-input.exp-input[type="number"] { text-align:right; }
+input.exp-input[type="number"] {
+  text-align:center;
+  -moz-appearance:textfield; appearance:textfield;
+}
+input.exp-input[type="number"]::-webkit-outer-spin-button,
+input.exp-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 select.exp-input { cursor:pointer; }
+
+/* $ prefix wrapper for budget/actual cells */
+.dollar-wrap {
+  display:flex; align-items:center;
+  background:#FAFAF8; border:1px solid #E8E4DE; border-radius:5px;
+  transition:border-color .15s, box-shadow .15s;
+}
+.dollar-wrap:hover { border-color:#C8C4BC; }
+.dollar-wrap:focus-within {
+  border-color:#1D9E75; box-shadow:0 0 0 2px rgba(29,158,117,.18);
+}
+.inp-dollar { font-size:11px; color:#8A8582; padding:0 1px 0 5px; flex-shrink:0; user-select:none; }
+.dollar-wrap .exp-input {
+  border:none !important; background:transparent !important;
+  border-radius:0 !important; box-shadow:none !important;
+  flex:1; min-width:0; padding-left:2px;
+}
 .exp-del {
   width:24px; height:24px; padding:0; background:transparent; border:none;
   border-radius:4px; font-size:15px; line-height:1; cursor:pointer;
@@ -1521,6 +1560,260 @@ select.exp-input { cursor:pointer; }
   transition:background .15s, color .15s; margin:0 auto;
 }
 .exp-del:hover { background:#FEE2E2; color:#dc2626; }
+
+/* ── Income row gross/net mode ───────────────────────── */
+.inc-mode-pill {
+  display:flex; gap:2px; margin-top:5px;
+}
+.inc-mode-btn {
+  font-size:10px; font-weight:700; padding:2px 7px;
+  border:1px solid #D8D4CC; border-radius:4px;
+  background:transparent; color:#A8A4A0; cursor:pointer;
+  transition:all .15s; line-height:1.4;
+}
+.inc-mode-btn.active {
+  background:#1D9E75; border-color:#1D9E75; color:#fff;
+}
+.inc-expand-btn {
+  width:22px; height:22px; border:none; background:transparent;
+  cursor:pointer; color:#C8C4BC; font-size:9px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:4px; transition:all .18s; margin:0 auto;
+}
+.inc-expand-btn:hover { background:#F0EDE8; color:#5C5955; }
+.inc-expand-btn.open { transform:rotate(90deg); }
+
+/* Income breakdown sub-rows */
+.income-sub-row > td {
+  background:#FAFAF8 !important; padding:5px 8px !important;
+  border-top:none !important; font-size:11px;
+}
+.inc-sub-lbl {
+  color:#8A8582 !important; padding-left:24px !important;
+  font-size:11px; white-space:nowrap;
+}
+.inc-sub-auto {
+  text-align:center; color:#5C5955; font-size:11px;
+  font-variant-numeric:tabular-nums; padding:3px 4px;
+}
+.inc-sub-net {
+  text-align:center; color:#059669; font-weight:700;
+  font-size:12px; font-variant-numeric:tabular-nums; padding:3px 4px;
+}
+.inc-sub-empty { border:none !important; background:#FAFAF8 !important; }
+.income-sub-row:last-child > td { border-bottom:1px solid #E8E4DE !important; }
+
+/* Summary strip gross note */
+.bsi-gross { font-size:11px; color:#8A8582; margin-top:1px; }
+
+/* Budget past-month lock */
+.budget-lock-banner {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; margin-bottom:14px;
+  background:#FEF3C7; border:1px solid #FCD34D; border-radius:8px;
+  font-size:12px; color:#92400E; line-height:1.4;
+}
+.budget-lock-btn {
+  font-size:11px; font-weight:700; padding:4px 12px; flex-shrink:0;
+  background:#fff; border:1px solid #FCD34D; border-radius:6px;
+  color:#92400E; cursor:pointer; transition:background .15s;
+}
+.budget-lock-btn:hover { background:#FEFCE8; }
+.budget-editor-locked .exp-input {
+  background:#F2F0EA !important; color:#9A9692 !important;
+  pointer-events:none; cursor:default !important;
+}
+.budget-editor-locked .exp-del,
+.budget-editor-locked .btn-add-row { pointer-events:none; opacity:.4; }
+
+/* ── Tax & Super settings page ──────────────────────── */
+.ts-card {
+  background:#fff; border:1px solid #E8E4DE; border-radius:8px;
+  overflow:hidden; margin-bottom:8px;
+}
+.ts-field {
+  display:flex; align-items:center; padding:11px 14px;
+  border-bottom:1px solid #F0EDE8; gap:10px;
+}
+.ts-field:last-child { border-bottom:none; }
+.ts-field label { flex:1; font-size:12px; font-weight:600; color:#1C1C1A; }
+.ts-field span  { font-size:11px; color:#8A8582; }
+.ts-select {
+  font-size:12px; border:1px solid #E8E4DE; border-radius:6px;
+  padding:4px 26px 4px 8px; background:#FAFAF8; color:#1C1C1A;
+  cursor:pointer; outline:none; appearance:auto;
+}
+.ts-select:focus { border-color:#1D9E75; }
+.ts-num {
+  width:58px; text-align:center; font-size:12px;
+  border:1px solid #E8E4DE; border-radius:6px;
+  padding:4px 6px; background:#FAFAF8; color:#1C1C1A; outline:none;
+  -moz-appearance:textfield; appearance:textfield;
+}
+.ts-num:focus { border-color:#1D9E75; }
+.ts-num::-webkit-outer-spin-button,
+.ts-num::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.ts-unit { font-size:12px; color:#8A8582; }
+.ts-row {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; border-bottom:1px solid #F0EDE8;
+}
+.ts-row:last-child { border-bottom:none; }
+.ts-row-label { flex:1; }
+.ts-row-label strong { display:block; font-size:12px; font-weight:600; color:#1C1C1A; }
+.ts-row-label span   { font-size:11px; color:#8A8582; }
+.ts-bracket-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600;
+  color:#5C5955; border-bottom:1px solid #F0EDE8; user-select:none;
+  transition:background .12s;
+}
+.ts-bracket-toggle:hover { background:#FAFAF8; }
+.ts-bracket-toggle.open { border-bottom:none; }
+.ts-bracket-arrow { font-size:10px; color:#B0ACA8; transition:transform .18s; }
+.ts-bracket-arrow.open { transform:rotate(90deg); }
+.ts-bracket-body { display:none; border-top:1px solid #F0EDE8; }
+.ts-bracket-body.open { display:block; }
+.ts-bracket-table { width:100%; border-collapse:collapse; font-size:11px; }
+.ts-bracket-table th {
+  padding:6px 14px; text-align:left; background:#F8F7F4;
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; color:#8A8582;
+}
+.ts-bracket-table th:last-child { text-align:right; }
+.ts-bracket-table td { padding:7px 14px; border-top:1px solid #F8F6F3; color:#3C3C3A; }
+.ts-bracket-table td:last-child { text-align:right; font-weight:600; color:#059669; }
+.ts-note { font-size:10px; color:#B0ACA8; line-height:1.5; margin-top:10px; }
+
+/* ── Settings modal ──────────────────────────────────── */
+.settings-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:900;
+  display:flex; align-items:flex-start; justify-content:flex-end;
+}
+.settings-panel {
+  width:380px; max-width:96vw; height:100vh;
+  background:#FAFAF8; border-left:1px solid #D8D4CC;
+  display:flex; flex-direction:column;
+  box-shadow:-4px 0 24px rgba(0,0,0,.12);
+}
+/* Shared header */
+.settings-head {
+  display:flex; align-items:center; gap:10px;
+  padding:16px 18px 13px; border-bottom:1px solid #E8E4DE; flex-shrink:0;
+}
+.settings-head h2 { font-size:14px; font-weight:700; color:#1C1C1A; margin:0; flex:1; }
+.settings-close {
+  width:26px; height:26px; border:none; background:transparent; cursor:pointer;
+  border-radius:6px; font-size:17px; color:#8A8582;
+  display:flex; align-items:center; justify-content:center; transition:background .15s;
+}
+.settings-close:hover { background:#F0EDE8; color:#1C1C1A; }
+.settings-back {
+  width:26px; height:26px; border:none; background:transparent; cursor:pointer;
+  border-radius:6px; font-size:17px; color:#8A8582; display:none;
+  align-items:center; justify-content:center; transition:background .15s;
+}
+.settings-back:hover { background:#F0EDE8; color:#1C1C1A; }
+.settings-body { flex:1; overflow-y:auto; }
+
+/* Home — nav cards */
+.settings-nav-card {
+  display:flex; align-items:center; padding:14px 18px;
+  border-bottom:1px solid #F0EDE8; cursor:pointer; transition:background .12s;
+  gap:12px;
+}
+.settings-nav-card:hover { background:#F2F0EA; }
+.settings-nav-icon { font-size:18px; width:28px; text-align:center; flex-shrink:0; }
+.settings-nav-label { flex:1; }
+.settings-nav-label strong { display:block; font-size:13px; font-weight:600; color:#1C1C1A; }
+.settings-nav-label span   { font-size:11px; color:#8A8582; }
+.settings-nav-arrow { color:#C8C4BC; font-size:14px; }
+
+/* Sub-page */
+.settings-page { display:none; flex-direction:column; height:100%; }
+.settings-page.active { display:flex; }
+.settings-page-body { flex:1; overflow-y:auto; padding:14px 16px 20px; }
+
+/* Toggle rows */
+.scat-group { margin-bottom:6px; border:1px solid #E8E4DE; border-radius:8px; overflow:hidden; background:#fff; }
+.scat-group-row {
+  display:flex; align-items:center; gap:10px; padding:9px 12px;
+  cursor:pointer; user-select:none; transition:background .12s;
+}
+.scat-group-row:hover { background:#FAFAF8; }
+.scat-group-row.disabled { opacity:.45; }
+.scat-expand { font-size:10px; color:#B0ACA8; transition:transform .18s; flex-shrink:0; }
+.scat-expand.open { transform:rotate(90deg); }
+.scat-group-name { flex:1; }
+.scat-group-name input {
+  width:100%; font-size:12px; font-weight:700; color:#1C1C1A;
+  border:1px solid transparent; border-radius:4px; background:transparent;
+  padding:2px 4px; outline:none; transition:border-color .15s, background .15s;
+}
+.scat-group-name input:hover { border-color:#E8E4DE; }
+.scat-group-name input:focus { border-color:#1D9E75; background:#fff; }
+.scat-subcats { border-top:1px solid #F0EDE8; padding:4px 0; display:none; }
+.scat-subcats.open { display:block; }
+.scat-sub-row {
+  display:flex; align-items:center; gap:8px; padding:6px 12px 6px 34px;
+  border-bottom:1px solid #F8F6F3; transition:background .12s;
+}
+.scat-sub-row:last-child { border-bottom:none; }
+.scat-sub-row.disabled { opacity:.45; }
+.scat-sub-name { flex:1; }
+.scat-sub-name input {
+  width:100%; font-size:12px; color:#3C3C3A;
+  border:1px solid transparent; border-radius:4px; background:transparent;
+  padding:2px 4px; outline:none; transition:border-color .15s, background .15s;
+}
+.scat-sub-name input:hover { border-color:#E8E4DE; }
+.scat-sub-name input:focus { border-color:#1D9E75; background:#fff; }
+.scat-sub-actions { display:flex; align-items:center; gap:4px; }
+
+/* Toggle switch */
+.tog {
+  position:relative; width:34px; height:20px; flex-shrink:0; cursor:pointer;
+}
+.tog input { opacity:0; width:0; height:0; position:absolute; }
+.tog-track {
+  position:absolute; inset:0; border-radius:20px; background:#D8D4CC;
+  transition:background .2s;
+}
+.tog input:checked + .tog-track { background:#1D9E75; }
+.tog-thumb {
+  position:absolute; top:3px; left:3px; width:14px; height:14px;
+  border-radius:50%; background:#fff; transition:left .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.tog input:checked ~ .tog-thumb { left:17px; }
+
+/* Small del/add buttons inside sub-page */
+.scat-del {
+  width:20px; height:20px; border:none; background:transparent; cursor:pointer;
+  border-radius:4px; font-size:13px; color:#D0CCC8; display:flex;
+  align-items:center; justify-content:center; transition:background .15s, color .15s; flex-shrink:0;
+}
+.scat-del:hover { background:#FEE2E2; color:#dc2626; }
+.scat-add-sub {
+  font-size:11px; color:#1D9E75; background:none; border:none; cursor:pointer;
+  padding:6px 12px 6px 34px; font-weight:600; display:block; transition:color .15s;
+}
+.scat-add-sub:hover { color:#059669; }
+.scat-add-group {
+  width:100%; padding:10px; border:1px dashed #D8D4CC; border-radius:8px;
+  background:transparent; color:#5C5955; font-size:12px; font-weight:600;
+  cursor:pointer; transition:border-color .15s, color .15s; margin-top:8px;
+}
+.scat-add-group:hover { border-color:#1D9E75; color:#1D9E75; }
+
+/* Header gear button */
+.btn-settings-icon {
+  width:32px; height:32px; padding:0; background:transparent;
+  border:1px solid #D8D4CC; border-radius:7px; color:#5C5955;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:16px; transition:background .15s, border-color .15s, color .15s; flex-shrink:0;
+}
+.btn-settings-icon:hover { background:#F0EDE8; border-color:#C8C4BC; color:#1C1C1A; }
 
   </style>
 </head>
@@ -1553,6 +1846,7 @@ select.exp-input { cursor:pointer; }
         <button id="btnBudget"  onclick="showBudgetTab()">Budget</button>
       </div>
       <div class="header-actions">
+        <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
         <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
         <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
         <button class="btn primary" id="btnRunModel" onclick="runModel()">Run Model</button>
@@ -1962,44 +2256,56 @@ select.exp-input { cursor:pointer; }
           <span id="budgetMonthLabel">—</span>
           <button class="btn ghost" onclick="budgetMonthStep(1)">▶</button>
         </div>
+        <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy from —</button>
         <span id="budgetSaveStatus" class="budget-save-status"></span>
       </div>
 
-      <p class="budget-section-lbl">Income</p>
-      <div id="incomeTableWrap"></div>
-      <button class="btn ghost" onclick="addIncomeRow()"
-              style="margin-top:8px; font-size:12px;">+ Add income</button>
-
-      <!-- Summary strip -->
-      <div class="budget-summary-strip" id="budgetSummaryStrip">
-        <div class="budget-summary-item">
-          <div class="bsi-label">Income</div>
-          <div class="bsi-val" id="bsiIncome">—</div>
-          <div class="bsi-sub" id="bsiIncomeA"></div>
-        </div>
-        <div class="budget-summary-sep">−</div>
-        <div class="budget-summary-item">
-          <div class="bsi-label">Expenses</div>
-          <div class="bsi-val" id="bsiExpenses">—</div>
-          <div class="bsi-sub" id="bsiExpensesA"></div>
-        </div>
-        <div class="budget-summary-sep">=</div>
-        <div class="budget-summary-item">
-          <div class="bsi-label">Net savings</div>
-          <div class="bsi-val" id="bsiNet">—</div>
-          <div class="bsi-sub" id="bsiNetA"></div>
-        </div>
-        <div class="budget-summary-item">
-          <div class="bsi-label">Savings rate</div>
-          <div class="bsi-val" id="bsiRate">—</div>
-          <div class="bsi-sub" id="bsiRateA"></div>
-        </div>
+      <!-- Lock banner (hidden by default, shown for past months with saved data) -->
+      <div id="budgetLockBanner" class="budget-lock-banner" style="display:none;">
+        <span style="font-size:14px;flex-shrink:0;">🔒</span>
+        <span style="flex:1;">This is a past month — editing is locked to protect your history.</span>
+        <button class="budget-lock-btn" onclick="unlockBudgetMonth()">Edit anyway</button>
       </div>
 
-      <p class="budget-section-lbl">Expenses</p>
-      <div id="budgetExpenseWrap"></div>
-      <button class="btn ghost" onclick="addExpenseRow()"
-              style="margin-top:8px; font-size:12px;">+ Add expense</button>
+      <div id="budgetEditorBody">
+        <p class="budget-section-lbl">Income</p>
+        <div id="incomeTableWrap"></div>
+        <button class="btn ghost btn-add-row" onclick="addIncomeRow()"
+                style="margin-top:8px; font-size:12px;">+ Add income</button>
+
+        <!-- Summary strip -->
+        <div class="budget-summary-strip" id="budgetSummaryStrip">
+          <div class="budget-summary-item">
+            <div class="bsi-label">Income <span style="font-size:10px;color:#A8A4A0;font-weight:400;">(net)</span></div>
+            <div class="bsi-val" id="bsiIncome">—</div>
+            <div class="bsi-sub" id="bsiIncomeA"></div>
+            <div class="bsi-gross" id="bsiIncomeGross"></div>
+          </div>
+          <div class="budget-summary-sep">−</div>
+          <div class="budget-summary-item">
+            <div class="bsi-label">Expenses</div>
+            <div class="bsi-val" id="bsiExpenses">—</div>
+            <div class="bsi-sub" id="bsiExpensesA"></div>
+          </div>
+          <div class="budget-summary-sep">=</div>
+          <div class="budget-summary-item">
+            <div class="bsi-label">Net savings</div>
+            <div class="bsi-val" id="bsiNet">—</div>
+            <div class="bsi-sub" id="bsiNetA"></div>
+          </div>
+          <div class="budget-summary-item">
+            <div class="bsi-label">Savings rate</div>
+            <div class="bsi-val" id="bsiRate">—</div>
+            <div class="bsi-sub" id="bsiRateA"></div>
+          </div>
+        </div>
+
+        <p class="budget-section-lbl">Expenses</p>
+        <div id="budgetExpenseWrap"></div>
+        <button class="btn ghost btn-add-row" onclick="addExpenseRow()"
+                style="margin-top:8px; font-size:12px;">+ Add expense</button>
+        <div id="expenseChartWrap" style="margin-top:18px; position:relative;"></div>
+      </div>
     </div>
 
     <!-- Year overview card -->
@@ -4444,7 +4750,7 @@ showTab = function(name){
    ═══════════════════════════════════════════════════════ */
 
 /** Pre-seeded category definitions — group → sub-categories */
-const BUDGET_CATS = [
+const DEFAULT_BUDGET_CATS = [
   { group:'Housing',       key:'hous_rent',    label:'Rent / Mortgage' },
   { group:'Housing',       key:'hous_util',    label:'Utilities' },
   { group:'Housing',       key:'hous_ins',     label:'Home Insurance' },
@@ -4491,6 +4797,19 @@ const BUDGET_CATS = [
   { group:'Other',         key:'oth_misc',     label:'Miscellaneous' },
 ];
 
+/** Live category list — loaded from localStorage, falls back to defaults */
+let BUDGET_CATS = (function(){
+  try {
+    const saved = localStorage.getItem('fire_budget_cats_v1');
+    if(saved) return JSON.parse(saved);
+  } catch(_){}
+  return DEFAULT_BUDGET_CATS.map(c => ({...c}));
+})();
+
+function saveBudgetCats(){
+  try { localStorage.setItem('fire_budget_cats_v1', JSON.stringify(BUDGET_CATS)); } catch(_){}
+}
+
 /** Frequency helpers */
 const FREQ_OPTIONS    = ['Weekly','Fortnightly','Monthly','Quarterly','Annually'];
 const FREQ_TO_MONTHLY = { Weekly: 52/12, Fortnightly: 26/12, Monthly: 1, Quarterly: 1/3, Annually: 1/12 };
@@ -4509,6 +4828,8 @@ let budgetMonthStr  = todayMonthStr();
 let _expRowCounter  = 0;
 let _incRowCounter  = 0;
 let _autosaveTimer  = null;
+let _budgetLocked   = false;
+let _expChartInstance = null;
 
 /** Helpers */
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -4521,6 +4842,93 @@ function fmtDollar(v){
   if(v === null || v === undefined) return '—';
   const abs = Math.abs(Math.round(v));
   return (v < 0 ? '-$' : '$') + abs.toLocaleString();
+}
+
+function isPastMonth(monthStr){
+  const n = new Date();
+  const cur = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+  return monthStr < cur;
+}
+function prevMonthStr(monthStr){
+  let [y, m] = monthStr.split('-').map(Number);
+  m--; if(m < 1){ m = 12; y--; }
+  return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}`;
+}
+function parseCategoryDescription(str){
+  const m = str.match(/^(.+?) \((.+)\)$/);
+  if(!m) return {subcategory: str, description: ''};
+  return {subcategory: m[1], description: m[2]};
+}
+function updateCopyBtn(){
+  const btn = document.getElementById('budgetCopyBtn');
+  if(!btn || !budgetMonthStr) return;
+  const prev = prevMonthStr(budgetMonthStr);
+  const [py, pm] = prev.split('-').map(Number);
+  const lbl = new Date(py, pm-1, 1).toLocaleDateString('en-AU', {month:'short', year:'numeric'});
+  btn.textContent = `Copy from ${lbl}`;
+}
+function setLockState(locked){
+  _budgetLocked = locked;
+  const banner = document.getElementById('budgetLockBanner');
+  const body   = document.getElementById('budgetEditorBody');
+  if(banner) banner.style.display = locked ? 'flex' : 'none';
+  if(body)   body.classList.toggle('budget-editor-locked', locked);
+}
+function unlockBudgetMonth(){
+  setLockState(false);
+}
+async function copyPrevMonth(){
+  if(!budgetMonthStr) return;
+  const prev = prevMonthStr(budgetMonthStr);
+
+  // Check if current month already has meaningful planned data
+  const hasPlanned =
+    [...document.querySelectorAll('#incomeTableBody .income-row')]
+      .some(r => r.querySelector('.inc-budget').value.trim()) ||
+    [...document.querySelectorAll('#expenseTableBody .expense-row')]
+      .some(r => r.querySelector('.exp-budget').value.trim());
+
+  if(hasPlanned){
+    const [py, pm] = prev.split('-').map(Number);
+    const prevLbl = new Date(py, pm-1, 1).toLocaleDateString('en-AU', {month:'long', year:'numeric'});
+    if(!confirm(`Replace this month's budget with a copy of ${prevLbl}?`)) return;
+  }
+
+  const base = (state.apiBase || '').replace(/\/+$/,'');
+  const btn  = document.getElementById('budgetCopyBtn');
+  const origTxt = btn ? btn.textContent : '';
+  if(btn) btn.disabled = true;
+
+  try {
+    const r = await fetch(`${base}/budget/month/${prev}`);
+    if(!r.ok){
+      const status = document.getElementById('budgetSaveStatus');
+      if(status){ status.textContent = 'No budget saved for previous month'; status.className = 'budget-save-status error'; }
+      return;
+    }
+    const data = await r.json();
+
+    // Copy planned amounts only — strip actuals (they belong to last month)
+    if(data.income)     data.income.actual = null;
+    if(data.categories) data.categories.forEach(c => { c.actual = null; });
+
+    // Use prev month's income breakdown from localStorage if available, strip actuals
+    const prevIncRows = loadIncomeRowsFromStorage(prev).map(r => ({...r, actual: ''}));
+
+    // Clear current month's stale income storage before populating
+    try{ localStorage.removeItem(`budg_inc_${budgetMonthStr}`); }catch(_){}
+
+    populateLogForm(data, prevIncRows.length ? prevIncRows : undefined);
+
+    const status = document.getElementById('budgetSaveStatus');
+    if(status){ status.textContent = 'Copied — edit to save'; status.className = 'budget-save-status'; }
+    updateBudgetSummary();
+  } catch(e){
+    const status = document.getElementById('budgetSaveStatus');
+    if(status){ status.textContent = `Copy failed: ${e.message}`; status.className = 'budget-save-status error'; }
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = origTxt; }
+  }
 }
 
 /** Enter Budget tab */
@@ -4562,6 +4970,7 @@ async function loadBudgetMonth(monthStr){
   clearTimeout(_autosaveTimer);
   budgetMonthStr = monthStr;
   updateBudgetMonthLabel();
+  updateCopyBtn();
   const status = document.getElementById('budgetSaveStatus');
   if(status){ status.textContent = ''; status.className = 'budget-save-status'; }
 
@@ -4572,10 +4981,12 @@ async function loadBudgetMonth(monthStr){
     if(r.ok) data = await r.json();
   } catch(e){ /* network error — start blank */ }
   populateLogForm(data);
+  setLockState(isPastMonth(monthStr) && data !== null);
 }
 
 /** Schedule autosave — debounced 800 ms */
 function scheduleAutosave(){
+  if(_budgetLocked) return;
   const status = document.getElementById('budgetSaveStatus');
   if(status){ status.textContent = 'Unsaved…'; status.className = 'budget-save-status'; }
   clearTimeout(_autosaveTimer);
@@ -4588,16 +4999,14 @@ async function doAutosave(){
   const status = document.getElementById('budgetSaveStatus');
   if(status){ status.textContent = 'Saving…'; status.className = 'budget-save-status'; }
 
-  // Sum income rows → API totals
+  // Sum income rows → API totals (net cash basis — after tax + super for gross rows)
   let incomePlannedTotal = 0, incomeActualTotal = 0, hasIncomeActual = false;
   document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
-    const src  = row.querySelector('.inc-source').value.trim();
+    const src = row.querySelector('.inc-source').value.trim();
     if(!src) return;
-    const b = row.querySelector('.inc-budget').value.trim();
-    const a = row.querySelector('.inc-actual').value.trim();
-    const m = FREQ_TO_MONTHLY[row.querySelector('.inc-freq').value] ?? 1;
-    if(b !== '') incomePlannedTotal += parseFloat(b) * m;
-    if(a !== ''){ incomeActualTotal += parseFloat(a) * m; hasIncomeActual = true; }
+    const { budgetNet, actualNet } = _calcIncRowNets(row);
+    if(budgetNet !== null) incomePlannedTotal += budgetNet;
+    if(actualNet !== null){ incomeActualTotal += actualNet; hasIncomeActual = true; }
   });
   const incomePlanned = Math.round(incomePlannedTotal * 100) / 100;
   const incomeActual  = hasIncomeActual ? Math.round(incomeActualTotal * 100) / 100 : null;
@@ -4607,6 +5016,8 @@ async function doAutosave(){
   document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
     const subcat    = row.querySelector('.exp-subcat').value.trim();
     if(!subcat) return;
+    const desc      = row.querySelector('.exp-desc')?.value.trim() || '';
+    const cat       = desc ? `${subcat} (${desc})` : subcat;
     const budgetRaw = row.querySelector('.exp-budget').value.trim();
     const actualRaw = row.querySelector('.exp-actual').value.trim();
     const freq      = row.querySelector('.exp-freq').value;
@@ -4614,8 +5025,17 @@ async function doAutosave(){
     const planned   = budgetRaw !== '' ? Math.round(parseFloat(budgetRaw) * mult * 100) / 100 : 0;
     const actual    = actualRaw !== '' ? Math.round(parseFloat(actualRaw) * mult * 100) / 100 : null;
     if(planned > 0 || actual != null)
-      expenses.push({ category: subcat, planned, actual });
+      expenses.push({ category: cat, planned, actual });
   });
+
+  // Warn if two rows resolve to the same category name (they'll be merged server-side)
+  const catCounts = {};
+  expenses.forEach(e => { catCounts[e.category] = (catCounts[e.category] || 0) + 1; });
+  const dupes = Object.entries(catCounts).filter(([, n]) => n > 1).map(([k]) => k);
+  if(dupes.length){
+    const names = dupes.map(d => `"${d}"`).join(', ');
+    if(!confirm(`You have duplicate entries for ${names}.\n\nThey'll be merged into one — add a description to each to keep them separate, or click OK to merge and save.`)) return;
+  }
 
   const payload = {
     month: budgetMonthStr, income_planned: incomePlanned, income_actual: incomeActual,
@@ -4712,6 +5132,19 @@ function renderBudgetYearTable(data){
   wrap.innerHTML = html;
 }
 
+/** Derive the FIRE model's assumed monthly net savings from inputs + tax engine.
+ *  = (current_income − estimated_tax − current_expenses) / 12
+ *  This is what the model expects you to have left each month after earning,
+ *  paying tax, and covering living costs — the pool deployed into stocks/super etc. */
+function fireModelTargetMonthly(){
+  const grossAnnual  = Number(state.inputs.current_income   || 0);
+  const expensesAnnual = Number(state.inputs.current_expenses || 0);
+  if(!grossAnnual) return 0;
+  const taxBreakdown = calcTax(grossAnnual, TAX_SETTINGS);
+  const target = (grossAnnual - taxBreakdown.totalTax - expensesAnnual) / 12;
+  return Math.max(0, target);
+}
+
 /** FIRE progress: avg monthly savings vs model target */
 async function renderFireProgress(){
   const wrap = document.getElementById('fireProgressContent');
@@ -4726,17 +5159,19 @@ async function renderFireProgress(){
   try {
     const r = await fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`);
     if(!r.ok) throw new Error();
-    const data    = await r.json();
-    const logged  = data.series.filter(m => m.net_actual !== null);
+    const data   = await r.json();
+    const logged = data.series.filter(m => m.net_actual !== null);
     if(!logged.length){
       wrap.innerHTML = '<div class="small muted">Log at least one month to see your savings rate vs target.</div>';
       return;
     }
+
     const avgMo    = logged.reduce((s,m) => s + m.net_actual, 0) / logged.length;
-    const targetMo = (state.inputs.stock_yearly_contribution || 0) / 12;
-    const pct      = targetMo > 0 ? Math.min(120, (avgMo / targetMo) * 100) : 0;
-    const onTrack  = avgMo >= targetMo;
-    const gap      = Math.abs(avgMo - targetMo);
+    const targetMo = fireModelTargetMonthly();
+    const pct     = targetMo > 0 ? Math.min(120, (avgMo / targetMo) * 100) : 0;
+    const onTrack = avgMo >= targetMo;
+    const gap     = Math.abs(avgMo - targetMo);
+    const targetLabel = 'income − tax − expenses ÷ 12';
 
     wrap.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:14px;">
@@ -4755,7 +5190,7 @@ async function renderFireProgress(){
           <div class="ms-col fire">
             <div class="ms-col-label">FIRE Model Target</div>
             <div class="ms-row">
-              <span class="ms-label">Monthly</span>
+              <span class="ms-label" title="${targetLabel}" style="cursor:help">Monthly</span>
               <span class="ms-value" style="font-size:17px;font-weight:800;">${fmtDollar(targetMo)}</span>
             </div>
           </div>
@@ -4785,13 +5220,14 @@ function initIncomeTable(){
   wrap.innerHTML = `
     <table class="expense-table">
       <colgroup>
-        <col><col style="width:82px"><col style="width:82px">
-        <col style="width:110px"><col style="width:30px">
+        <col style="width:155px"><col style="width:130px">
+        <col style="width:74px"><col style="width:74px">
+        <col style="width:88px"><col style="width:26px"><col style="width:28px">
       </colgroup>
       <thead><tr>
-        <th>Source</th>
+        <th>Source</th><th>Description</th>
         <th class="th-num">Budget</th><th class="th-num">Actual</th>
-        <th>Frequency</th><th></th>
+        <th>Frequency</th><th></th><th></th>
       </tr></thead>
       <tbody id="incomeTableBody"></tbody>
     </table>`;
@@ -4801,54 +5237,246 @@ function initIncomeTable(){
 function addIncomeRow(data){
   const tbody = document.getElementById('incomeTableBody');
   if(!tbody) return;
-  const id      = ++_incRowCounter;
-  const srcVal   = data ? (data.source || '') : '';
-  const budgVal  = (data && data.budget != null && data.budget !== '') ? data.budget : '';
-  const actVal   = (data && data.actual != null && data.actual !== '') ? data.actual : '';
-  const selFreq  = (data && data.freq) ? data.freq : 'Monthly';
+  const id       = ++_incRowCounter;
+  const srcVal   = data?.source  || '';
+  const descVal  = escapeHtml(data?.description || '');
+  const budgVal  = (data?.budget  != null && data.budget  !== '') ? data.budget  : '';
+  const actVal   = (data?.actual  != null && data.actual  !== '') ? data.actual  : '';
+  const selFreq  = data?.freq || 'Monthly';
+  const isGross  = data?.is_gross !== false; // default true
+  const volB     = data?.vol_budget != null ? data.vol_budget : '';
+  const volA     = data?.vol_actual != null ? data.vol_actual : '';
+
   const freqOpts = FREQ_OPTIONS.map(f => `<option${f===selFreq?' selected':''}>${f}</option>`).join('');
   const srcOpts  = INCOME_SOURCES.map(s =>
     `<option value="${escapeHtml(s)}"${s===srcVal?' selected':''}>${escapeHtml(s)}</option>`
   ).join('');
 
+  const tbody2 = tbody; // alias for closure
+
+  // Main row
   const tr = document.createElement('tr');
-  tr.className     = 'income-row';
+  tr.className = 'income-row';
   tr.dataset.rowId = id;
+  tr.dataset.isGross = isGross ? '1' : '0';
   tr.innerHTML = `
-    <td><select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select></td>
-    <td><input  class="exp-input inc-budget" type="number" step="1" min="0" placeholder="0"
-                value="${budgVal}" oninput="incRowChanged(${id})"></td>
-    <td><input  class="exp-input inc-actual" type="number" step="1" min="0" placeholder="—"
-                value="${actVal}" oninput="incRowChanged(${id})"></td>
+    <td>
+      <select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select>
+      <div class="inc-mode-pill">
+        <button class="inc-mode-btn${isGross?' active':''}" onclick="setIncomeMode(${id},'gross')">Gross</button>
+        <button class="inc-mode-btn${!isGross?' active':''}" onclick="setIncomeMode(${id},'net')">Net</button>
+      </div>
+    </td>
+    <td><input class="exp-input inc-desc" type="text" placeholder="Note (optional)"
+               value="${descVal}" oninput="incRowChanged(${id})"></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
+        <input class="exp-input inc-budget" type="number" step="1" min="0" placeholder="0"
+               value="${budgVal}" oninput="incRowChanged(${id})"></div></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
+        <input class="exp-input inc-actual" type="number" step="1" min="0" placeholder="—"
+               value="${actVal}" oninput="incRowChanged(${id})"></div></td>
     <td><select class="exp-input inc-freq" onchange="incRowChanged(${id})">${freqOpts}</select></td>
-    <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove row">×</button></td>`;
+    <td><button class="inc-expand-btn" id="incExp_${id}" onclick="toggleIncomeExpand(${id})"
+                style="${isGross?'':'display:none'}" title="Show breakdown">&#9654;</button></td>
+    <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove">×</button></td>`;
   tbody.appendChild(tr);
+
+  // Sub-rows (tax, employer super, voluntary super, net cash)
+  const mkSub = (subId, label, inputClass, inputVal, isNet) => {
+    const sr = document.createElement('tr');
+    sr.className = 'income-sub-row';
+    sr.id = `incSub_${id}_${subId}`;
+    sr.style.display = 'none';
+    const valCls = isNet ? 'inc-sub-net' : 'inc-sub-auto';
+    if(inputClass){
+      sr.innerHTML = `
+        <td class="inc-sub-lbl" colspan="2">${label}</td>
+        <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
+            <input class="exp-input ${inputClass}_b" type="number" step="1" min="0" placeholder="0"
+                   value="${inputVal?.b ?? ''}" oninput="incRowChanged(${id})"></div></td>
+        <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
+            <input class="exp-input ${inputClass}_a" type="number" step="1" min="0" placeholder="—"
+                   value="${inputVal?.a ?? ''}" oninput="incRowChanged(${id})"></div></td>
+        <td colspan="3" class="inc-sub-empty"></td>`;
+    } else {
+      sr.innerHTML = `
+        <td class="inc-sub-lbl" colspan="2">${label}</td>
+        <td class="${valCls}" id="incSub_${id}_${subId}_b">—</td>
+        <td class="${valCls}" id="incSub_${id}_${subId}_a">—</td>
+        <td colspan="3" class="inc-sub-empty"></td>`;
+    }
+    return sr;
+  };
+
+  tbody.appendChild(mkSub('tax',   'Tax withheld (est.)',   null, null, false));
+  tbody.appendChild(mkSub('emp',   'Employer super (est.)', null, null, false));
+  tbody.appendChild(mkSub('vol',   'Voluntary super',       'inc-vol', { b: volB, a: volA }, false));
+  tbody.appendChild(mkSub('net',   'Net cash',              null, null, true));
+
+  // Auto-expand if gross and has data
+  if(isGross && (budgVal !== '' || actVal !== '')){
+    toggleIncomeExpand(id);
+  }
 }
 
 /** Trigger summary + autosave when any income field changes */
 function incRowChanged(id){
+  updateIncomeBreakdown(id);
   updateBudgetSummary();
   scheduleAutosave();
 }
 
-/** Remove an income row — always keeps at least one */
+/** Switch a row between Gross and Net mode */
+function setIncomeMode(id, mode){
+  const tbody = document.getElementById('incomeTableBody');
+  const row   = tbody?.querySelector(`[data-row-id="${id}"]`);
+  if(!row) return;
+  const isGross = mode === 'gross';
+  row.dataset.isGross = isGross ? '1' : '0';
+  row.querySelectorAll('.inc-mode-btn').forEach(b =>
+    b.classList.toggle('active', b.textContent.toLowerCase() === mode)
+  );
+  const expBtn = document.getElementById(`incExp_${id}`);
+  if(expBtn) expBtn.style.display = isGross ? '' : 'none';
+  if(!isGross) _hideIncSubrows(id);
+  incRowChanged(id);
+}
+
+/** Expand / collapse the breakdown sub-rows */
+function toggleIncomeExpand(id){
+  const btn    = document.getElementById(`incExp_${id}`);
+  const isOpen = btn?.classList.contains('open');
+  if(isOpen){
+    _hideIncSubrows(id);
+  } else {
+    ['tax','emp','vol','net'].forEach(k => {
+      const el = document.getElementById(`incSub_${id}_${k}`);
+      if(el) el.style.display = '';
+    });
+    if(btn) btn.classList.add('open');
+    updateIncomeBreakdown(id);
+  }
+}
+
+function _hideIncSubrows(id){
+  ['tax','emp','vol','net'].forEach(k => {
+    const el = document.getElementById(`incSub_${id}_${k}`);
+    if(el) el.style.display = 'none';
+  });
+  const btn = document.getElementById(`incExp_${id}`);
+  if(btn) btn.classList.remove('open');
+}
+
+/** Recalculate and render the tax/super/net breakdown for one row */
+function updateIncomeBreakdown(id){
+  const tbody = document.getElementById('incomeTableBody');
+  const row   = tbody?.querySelector(`[data-row-id="${id}"]`);
+  if(!row || row.dataset.isGross !== '1') return;
+
+  // Only update if sub-rows are visible
+  if(document.getElementById(`incSub_${id}_tax`)?.style.display === 'none') return;
+
+  const mult = FREQ_TO_MONTHLY[row.querySelector('.inc-freq')?.value] ?? 1;
+  const fmt  = v => '$' + Math.round(v).toLocaleString();
+
+  const calc = (rawVal, volSelector) => {
+    if(rawVal === '' || rawVal == null) return null;
+    const monthly    = parseFloat(rawVal) * mult;
+    const annual     = monthly * 12;
+    const tax        = calcTax(annual, TAX_SETTINGS);
+    const taxM       = tax.totalTax / 12;
+    const superEmpM  = annual * (TAX_SETTINGS.superRate / 100) / 12;
+    const volEl      = document.querySelector(volSelector);
+    const volM       = parseFloat(volEl?.value || 0) || 0;
+    const netM       = monthly - taxM - superEmpM - volM;
+    return { taxM, superEmpM, netM: Math.max(0, netM) };
+  };
+
+  const bRaw  = row.querySelector('.inc-budget')?.value.trim();
+  const aRaw  = row.querySelector('.inc-actual')?.value.trim();
+  const bCalc = calc(bRaw, `#incSub_${id}_vol .inc-vol_b`);
+  const aCalc = calc(aRaw, `#incSub_${id}_vol .inc-vol_a`);
+
+  const set = (elId, val) => {
+    const el = document.getElementById(elId);
+    if(el) el.textContent = val != null ? fmt(val) : '—';
+  };
+
+  set(`incSub_${id}_tax_b`,  bCalc?.taxM);
+  set(`incSub_${id}_tax_a`,  aCalc?.taxM);
+  set(`incSub_${id}_emp_b`,  bCalc?.superEmpM);
+  set(`incSub_${id}_emp_a`,  aCalc?.superEmpM);
+  set(`incSub_${id}_net_b`,  bCalc?.netM);
+  set(`incSub_${id}_net_a`,  aCalc?.netM);
+}
+
+/** Remove an income row and its sub-rows — always keeps at least one */
 function deleteIncomeRow(id){
   const tbody = document.getElementById('incomeTableBody');
   if(!tbody) return;
   if(tbody.querySelectorAll('.income-row').length <= 1) return;
   const row = tbody.querySelector(`[data-row-id="${id}"]`);
-  if(row){ row.remove(); updateBudgetSummary(); scheduleAutosave(); }
+  if(!row) return;
+  // Remove sub-rows
+  ['tax','emp','vol','net'].forEach(k => {
+    document.getElementById(`incSub_${id}_${k}`)?.remove();
+  });
+  row.remove();
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+
+/**
+ * For a gross-mode income row, derive the net monthly cash after tax + employer super +
+ * voluntary super sacrifice. For a net-mode row, return the face value.
+ * Returns { budgetNet, actualNet } — either can be null if the field is blank.
+ */
+function _calcIncRowNets(row){
+  const id      = row.dataset.rowId;
+  const bRaw    = row.querySelector('.inc-budget')?.value.trim() ?? '';
+  const aRaw    = row.querySelector('.inc-actual')?.value.trim() ?? '';
+  const m       = FREQ_TO_MONTHLY[row.querySelector('.inc-freq')?.value] ?? 1;
+  const isGross = row.dataset.isGross === '1';
+
+  if(!isGross){
+    return {
+      budgetNet: bRaw !== '' ? parseFloat(bRaw) * m : null,
+      actualNet: aRaw !== '' ? parseFloat(aRaw) * m : null,
+      budgetGross: null, actualGross: null
+    };
+  }
+
+  const deduct = (rawVal, volSelector) => {
+    if(rawVal === '') return null;
+    const monthly   = parseFloat(rawVal) * m;
+    const annual    = monthly * 12;
+    const tax       = calcTax(annual, TAX_SETTINGS);
+    const taxM      = tax.totalTax / 12;
+    const superEmpM = annual * (TAX_SETTINGS.superRate / 100) / 12;
+    const volEl     = document.querySelector(volSelector);
+    const volM      = parseFloat(volEl?.value || 0) || 0;
+    return Math.max(0, monthly - taxM - superEmpM - volM);
+  };
+
+  const budgetGross = bRaw !== '' ? parseFloat(bRaw) * m : null;
+  const actualGross = aRaw !== '' ? parseFloat(aRaw) * m : null;
+  return {
+    budgetNet: deduct(bRaw, `#incSub_${id}_vol .inc-vol_b`),
+    actualNet: deduct(aRaw, `#incSub_${id}_vol .inc-vol_a`),
+    budgetGross, actualGross
+  };
 }
 
 /** Recalculate the summary strip from live table values */
 function updateBudgetSummary(){
   let incP = 0, incA = 0, hasIncA = false;
+  let incGrossP = 0, incGrossA = 0, anyGross = false;
   document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
-    const b = row.querySelector('.inc-budget').value.trim();
-    const a = row.querySelector('.inc-actual').value.trim();
-    const m = FREQ_TO_MONTHLY[row.querySelector('.inc-freq').value] ?? 1;
-    if(b !== '') incP += parseFloat(b) * m;
-    if(a !== ''){ incA += parseFloat(a) * m; hasIncA = true; }
+    const { budgetNet, actualNet, budgetGross, actualGross } = _calcIncRowNets(row);
+    if(budgetNet !== null) incP += budgetNet;
+    if(actualNet !== null){ incA += actualNet; hasIncA = true; }
+    if(budgetGross !== null){ incGrossP += budgetGross; anyGross = true; }
+    if(actualGross !== null) incGrossA += actualGross;
   });
 
   let expP = 0, expA = 0, hasExpA = false;
@@ -4873,28 +5501,130 @@ function updateBudgetSummary(){
   };
 
   setEl('bsiIncome',   fmt(incP));
-  setEl('bsiIncomeA',  hasIncA ? `actual ${fmt(incA)}` : '', 'bsi-sub');
+  setEl('bsiIncomeA',  hasIncA ? `Actual ${fmt(incA)}` : '', 'bsi-sub');
+  // Show gross note when any row is in gross mode
+  const grossEl = document.getElementById('bsiIncomeGross');
+  if(grossEl){
+    grossEl.textContent = anyGross ? `Gross ${fmt(incGrossP)}` : '';
+    grossEl.className = 'bsi-gross';
+  }
   setEl('bsiExpenses', fmt(expP));
-  setEl('bsiExpensesA',hasExpA ? `actual ${fmt(expA)}` : '', 'bsi-sub');
+  setEl('bsiExpensesA',hasExpA ? `Actual ${fmt(expA)}` : '', 'bsi-sub');
 
   const netCls = `bsi-val${netP > 0 ? ' bsi-pos' : netP < 0 ? ' bsi-neg' : ''}`;
   setEl('bsiNet',  fmt(netP), netCls);
-  setEl('bsiNetA', (hasIncA || hasExpA) ? `actual ${fmt(netA)}` : '', 'bsi-sub');
+  const netActualCls = (hasIncA || hasExpA) ? (netA < 0 ? 'bsi-sub bsi-neg' : 'bsi-sub') : 'bsi-sub';
+  setEl('bsiNetA', (hasIncA || hasExpA) ? `Actual ${fmt(netA)}` : '', netActualCls);
 
   const rateCls = `bsi-val${rateP !== null && rateP > 0 ? ' bsi-pos' : rateP !== null && rateP < 0 ? ' bsi-neg' : ''}`;
   setEl('bsiRate',  rateP !== null ? fmtR(rateP) : '—', rateCls);
-  setEl('bsiRateA', rateA !== null ? `actual ${fmtR(rateA)}` : '', 'bsi-sub');
+  const rateActualCls = rateA !== null && rateA < 0 ? 'bsi-sub bsi-neg' : 'bsi-sub';
+  setEl('bsiRateA', rateA !== null ? `Actual ${fmtR(rateA)}` : '', rateActualCls);
+
+  renderExpenseChart();
+}
+
+/** Render vertical stacked bar chart of expense budget vs actual, grouped by major category */
+function renderExpenseChart(){
+  const wrap = document.getElementById('expenseChartWrap');
+  if(!wrap) return;
+
+  // All major category labels in defined order
+  const ALL_GROUPS = [...new Set(BUDGET_CATS.map(c => c.group))];
+
+  // Aggregate entered rows by major category
+  const groups = {};
+  document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
+    const cat  = row.querySelector('.exp-cat')?.value.trim() || 'Other';
+    const bRaw = row.querySelector('.exp-budget')?.value.trim();
+    const aRaw = row.querySelector('.exp-actual')?.value.trim();
+    const mult = FREQ_TO_MONTHLY[row.querySelector('.exp-freq')?.value] ?? 1;
+    const planned = bRaw !== '' ? parseFloat(bRaw) * mult : 0;
+    const actual  = aRaw !== '' ? parseFloat(aRaw) * mult : null;
+    if(!groups[cat]) groups[cat] = { planned: 0, actual: null };
+    groups[cat].planned += planned;
+    if(actual !== null) groups[cat].actual = (groups[cat].actual ?? 0) + actual;
+  });
+
+  // Build rows for all groups (zero for empty ones)
+  const rows = ALL_GROUPS.map(label => {
+    const v = groups[label] || { planned: 0, actual: null };
+    return { label, planned: Math.round(v.planned * 100) / 100, actual: v.actual !== null ? Math.round(v.actual * 100) / 100 : null };
+  });
+
+  if(!document.getElementById('expenseBarCanvas')){
+    wrap.innerHTML = '<canvas id="expenseBarCanvas"></canvas>';
+  }
+
+  if(!document.getElementById('expenseBarCanvas')){
+    wrap.innerHTML = '<canvas id="expenseBarCanvas"></canvas>';
+  }
+  const canvas = document.getElementById('expenseBarCanvas');
+  const hasActual = rows.some(r => r.actual !== null);
+
+  // Stacked: Spent (green) + Remaining (light blue) + Overspend (red)
+  const spent     = rows.map(r => r.actual !== null ? Math.min(r.actual, r.planned) : 0);
+  const remaining = rows.map(r => {
+    const s = r.actual !== null ? Math.min(r.actual, r.planned) : 0;
+    return Math.max(0, r.planned - s);
+  });
+  const overspend = rows.map(r => r.actual !== null ? Math.max(0, r.actual - r.planned) : 0);
+  const anyOver   = overspend.some(v => v > 0);
+
+  const datasets = hasActual ? [
+    { label:'Spent',       data:spent,     backgroundColor:'#10B981', stack:'s', borderSkipped:false },
+    { label:'Remaining',   data:remaining, backgroundColor:'#BFDBFE', stack:'s', borderSkipped:false },
+    ...(anyOver ? [{ label:'Over budget', data:overspend, backgroundColor:'#FCA5A5', stack:'s', borderSkipped:false }] : [])
+  ] : [
+    { label:'Budget', data:rows.map(r => r.planned), backgroundColor:'#3B82F6', stack:'s', borderRadius:4 }
+  ];
+
+  wrap.style.height = '260px';
+
+  if(_expChartInstance){ _expChartInstance.destroy(); _expChartInstance = null; }
+  _expChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: { labels: rows.map(r => r.label), datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position:'bottom', labels:{ font:{size:10}, boxWidth:10, padding:10, color:'#5C5955' } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: $${Math.round(ctx.raw).toLocaleString()}` } }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { font:{size:10}, color:'#5C5955', maxRotation:30 },
+          grid: { display:false }
+        },
+        y: {
+          stacked: true,
+          ticks: { callback: v => '$' + Math.round(v).toLocaleString(), font:{size:10}, color:'#8A8582' },
+          grid: { color:'#F0EDE8' }, border:{ color:'#E8E4DE' }
+        }
+      }
+    }
+  });
 }
 
 /** Persist income row detail in localStorage for the given month */
 function saveIncomeRowsToStorage(monthStr){
   const rows = [];
   document.querySelectorAll('#incomeTableBody .income-row').forEach(row => {
+    const id   = row.dataset.rowId;
     const src  = row.querySelector('.inc-source').value.trim();
+    const desc = row.querySelector('.inc-desc')?.value.trim() || '';
     const budg = row.querySelector('.inc-budget').value.trim();
     const act  = row.querySelector('.inc-actual').value.trim();
     const freq = row.querySelector('.inc-freq').value;
-    if(src || budg || act) rows.push({ source: src, budget: budg, actual: act, freq });
+    const isGross = row.dataset.isGross !== '0';
+    const volB = document.querySelector(`#incSub_${id}_vol .inc-vol_b`)?.value.trim() ?? '';
+    const volA = document.querySelector(`#incSub_${id}_vol .inc-vol_a`)?.value.trim() ?? '';
+    if(src || budg || act) rows.push({
+      source: src, description: desc, budget: budg, actual: act, freq,
+      is_gross: isGross, vol_budget: volB, vol_actual: volA
+    });
   });
   try{ localStorage.setItem(`budg_inc_${monthStr}`, JSON.stringify(rows)); }catch(_){}
 }
@@ -4909,7 +5639,7 @@ function loadIncomeRowsFromStorage(monthStr){
 
 /** Returns <option> tags for a subcategory select, pre-selecting `selected` */
 function getSubcatSelectOpts(group, selected){
-  const cats = BUDGET_CATS.filter(c => c.group === group);
+  const cats = BUDGET_CATS.filter(c => c.group === group && c.enabled !== false);
   let opts = cats.map(c =>
     `<option value="${escapeHtml(c.label)}"${c.label===selected?' selected':''}>${escapeHtml(c.label)}</option>`
   ).join('');
@@ -4927,11 +5657,11 @@ function initExpenseTable(){
   wrap.innerHTML = `
     <table class="expense-table">
       <colgroup>
-        <col style="width:118px"><col><col style="width:82px">
-        <col style="width:82px"><col style="width:110px"><col style="width:30px">
+        <col style="width:130px"><col style="width:165px"><col style="width:144px"><col style="width:68px">
+        <col style="width:68px"><col style="width:90px"><col style="width:30px">
       </colgroup>
       <thead><tr>
-        <th>Category</th><th>Sub-category</th>
+        <th>Category</th><th>Sub-category</th><th>Description</th>
         <th class="th-num">Budget</th><th class="th-num">Actual</th>
         <th>Frequency</th><th></th>
       </tr></thead>
@@ -4958,13 +5688,14 @@ function addExpenseRow(data){
   if(!tbody) return;
 
   const id      = ++_expRowCounter;
-  const groups  = [...new Set(BUDGET_CATS.map(c => c.group))];
+  const groups  = [...new Set(BUDGET_CATS.filter(c => c.enabled !== false).map(c => c.group))];
   const selGrp  = data && data.group ? data.group : groups[0];
   const grpOpts = groups.map(g =>
     `<option value="${escapeHtml(g)}"${g===selGrp?' selected':''}>${escapeHtml(g)}</option>`
   ).join('');
 
   const subVal  = data ? escapeHtml(data.subcategory || '') : '';
+  const expDescVal = data ? escapeHtml(data.description || '') : '';
   const budgVal = (data && data.budget  !== '' && data.budget  != null) ? data.budget  : '';
   const actVal  = (data && data.actual  !== '' && data.actual  != null) ? data.actual  : '';
   const selFreq = (data && data.freq)   ? data.freq : 'Monthly';
@@ -4980,10 +5711,12 @@ function addExpenseRow(data){
     <td><select class="exp-input exp-subcat" onchange="expRowChanged(${id})">
           ${getSubcatSelectOpts(selGrp, subVal)}
         </select></td>
-    <td><input  class="exp-input exp-budget" type="number" step="1" min="0" placeholder="0"
-                value="${budgVal}" oninput="expRowChanged(${id})"></td>
-    <td><input  class="exp-input exp-actual" type="number" step="1" min="0" placeholder="—"
-                value="${actVal}" oninput="expRowChanged(${id})"></td>
+    <td><input  class="exp-input exp-desc" type="text" placeholder="Note (optional)"
+                value="${expDescVal}" oninput="expRowChanged(${id})"></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-budget" type="number" step="1" min="0" placeholder="0"
+                value="${budgVal}" oninput="expRowChanged(${id})"></div></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-actual" type="number" step="1" min="0" placeholder="—"
+                value="${actVal}" oninput="expRowChanged(${id})"></div></td>
     <td><select class="exp-input exp-freq" onchange="expRowChanged(${id})">${freqOpts}</select></td>
     <td><button class="exp-del" onclick="deleteExpenseRow(${id})" title="Remove row">×</button></td>`;
 
@@ -5005,17 +5738,17 @@ function deleteExpenseRow(id){
   if(row){ row.remove(); updateBudgetSummary(); scheduleAutosave(); }
 }
 
-/** Fill editor from API data (or reset to blank) */
-function populateLogForm(data){
+/** Fill editor from API data (or reset to blank). Pass incomeOverride to skip localStorage lookup. */
+function populateLogForm(data, incomeOverride){
   // ── Income rows ──
   const incTbody = document.getElementById('incomeTableBody');
   if(incTbody){
     incTbody.innerHTML = '';
     _incRowCounter = 0;
-    const stored = loadIncomeRowsFromStorage(budgetMonthStr);
-    if(stored.length){
+    const stored = incomeOverride !== undefined ? incomeOverride : loadIncomeRowsFromStorage(budgetMonthStr);
+    if(stored && stored.length){
       stored.forEach(r => addIncomeRow(r));
-    } else if(data && data.income.planned > 0){
+    } else if(data && data.income && data.income.planned > 0){
       // API only gives us a total — show it as one row
       addIncomeRow({
         source: 'Income',
@@ -5034,10 +5767,12 @@ function populateLogForm(data){
 
   if(data && data.categories && data.categories.length){
     data.categories.forEach(cat => {
-      const match = BUDGET_CATS.find(c => c.label.toLowerCase() === cat.category.toLowerCase());
+      const {subcategory, description} = parseCategoryDescription(cat.category);
+      const match = BUDGET_CATS.find(c => c.label.toLowerCase() === subcategory.toLowerCase());
       addExpenseRow({
         group:       match ? match.group : (BUDGET_CATS[0]?.group || 'Other'),
-        subcategory: cat.category,
+        subcategory: subcategory,
+        description: description,
         budget:      cat.planned != null ? cat.planned : '',
         actual:      cat.actual  != null ? cat.actual  : '',
         freq:        'Monthly'   // API always stores monthly amounts
@@ -5068,6 +5803,575 @@ function showInputsPanel(which){
 
 
 </script>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   Australian Tax Data & Calculation Engine
+   ══════════════════════════════════════════════════════════ */
+
+const TAX_DATA = {
+  '2023-24': {
+    label: '2023–24',
+    brackets: [
+      { min:      0, rate: 0,     base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.19,  base:     0, label: '$18,201 – $37,000'    },
+      { min:  37000, rate: 0.325, base:  3572, label: '$37,001 – $87,000'    },
+      { min:  87000, rate: 0.37,  base: 19822, label: '$87,001 – $180,000'   },
+      { min: 180000, rate: 0.45,  base: 54232, label: '$180,001+'            },
+    ],
+    lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
+    medicareRate: 0.02, medicareThreshold: 24276, medicarePhaseEnd: 30345,
+    mlsThreshold: 90000,
+    mlsRates: [{ max: 105000, rate: 0.01 }, { max: 140000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
+    hecsRates: [
+      { max:  51550, rate: 0    }, { max:  59518, rate: 0.01  }, { max:  63089, rate: 0.02  },
+      { max:  66875, rate: 0.025}, { max:  70888, rate: 0.03  }, { max:  75141, rate: 0.035 },
+      { max:  79649, rate: 0.04 }, { max:  84429, rate: 0.045 }, { max:  89494, rate: 0.05  },
+      { max:  94865, rate: 0.055}, { max: 100557, rate: 0.06  }, { max: 106590, rate: 0.065 },
+      { max: 112985, rate: 0.07 }, { max: 119765, rate: 0.075}, { max: 126951, rate: 0.08  },
+      { max: 134568, rate: 0.085}, { max: 142642, rate: 0.09 }, { max: 151200, rate: 0.095 },
+      { max: Infinity, rate: 0.10 },
+    ],
+    defaultSuperRate: 11, concCap: 27500,
+  },
+  '2024-25': {
+    label: '2024–25',
+    brackets: [
+      { min:      0, rate: 0,     base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.19,  base:     0, label: '$18,201 – $45,000'    },
+      { min:  45000, rate: 0.325, base:  5092, label: '$45,001 – $120,000'   },
+      { min: 120000, rate: 0.37,  base: 29467, label: '$120,001 – $180,000'  },
+      { min: 180000, rate: 0.45,  base: 51667, label: '$180,001+'            },
+    ],
+    lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
+    medicareRate: 0.02, medicareThreshold: 26000, medicarePhaseEnd: 32500,
+    mlsThreshold: 93000,
+    mlsRates: [{ max: 108000, rate: 0.01 }, { max: 144000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
+    hecsRates: [
+      { max:  54434, rate: 0    }, { max:  62849, rate: 0.01  }, { max:  66620, rate: 0.02  },
+      { max:  70617, rate: 0.025}, { max:  74855, rate: 0.03  }, { max:  79346, rate: 0.035 },
+      { max:  84107, rate: 0.04 }, { max:  88756, rate: 0.045}, { max:  93969, rate: 0.05  },
+      { max:  99996, rate: 0.055}, { max: 105996, rate: 0.06 }, { max: 112355, rate: 0.065 },
+      { max: 119097, rate: 0.07 }, { max: 126243, rate: 0.075}, { max: 133818, rate: 0.08  },
+      { max: 141847, rate: 0.085}, { max: 150357, rate: 0.09 }, { max: 159280, rate: 0.095 },
+      { max: Infinity, rate: 0.10 },
+    ],
+    defaultSuperRate: 11.5, concCap: 30000,
+  },
+  '2025-26': {
+    label: '2025–26',
+    brackets: [
+      { min:      0, rate: 0,     base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.19,  base:     0, label: '$18,201 – $45,000'    },
+      { min:  45000, rate: 0.325, base:  5092, label: '$45,001 – $120,000'   },
+      { min: 120000, rate: 0.37,  base: 29467, label: '$120,001 – $180,000'  },
+      { min: 180000, rate: 0.45,  base: 51667, label: '$180,001+'            },
+    ],
+    lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
+    medicareRate: 0.02, medicareThreshold: 26000, medicarePhaseEnd: 32500,
+    mlsThreshold: 93000,
+    mlsRates: [{ max: 108000, rate: 0.01 }, { max: 144000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
+    hecsRates: [
+      { max:  54434, rate: 0    }, { max:  62849, rate: 0.01  }, { max:  66620, rate: 0.02  },
+      { max:  70617, rate: 0.025}, { max:  74855, rate: 0.03  }, { max:  79346, rate: 0.035 },
+      { max:  84107, rate: 0.04 }, { max:  88756, rate: 0.045}, { max:  93969, rate: 0.05  },
+      { max:  99996, rate: 0.055}, { max: 105996, rate: 0.06 }, { max: 112355, rate: 0.065 },
+      { max: 119097, rate: 0.07 }, { max: 126243, rate: 0.075}, { max: 133818, rate: 0.08  },
+      { max: 141847, rate: 0.085}, { max: 150357, rate: 0.09 }, { max: 159280, rate: 0.095 },
+      { max: Infinity, rate: 0.10 },
+    ],
+    defaultSuperRate: 12, concCap: 30000,
+  },
+};
+
+/** Calculate annual tax breakdown for a given gross annual income */
+function calcTax(grossAnnual, settings){
+  const fy = TAX_DATA[settings.fy];
+  if(!fy || !grossAnnual || grossAnnual <= 0) return { incomeTax:0, lito:0, medicare:0, mls:0, hecs:0, totalTax:0, effectiveRate:0, marginalRate:0, net: grossAnnual || 0 };
+
+  // 1. Base income tax (bracket + base formula)
+  let incomeTax = 0;
+  for(let i = fy.brackets.length - 1; i >= 0; i--){
+    if(grossAnnual > fy.brackets[i].min){
+      incomeTax = fy.brackets[i].base + (grossAnnual - fy.brackets[i].min) * fy.brackets[i].rate;
+      break;
+    }
+  }
+
+  // 2. LITO (Low Income Tax Offset)
+  const L = fy.lito;
+  let lito = 0;
+  if(grossAnnual <= L.fullTo)         lito = L.full;
+  else if(grossAnnual <= L.taper2From) lito = Math.max(0, L.full  - (grossAnnual - L.taper1From) * L.taper1);
+  else if(grossAnnual <= L.taper2To)  lito = Math.max(0, L.mid   - (grossAnnual - L.taper2From) * L.taper2);
+  incomeTax = Math.max(0, incomeTax - lito);
+
+  // 3. Medicare levy (with phase-in for low incomes)
+  let medicare = 0;
+  if(grossAnnual > fy.medicareThreshold){
+    const full = grossAnnual * fy.medicareRate;
+    const phaseIn = (grossAnnual - fy.medicareThreshold) * 0.1;
+    medicare = grossAnnual < fy.medicarePhaseEnd ? Math.min(full, phaseIn) : full;
+  }
+
+  // 4. Medicare Levy Surcharge (no PHI and above threshold)
+  let mls = 0;
+  if(!settings.hasPHI && grossAnnual > fy.mlsThreshold){
+    for(const tier of fy.mlsRates){
+      if(grossAnnual <= tier.max){ mls = grossAnnual * tier.rate; break; }
+    }
+  }
+
+  // 5. HECS/HELP repayment
+  let hecs = 0;
+  if(settings.hasHECS){
+    for(const tier of fy.hecsRates){
+      if(grossAnnual <= tier.max){ hecs = grossAnnual * tier.rate; break; }
+    }
+  }
+
+  const totalTax    = incomeTax + medicare + mls + hecs;
+  const effectiveRate = grossAnnual > 0 ? totalTax / grossAnnual : 0;
+
+  // Marginal rate = highest bracket rate that applies
+  let marginalRate = 0;
+  for(let i = fy.brackets.length - 1; i >= 0; i--){
+    if(grossAnnual > fy.brackets[i].min){ marginalRate = fy.brackets[i].rate; break; }
+  }
+
+  return {
+    incomeTax:    Math.round(incomeTax),
+    lito:         Math.round(lito),
+    medicare:     Math.round(medicare),
+    mls:          Math.round(mls),
+    hecs:         Math.round(hecs),
+    totalTax:     Math.round(totalTax),
+    effectiveRate,
+    marginalRate,
+    net:          Math.round(grossAnnual - totalTax),
+  };
+}
+
+/* ── Tax Settings state ── */
+const DEFAULT_TAX_SETTINGS = { fy:'2024-25', superRate:11.5, hasPHI:false, hasHECS:false, showCapWarning:true };
+let TAX_SETTINGS = (function(){
+  try{
+    const s = localStorage.getItem('fire_tax_settings_v1');
+    if(s) return { ...DEFAULT_TAX_SETTINGS, ...JSON.parse(s) };
+  }catch(_){}
+  return { ...DEFAULT_TAX_SETTINGS };
+})();
+
+function saveTaxSettings(){
+  try{ localStorage.setItem('fire_tax_settings_v1', JSON.stringify(TAX_SETTINGS)); }catch(_){}
+}
+
+/* ══════════════════════════════════════════════════════════
+   Settings — navigation + category management
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Navigation ── */
+function openSettings(){
+  settingsGoHome();
+  document.getElementById('settingsOverlay').style.display = 'flex';
+}
+function closeSettings(){ document.getElementById('settingsOverlay').style.display = 'none'; }
+function handleSettingsOverlayClick(e){ if(e.target === e.currentTarget) closeSettings(); }
+
+function settingsGoHome(){
+  document.getElementById('settingsHome').style.display = 'block';
+  document.querySelectorAll('.settings-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('settingsTitle').textContent = 'Settings';
+  const back = document.getElementById('settingsBackBtn');
+  back.style.display = 'none';
+}
+
+function showSettingsPage(page){
+  document.getElementById('settingsHome').style.display = 'none';
+  document.querySelectorAll('.settings-page').forEach(p => p.classList.remove('active'));
+  const back = document.getElementById('settingsBackBtn');
+  back.style.display = 'flex';
+
+  if(page === 'budgetCats'){
+    document.getElementById('settingsTitle').textContent = 'Budget Categories';
+    document.getElementById('settingsPageBudgetCats').classList.add('active');
+    renderSettingsCats();
+  } else if(page === 'taxSuper'){
+    document.getElementById('settingsTitle').textContent = 'Tax & Super';
+    document.getElementById('settingsPageTaxSuper').classList.add('active');
+    renderTaxSettings();
+  }
+}
+
+/* ── Tax & Super page ── */
+
+function renderTaxSettings(){
+  const s = TAX_SETTINGS;
+  const fy = TAX_DATA[s.fy];
+
+  // Populate controls
+  const fyEl = document.getElementById('tsFY');
+  if(fyEl) fyEl.value = s.fy;
+
+  const srEl = document.getElementById('tsSuperRate');
+  if(srEl) srEl.value = s.superRate;
+
+  document.getElementById('tsPHI').checked        = s.hasPHI;
+  document.getElementById('tsHECS').checked       = s.hasHECS;
+  document.getElementById('tsCapWarning').checked = s.showCapWarning;
+
+  // Bracket toggle label
+  const lbl = document.getElementById('tsBracketLbl');
+  if(lbl && fy) lbl.textContent = `View ${fy.label} brackets`;
+
+  // Render bracket table
+  renderBracketTable();
+}
+
+function onTaxSettingChange(){
+  const fy = document.getElementById('tsFY')?.value || '2024-25';
+  const fyData = TAX_DATA[fy];
+
+  TAX_SETTINGS.fy           = fy;
+  TAX_SETTINGS.superRate    = parseFloat(document.getElementById('tsSuperRate')?.value) || fyData?.defaultSuperRate || 11.5;
+  TAX_SETTINGS.hasPHI       = document.getElementById('tsPHI')?.checked || false;
+  TAX_SETTINGS.hasHECS      = document.getElementById('tsHECS')?.checked || false;
+  TAX_SETTINGS.showCapWarning = document.getElementById('tsCapWarning')?.checked ?? true;
+
+  // Auto-update super rate to FY default when user changes FY (if they haven't customised it)
+  if(document.getElementById('tsSuperRate') && fyData){
+    // Only auto-update if value matches a known default (i.e. user hasn't customised)
+    const knownDefaults = Object.values(TAX_DATA).map(d => d.defaultSuperRate);
+    if(knownDefaults.includes(TAX_SETTINGS.superRate)){
+      TAX_SETTINGS.superRate = fyData.defaultSuperRate;
+      document.getElementById('tsSuperRate').value = TAX_SETTINGS.superRate;
+    }
+  }
+
+  saveTaxSettings();
+
+  // Refresh bracket label + table
+  const lbl = document.getElementById('tsBracketLbl');
+  if(lbl && fyData) lbl.textContent = `View ${fyData.label} brackets`;
+  renderBracketTable();
+}
+
+function renderBracketTable(){
+  const tbody = document.getElementById('tsBracketRows');
+  if(!tbody) return;
+  const fy = TAX_DATA[TAX_SETTINGS.fy];
+  if(!fy){ tbody.innerHTML = ''; return; }
+
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  tbody.innerHTML = fy.brackets.map((b, i) => {
+    const next = fy.brackets[i + 1];
+    const maxIncome = next ? next.min : null;
+    const taxInBracket = maxIncome
+      ? fmt(b.base + (maxIncome - b.min) * b.rate - b.base)
+      : '—';
+    // tax in bracket = just the marginal portion
+    const bracketTax = maxIncome
+      ? fmt((maxIncome - b.min) * b.rate)
+      : 'unlimited';
+    return `<tr>
+      <td>${b.label}</td>
+      <td>${Math.round(b.rate * 100)}%</td>
+      <td>${bracketTax}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleTaxBrackets(){
+  const body  = document.getElementById('tsBracketBody');
+  const arrow = document.getElementById('tsBracketArrow');
+  const toggle = document.getElementById('tsBracketToggle');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+/* ── Budget Categories page ── */
+
+/** Build group → subcats map from BUDGET_CATS, preserving order */
+function buildGroupMap(){
+  const order = [], map = {};
+  BUDGET_CATS.forEach(c => {
+    if(!map[c.group]){ map[c.group] = []; order.push(c.group); }
+    map[c.group].push(c);
+  });
+  return { order, map };
+}
+
+/** Re-render the category list */
+function renderSettingsCats(){
+  const container = document.getElementById('settingsCatList');
+  if(!container) return;
+  const { order, map } = buildGroupMap();
+
+  container.innerHTML = '';
+  order.forEach(group => {
+    const subcats = map[group];
+    const groupEnabled = subcats.some(c => c.enabled !== false);
+    const gKey = CSS.escape(group);
+
+    const div = document.createElement('div');
+    div.className = 'scat-group';
+
+    div.innerHTML = `
+      <div class="scat-group-row${groupEnabled ? '' : ' disabled'}" onclick="scatToggleExpand(this)">
+        <span class="scat-expand" id="scatArrow_${gKey}">&#9654;</span>
+        <div class="scat-group-name" onclick="event.stopPropagation()">
+          <input type="text" value="${escapeHtml(group)}" placeholder="Category name"
+            onblur="scatRenameGroup('${escapeHtml(group)}', this.value)"
+            onkeydown="if(event.key==='Enter') this.blur()">
+        </div>
+        <label class="tog" onclick="event.stopPropagation()" title="Enable / disable category">
+          <input type="checkbox" ${groupEnabled ? 'checked' : ''}
+            onchange="scatToggleGroup('${escapeHtml(group)}', this.checked)">
+          <span class="tog-track"></span>
+          <span class="tog-thumb"></span>
+        </label>
+        <button class="scat-del" title="Delete category"
+          onclick="event.stopPropagation(); scatDeleteGroup('${escapeHtml(group)}')">&#10005;</button>
+      </div>
+      <div class="scat-subcats" id="scatSubs_${gKey}">
+        ${subcats.map(c => `
+          <div class="scat-sub-row${c.enabled === false ? ' disabled' : ''}" data-key="${escapeHtml(c.key)}">
+            <div class="scat-sub-name">
+              <input type="text" value="${escapeHtml(c.label)}" placeholder="Sub-category name"
+                onblur="scatRenameSubcat('${escapeHtml(c.key)}', this.value)"
+                onkeydown="if(event.key==='Enter') this.blur()">
+            </div>
+            <div class="scat-sub-actions">
+              <label class="tog" title="Enable / disable">
+                <input type="checkbox" ${c.enabled !== false ? 'checked' : ''}
+                  onchange="scatToggleSubcat('${escapeHtml(c.key)}', this.checked)">
+                <span class="tog-track"></span>
+                <span class="tog-thumb"></span>
+              </label>
+              <button class="scat-del" onclick="scatDeleteSubcat('${escapeHtml(c.key)}')">&#10005;</button>
+            </div>
+          </div>`).join('')}
+        <button class="scat-add-sub" onclick="scatAddSubcat('${escapeHtml(group)}')">+ Add sub-category</button>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function scatToggleExpand(rowEl){
+  const groupDiv = rowEl.closest('.scat-group');
+  const subs  = groupDiv.querySelector('.scat-subcats');
+  const arrow = groupDiv.querySelector('.scat-expand');
+  subs.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function scatRenameGroup(oldName, newName){
+  newName = newName.trim();
+  if(!newName || newName === oldName) return;
+  BUDGET_CATS.forEach(c => { if(c.group === oldName) c.group = newName; });
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+}
+
+function scatRenameSubcat(key, newLabel){
+  newLabel = newLabel.trim();
+  const entry = BUDGET_CATS.find(c => c.key === key);
+  if(!entry || entry.label === newLabel) return;
+  entry.label = newLabel;
+  saveBudgetCats(); refreshExpenseDropdowns();
+}
+
+function scatToggleGroup(group, enabled){
+  BUDGET_CATS.forEach(c => { if(c.group === group) c.enabled = enabled; });
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+}
+
+function scatToggleSubcat(key, enabled){
+  const entry = BUDGET_CATS.find(c => c.key === key);
+  if(entry){ entry.enabled = enabled; saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns(); }
+}
+
+function scatDeleteGroup(group){
+  if(!confirm(`Delete "${group}" and all its sub-categories?`)) return;
+  BUDGET_CATS = BUDGET_CATS.filter(c => c.group !== group);
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+}
+
+function scatDeleteSubcat(key){
+  BUDGET_CATS = BUDGET_CATS.filter(c => c.key !== key);
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+}
+
+function settingsAddGroup(){
+  const name = 'New Category';
+  BUDGET_CATS.push({ group: name, key: 'custom_' + Date.now(), label: 'New sub-category', enabled: true });
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+  // Auto-expand the new group
+  const last = document.querySelector('#settingsCatList .scat-group:last-child');
+  if(last){
+    last.querySelector('.scat-subcats').classList.add('open');
+    last.querySelector('.scat-expand').classList.add('open');
+  }
+}
+
+function scatAddSubcat(group){
+  BUDGET_CATS.push({ group, key: 'custom_' + Date.now(), label: '', enabled: true });
+  saveBudgetCats(); renderSettingsCats(); refreshExpenseDropdowns();
+  // Re-expand and focus the new input
+  const gKey = CSS.escape(group);
+  const subs = document.getElementById('scatSubs_' + gKey);
+  if(subs){
+    subs.classList.add('open');
+    document.getElementById('scatArrow_' + gKey)?.classList.add('open');
+    // Focus last sub-category input
+    const inputs = subs.querySelectorAll('.scat-sub-name input');
+    if(inputs.length) inputs[inputs.length - 1].focus();
+  }
+}
+
+/** Rebuild expense dropdowns (only enabled categories) */
+function refreshExpenseDropdowns(){
+  const activeGroups = [...new Set(
+    BUDGET_CATS.filter(c => c.enabled !== false).map(c => c.group)
+  )];
+  const grpOpts = activeGroups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+
+  document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
+    const catSel = row.querySelector('.exp-cat');
+    const subSel = row.querySelector('.exp-subcat');
+    if(!catSel || !subSel) return;
+    const curCat = catSel.value;
+    const curSub = subSel.value;
+    catSel.innerHTML = grpOpts;
+    catSel.value = activeGroups.includes(curCat) ? curCat : (activeGroups[0] || '');
+    subSel.innerHTML = getSubcatSelectOpts(catSel.value, curSub);
+  });
+  renderExpenseChart();
+}
+</script>
+
+<!-- Settings modal -->
+<div id="settingsOverlay" class="settings-overlay" style="display:none;" onclick="handleSettingsOverlayClick(event)">
+  <div class="settings-panel" onclick="event.stopPropagation()">
+
+    <!-- Shared header -->
+    <div class="settings-head">
+      <button class="settings-back" id="settingsBackBtn" onclick="settingsGoHome()">&#8592;</button>
+      <h2 id="settingsTitle">Settings</h2>
+      <button class="settings-close" onclick="closeSettings()">&#10005;</button>
+    </div>
+
+    <!-- Home page -->
+    <div id="settingsHome" class="settings-body">
+      <div class="settings-nav-card" onclick="showSettingsPage('budgetCats')">
+        <span class="settings-nav-icon">🏷️</span>
+        <div class="settings-nav-label">
+          <strong>Budget Categories</strong>
+          <span>Manage expense groups &amp; sub-categories</span>
+        </div>
+        <span class="settings-nav-arrow">›</span>
+      </div>
+      <div class="settings-nav-card" onclick="showSettingsPage('taxSuper')">
+        <span class="settings-nav-icon">📊</span>
+        <div class="settings-nav-label">
+          <strong>Tax &amp; Super</strong>
+          <span>Brackets, super rate, HECS &amp; health insurance</span>
+        </div>
+        <span class="settings-nav-arrow">›</span>
+      </div>
+    </div>
+
+    <!-- Tax & Super sub-page -->
+    <div id="settingsPageTaxSuper" class="settings-page">
+      <div class="settings-page-body">
+
+        <!-- FY + Super Rate -->
+        <div class="ts-card">
+          <div class="ts-field">
+            <label>Financial Year</label>
+            <select id="tsFY" class="ts-select" onchange="onTaxSettingChange()">
+              <option value="2023-24">2023–24</option>
+              <option value="2024-25">2024–25</option>
+              <option value="2025-26">2025–26</option>
+            </select>
+          </div>
+          <div class="ts-field">
+            <label>Employer Super Rate</label>
+            <input id="tsSuperRate" type="number" class="ts-num" step="0.5" min="0" max="30"
+              onchange="onTaxSettingChange()" oninput="onTaxSettingChange()">
+            <span class="ts-unit">%</span>
+          </div>
+        </div>
+
+        <!-- Personal situation -->
+        <p class="settings-section-lbl" style="margin-top:14px">Personal Situation</p>
+        <div class="ts-card">
+          <div class="ts-row">
+            <div class="ts-row-label">
+              <strong>Private Health Insurance</strong>
+              <span>Removes Medicare Levy Surcharge (1–1.5% on income &gt; $93k)</span>
+            </div>
+            <label class="tog">
+              <input type="checkbox" id="tsPHI" onchange="onTaxSettingChange()">
+              <span class="tog-track"></span><span class="tog-thumb"></span>
+            </label>
+          </div>
+          <div class="ts-row">
+            <div class="ts-row-label">
+              <strong>HECS / HELP Debt</strong>
+              <span>Adds income-based repayment on top of income tax</span>
+            </div>
+            <label class="tog">
+              <input type="checkbox" id="tsHECS" onchange="onTaxSettingChange()">
+              <span class="tog-track"></span><span class="tog-thumb"></span>
+            </label>
+          </div>
+          <div class="ts-row">
+            <div class="ts-row-label">
+              <strong>Concessional Cap Warning</strong>
+              <span>Alert when super contributions exceed cap</span>
+            </div>
+            <label class="tog">
+              <input type="checkbox" id="tsCapWarning" onchange="onTaxSettingChange()">
+              <span class="tog-track"></span><span class="tog-thumb"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tax brackets (read-only, expandable) -->
+        <p class="settings-section-lbl" style="margin-top:14px">Tax Brackets</p>
+        <div class="ts-card">
+          <div class="ts-bracket-toggle" id="tsBracketToggle" onclick="toggleTaxBrackets()">
+            <span id="tsBracketLbl">View 2024–25 brackets</span>
+            <span class="ts-bracket-arrow" id="tsBracketArrow">&#9654;</span>
+          </div>
+          <div class="ts-bracket-body" id="tsBracketBody">
+            <table class="ts-bracket-table">
+              <thead>
+                <tr><th>Income</th><th>Rate</th><th>Marginal tax</th></tr>
+              </thead>
+              <tbody id="tsBracketRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="ts-note">
+          Estimates only — tax law is complex. Verify with the ATO or a registered tax agent.
+          HECS repayment and MLS thresholds are indexed annually.
+        </p>
+      </div>
+    </div>
+
+    <!-- Budget Categories sub-page -->
+    <div id="settingsPageBudgetCats" class="settings-page">
+      <div class="settings-page-body">
+        <div id="settingsCatList"></div>
+        <button class="scat-add-group" onclick="settingsAddGroup()">+ Add category</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 </body>
 </html>
