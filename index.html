@@ -1496,28 +1496,78 @@ label { color: #5C5955 !important; }
 .budget-cell.bc-neg   { color:#E11D48 !important; font-weight:600 !important; }
 
 /* FIRE progress bar */
-.fp-bar-track { height:8px; background:#F0EDE8; border-radius:999px; overflow:hidden; margin-top:8px; }
-.fp-bar-fill  { height:100%; border-radius:999px; background:#059669; transition:width .6s ease; }
+.fp-bar-track {
+  height:28px; background:#F0EDE8; border-radius:8px;
+  overflow:hidden; position:relative; margin-top:4px;
+}
+.fp-bar-fill {
+  height:100%; border-radius:8px; background:#059669;
+  transition:width .7s cubic-bezier(.4,0,.2,1);
+  display:flex; align-items:center;
+}
 .fp-bar-fill.fp-behind { background:#F59E0B; }
+.fp-bar-pct {
+  position:absolute; top:50%;
+  font-size:12px; font-weight:800; white-space:nowrap;
+  pointer-events:none;
+  transition: left .7s cubic-bezier(.4,0,.2,1), color .3s;
+}
 .fp-status-pill {
   font-size:12px; font-weight:700; padding:4px 12px;
   border-radius:999px; background:#E6F7F2; color:#059669; border:1px solid #A7DFD0;
 }
 .fp-status-pill.fp-behind { background:#FEF3C7; color:#92400E; border-color:#FCD34D; }
 
+/* FIRE progress — stat grid */
+.fp-stat-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+}
+@media(max-width:640px){ .fp-stat-grid { grid-template-columns:repeat(2,1fr); } }
+.fp-stat-box {
+  padding:10px 12px; background:#F8F7F4;
+  border:1px solid #E8E4DE; border-radius:8px;
+}
+.fp-stat-label {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.07em; color:#8A8582; margin-bottom:4px;
+}
+.fp-stat-val {
+  font-size:18px; font-weight:800; color:#1C1C1A; line-height:1.2;
+}
+.fp-stat-sub { font-size:10px; color:#A8A4A0; margin-top:3px; }
+
+/* FIRE progress — monthly chart */
+.fp-chart-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  margin:4px 0 8px;
+}
+.fp-chart-title {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.07em; color:#8A8582;
+}
+.fp-chart-wrap { height:230px; position:relative; }
+
 /* Log drawer — expense table */
 .expense-table {
   width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed;
 }
+.expense-table thead tr { background:#F5F3EF; }
 .expense-table th {
   font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  color:#8A8582; padding:4px 6px 6px; text-align:left; border-bottom:1px solid #E8E4DE;
+  color:#8A8582; padding:5px 6px 6px; text-align:center;
+  border:1px solid #E8E4DE;
 }
-.expense-table th.th-num { text-align:right; }
+.expense-table th:first-child { border-left:none; }
+.expense-table th:last-child  { border-right:none; }
+.expense-table th.th-num { text-align:center; }
 .expense-table td {
-  padding:4px 5px; border-bottom:1px solid #F0EDE8; vertical-align:middle;
+  padding:4px 5px; border-bottom:1px solid #EDE9E3;
+  border-right:1px solid #EDE9E3; vertical-align:middle;
 }
+.expense-table td:first-child { border-left:none; }
+.expense-table td:last-child  { border-right:none; }
 .expense-table tbody tr:last-child td { border-bottom:none; }
+.expense-table tbody tr:hover td { background:#FAFAF7; }
 .exp-input {
   width:100%; background:#FAFAF8; border:1px solid #E8E4DE; border-radius:5px;
   padding:5px 7px; font-size:12px; color:#1C1C1A; font-family:inherit;
@@ -1562,17 +1612,13 @@ select.exp-input { cursor:pointer; }
 .exp-del:hover { background:#FEE2E2; color:#dc2626; }
 
 /* ── Income row gross/net mode ───────────────────────── */
-.inc-mode-pill {
-  display:flex; gap:2px; margin-top:5px;
-}
-.inc-mode-btn {
-  font-size:10px; font-weight:700; padding:2px 7px;
+.inc-mode-sel {
+  font-size:11px; font-weight:600;
+  padding:2px 2px 2px 4px;
   border:1px solid #D8D4CC; border-radius:4px;
-  background:transparent; color:#A8A4A0; cursor:pointer;
-  transition:all .15s; line-height:1.4;
-}
-.inc-mode-btn.active {
-  background:#1D9E75; border-color:#1D9E75; color:#fff;
+  background:#FAFAF8; color:#5C5955;
+  cursor:pointer; width:100%;
+  appearance:auto;
 }
 .inc-expand-btn {
   width:22px; height:22px; border:none; background:transparent;
@@ -1586,7 +1632,7 @@ select.exp-input { cursor:pointer; }
 /* Income breakdown sub-rows */
 .income-sub-row > td {
   background:#FAFAF8 !important; padding:5px 8px !important;
-  border-top:none !important; font-size:11px;
+  border-top:none !important; border-right:none !important; font-size:11px;
 }
 .inc-sub-lbl {
   color:#8A8582 !important; padding-left:24px !important;
@@ -2332,7 +2378,7 @@ select.exp-input { cursor:pointer; }
     <div class="card">
       <div class="results-section-header" style="margin-bottom:12px;">
         <div class="title">Savings vs FIRE Target</div>
-        <div class="sub">Average monthly net savings vs what your FIRE model assumes</div>
+        <div class="sub">Monthly net savings vs your FIRE model target — last 12 months</div>
       </div>
       <div id="fireProgressContent">
         <div class="small muted">Log at least one month to see your savings rate vs target.</div>
@@ -3425,6 +3471,9 @@ async function callPath(base, path, payload){
 async function runModel(){
   const runBtn = document.getElementById("btnRunModel");
   if(runBtn){ runBtn.textContent = "Running…"; runBtn.disabled = true; }
+
+  // Inputs changed — projections cache is stale
+  invalidateFireProjections();
 
   syncInputsFromUI();
   saveState();
@@ -4829,7 +4878,11 @@ let _expRowCounter  = 0;
 let _incRowCounter  = 0;
 let _autosaveTimer  = null;
 let _budgetLocked   = false;
-let _expChartInstance = null;
+let _expChartInstance  = null;
+let _fireChartInstance = null;
+// Cache for FIRE model yearly projections — keyed by serialised inputs+settings
+let _fireProjectionsCache    = null; // { [year]: monthlyNetTarget }
+let _fireProjectionsCacheKey = null;
 
 /** Helpers */
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -5009,7 +5062,12 @@ async function doAutosave(){
     if(actualNet !== null){ incomeActualTotal += actualNet; hasIncomeActual = true; }
   });
   const incomePlanned = Math.round(incomePlannedTotal * 100) / 100;
-  const incomeActual  = hasIncomeActual ? Math.round(incomeActualTotal * 100) / 100 : null;
+  // If no actual income entered, fall back to planned as the best estimate so the
+  // month counts as "logged" in the FIRE progress series. The user can override
+  // by filling in the Actual income column for any month that differed.
+  const incomeActual = hasIncomeActual
+    ? Math.round(incomeActualTotal * 100) / 100
+    : (incomePlanned > 0 ? incomePlanned : null);
   saveIncomeRowsToStorage(budgetMonthStr);
 
   const expenses = [];
@@ -5145,7 +5203,84 @@ function fireModelTargetMonthly(){
   return Math.max(0, target);
 }
 
-/** FIRE progress: avg monthly savings vs model target */
+/**
+ * Fetch the FIRE model in yearly mode and return a map of { year → monthlyNetTarget }.
+ * monthlyNetTarget = (Salary_Total − Tax_Payable_Paid − Expenses_Total) / 12
+ * This reflects salary growth, inflation-adjusted expenses, and super-rate changes
+ * year-by-year as projected by the model.
+ *
+ * Results are cached — re-fetches only when inputs or tax settings change.
+ */
+async function fetchFireModelTargets(){
+  const base = (state.apiBase || '').replace(/\/+$/, '');
+  if(!base) return null;
+
+  // Cache key: model inputs + FY (super rate changes affect net)
+  const cacheKey = JSON.stringify({
+    inputs: normalizeInputs(state.inputs),
+    fy: TAX_SETTINGS.fy,
+    superRate: TAX_SETTINGS.superRate
+  });
+  if(_fireProjectionsCache && _fireProjectionsCacheKey === cacheKey){
+    return _fireProjectionsCache;
+  }
+
+  try {
+    const payload = {
+      inputs: normalizeInputs(state.inputs),
+      property_list: state.property_list || [],
+      display_month: false   // yearly rollup
+    };
+    const r = await fetch(`${base}/fire`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error('Model API ' + r.status);
+    const result = await r.json();
+
+    const map = {};
+    (result.rows || []).forEach(row => {
+      const year = Number(row.Year);
+      if(year <= 0) return;
+
+      // Use the monthly run-rate columns, not annual sums.
+      // Salary_Monthly / Expenses_Monthly are end-of-year monthly values from
+      // the model's aggregation ("last"), so they're unaffected by partial years
+      // (e.g. 2026 only covering May–Dec still gives the correct monthly rate).
+      const salaryMo   = Number(row.Salary_Monthly   || 0);
+      const expensesMo = Number(row.Expenses_Monthly || 0);
+      if(salaryMo <= 0) return;
+
+      // Re-derive monthly tax via our ATO engine so it's consistent with the
+      // rest of the app (same brackets, LITO, Medicare, MLS, HECS settings).
+      const taxMo = calcTax(salaryMo * 12, TAX_SETTINGS).totalTax / 12;
+      map[year]   = Math.max(0, salaryMo - taxMo - expensesMo);
+    });
+
+    _fireProjectionsCacheKey = cacheKey;
+    _fireProjectionsCache    = map;
+    return map;
+  } catch(e){
+    console.warn('fetchFireModelTargets failed:', e.message);
+    return null;   // caller falls back to static formula
+  }
+}
+
+/** Monthly savings target for a specific year.
+ *  Uses model projections if available, otherwise the static formula. */
+function fireModelTargetForYear(year, projections){
+  if(projections && projections[year] != null) return projections[year];
+  return fireModelTargetMonthly();   // static fallback
+}
+
+/** Invalidate the projections cache (call when inputs change) */
+function invalidateFireProjections(){
+  _fireProjectionsCache    = null;
+  _fireProjectionsCacheKey = null;
+}
+
+/** FIRE progress: stat grid + monthly chart vs model-projected target */
 async function renderFireProgress(){
   const wrap = document.getElementById('fireProgressContent');
   if(!wrap) return;
@@ -5156,58 +5291,234 @@ async function renderFireProgress(){
   fromD.setMonth(fromD.getMonth() - 11);
   const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
 
-  try {
-    const r = await fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`);
-    if(!r.ok) throw new Error();
-    const data   = await r.json();
-    const logged = data.series.filter(m => m.net_actual !== null);
-    if(!logged.length){
-      wrap.innerHTML = '<div class="small muted">Log at least one month to see your savings rate vs target.</div>';
-      return;
-    }
+  // Fetch model projections and budget series in parallel
+  const [projections, seriesResp] = await Promise.all([
+    fetchFireModelTargets(),
+    fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`)
+      .then(r => r.ok ? r.json() : Promise.reject('series ' + r.status))
+      .catch(() => null)
+  ]);
 
-    const avgMo    = logged.reduce((s,m) => s + m.net_actual, 0) / logged.length;
-    const targetMo = fireModelTargetMonthly();
-    const pct     = targetMo > 0 ? Math.min(120, (avgMo / targetMo) * 100) : 0;
-    const onTrack = avgMo >= targetMo;
-    const gap     = Math.abs(avgMo - targetMo);
-    const targetLabel = 'income − tax − expenses ÷ 12';
-
-    wrap.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <span class="small">${logged.length} month${logged.length>1?'s':''} logged in the last 12</span>
-          <span class="fp-status-pill ${onTrack?'':'fp-behind'}">${onTrack ? '✓ On track' : fmtDollar(gap)+'/mo gap'}</span>
-        </div>
-        <div class="ms-grid" style="grid-template-columns:1fr 1fr;border:none !important;">
-          <div class="ms-col">
-            <div class="ms-col-label">Avg Monthly Savings</div>
-            <div class="ms-row">
-              <span class="ms-label">Actual</span>
-              <span class="ms-value" style="font-size:17px;font-weight:800;color:${avgMo>=0?'#059669':'#E11D48'}">${fmtDollar(avgMo)}</span>
-            </div>
-          </div>
-          <div class="ms-col fire">
-            <div class="ms-col-label">FIRE Model Target</div>
-            <div class="ms-row">
-              <span class="ms-label" title="${targetLabel}" style="cursor:help">Monthly</span>
-              <span class="ms-value" style="font-size:17px;font-weight:800;">${fmtDollar(targetMo)}</span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-            <span class="small">${Math.round(Math.max(0,pct))}% of target</span>
-            <span class="small">${fmtDollar(avgMo)} / ${fmtDollar(targetMo)} per month</span>
-          </div>
-          <div class="fp-bar-track">
-            <div class="fp-bar-fill ${onTrack?'':'fp-behind'}" style="width:${Math.max(0,Math.min(100,pct))}%"></div>
-          </div>
-        </div>
-      </div>`;
-  } catch(e){
-    wrap.innerHTML = '<div class="small muted">Could not load savings series from API.</div>';
+  if(!seriesResp){
+    wrap.innerHTML = '<div class="small muted">Could not load savings data from API.</div>';
+    return;
   }
+
+  const series = seriesResp.series || [];
+  const logged = series.filter(m => m.net_actual !== null);
+
+  if(!logged.length){
+    wrap.innerHTML = '<div class="small muted" style="padding:8px 0">Log at least one month to see your FIRE progress.</div>';
+    return;
+  }
+
+  // Per-month target — uses model projection for that year, falls back to static
+  const monthTarget = m => fireModelTargetForYear(Number(m.month.split('-')[0]), projections);
+
+  // Core stats
+  const thisYear      = new Date().getFullYear();
+  const curYearTarget = fireModelTargetForYear(thisYear, projections);
+
+  const avgMo         = logged.reduce((s,m) => s + m.net_actual, 0) / logged.length;
+  // Weighted avg target across logged months (accounts for year-over-year step-up)
+  const avgTarget     = logged.reduce((s,m) => s + monthTarget(m), 0) / logged.length;
+  const onTrack       = avgMo >= avgTarget;
+  const pct           = avgTarget > 0 ? Math.max(0, Math.min(100, (avgMo / avgTarget) * 100)) : 0;
+  const onTrackCount  = logged.filter(m => m.net_actual >= monthTarget(m)).length;
+
+  // This month
+  const thisM      = series.find(m => m.month === toM);
+  const thisActual = thisM?.net_actual  ?? null;
+  const thisBudget = thisM?.net_planned ?? null;
+  const thisTarget = monthTarget({ month: toM });
+
+  // Year-to-date (current calendar year, logged months only)
+  const ytdLogged = series.filter(m => m.month?.startsWith(String(thisYear)) && m.net_actual !== null);
+  const ytdActual = ytdLogged.reduce((s,m) => s + m.net_actual, 0);
+  const ytdTarget = ytdLogged.reduce((s,m) => s + monthTarget(m), 0);
+
+  const col  = (v, tgt) => v >= tgt ? '#059669' : v >= 0 ? '#F59E0B' : '#E11D48';
+  const colV = v => v === null ? '#A8A4A0' : v >= 0 ? '#059669' : '#E11D48';
+
+  // Source label for target footnote
+  const targetSource = projections
+    ? `model projection for ${thisYear}`
+    : 'static estimate (run model to improve)';
+
+  wrap.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Status row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span class="small muted">${logged.length} month${logged.length!==1?'s':''} logged · ${onTrackCount}/${logged.length} on target
+          <span style="color:#C8C4BC;margin-left:6px;" title="Target: ${targetSource}">ⓘ</span>
+        </span>
+        <span class="fp-status-pill ${onTrack?'':'fp-behind'}">${onTrack ? '✓ On track' : fmtDollar(Math.abs(avgMo-avgTarget))+'/mo gap'}</span>
+      </div>
+
+      <!-- Stat grid -->
+      <div class="fp-stat-grid">
+        <div class="fp-stat-box">
+          <div class="fp-stat-label">Avg Monthly Saved</div>
+          <div class="fp-stat-val" style="color:${col(avgMo,avgTarget)}">${fmtDollar(avgMo)}</div>
+          <div class="fp-stat-sub">target ${fmtDollar(avgTarget)}/mo</div>
+        </div>
+        <div class="fp-stat-box">
+          <div class="fp-stat-label">This Month</div>
+          <div class="fp-stat-val" style="color:${thisActual!==null?col(thisActual,thisTarget):'#A8A4A0'}">${fmtDollar(thisActual)}</div>
+          <div class="fp-stat-sub">${thisBudget!==null?'budget '+fmtDollar(thisBudget):'not yet logged'}</div>
+        </div>
+        <div class="fp-stat-box">
+          <div class="fp-stat-label">YTD Total Saved</div>
+          <div class="fp-stat-val" style="color:${colV(ytdActual)}">${fmtDollar(ytdActual)}</div>
+          <div class="fp-stat-sub">target ${fmtDollar(ytdTarget)}${ytdLogged.length?' ('+ytdLogged.length+' mo)':''}</div>
+        </div>
+        <div class="fp-stat-box">
+          <div class="fp-stat-label">Months On Target</div>
+          <div class="fp-stat-val">${onTrackCount}<span style="font-size:13px;font-weight:500;color:#8A8582"> / ${logged.length}</span></div>
+          <div class="fp-stat-sub">last 12 months</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div>
+        <div class="fp-bar-track">
+          <div class="fp-bar-fill ${onTrack?'':'fp-behind'}" style="width:${pct}%"></div>
+          <span class="fp-bar-pct" style="
+            left:${pct >= 100 ? '50%' : pct + '%'};
+            transform:translate(${pct >= 100 ? '-50%' : pct >= 20 ? 'calc(-100% - 8px)' : '8px'}, -50%);
+            color:${pct >= 20 ? '#fff' : '#5C5955'};
+          ">${Math.round(pct)}%</span>
+        </div>
+      </div>
+
+      <!-- Monthly chart -->
+      <div>
+        <div class="fp-chart-hdr">
+          <span class="fp-chart-title">Net savings by month</span>
+          <span class="small muted" style="font-size:10px;display:flex;align-items:center;gap:10px;">
+            <span style="display:flex;align-items:center;gap:3px;">
+              <span style="display:inline-block;width:10px;height:10px;background:#BFDBFE;border:1px solid #93C5FD;border-radius:2px;"></span>Budget
+            </span>
+            <span style="display:flex;align-items:center;gap:3px;">
+              <span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;"></span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-left:1px;"></span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-left:1px;"></span>Actual
+            </span>
+            <span style="display:flex;align-items:center;gap:3px;">
+              <span style="display:inline-block;width:16px;height:0;border-top:2px dashed #059669;"></span>Target
+            </span>
+          </span>
+        </div>
+        <div class="fp-chart-wrap"><canvas id="fireProgressCanvas"></canvas></div>
+      </div>
+
+    </div>`;
+
+  // Pass per-month target array to chart (steps up when year changes)
+  const perMonthTargets = series.map(m => monthTarget(m));
+  _renderFireChart(series, perMonthTargets);
+}
+
+/**
+ * Render the monthly savings bar chart.
+ * @param {Array} series   - month objects from the budget series API
+ * @param {number[]} targets - per-month target values (may step up year-to-year)
+ */
+function _renderFireChart(series, targets){
+  if(_fireChartInstance){ _fireChartInstance.destroy(); _fireChartInstance = null; }
+  const canvas = document.getElementById('fireProgressCanvas');
+  if(!canvas) return;
+
+  const labels  = series.map(m => {
+    const [y, mo] = m.month.split('-');
+    return new Date(Number(y), Number(mo)-1, 1)
+      .toLocaleDateString('en-AU', { month:'short', year:'2-digit' });
+  });
+
+  const planned = series.map(m => m.net_planned ?? 0);
+  const actual  = series.map(m => m.net_actual  ?? null);
+
+  // Colour each actual bar against its own month's target
+  const actualBg = actual.map((v, i) => {
+    const tgt = targets[i] ?? 0;
+    return v === null ? 'transparent' :
+           v >= tgt   ? '#10B981' :
+           v >= 0     ? '#F59E0B' : '#EF4444';
+  });
+
+  // Target label: show range if it changes across the period
+  const uniqueTargets = [...new Set(targets.map(t => Math.round(t)))];
+  const targetLabel = uniqueTargets.length === 1
+    ? `Target (${fmtDollar(uniqueTargets[0])}/mo)`
+    : `Target (${fmtDollar(Math.min(...uniqueTargets))}–${fmtDollar(Math.max(...uniqueTargets))}/mo)`;
+
+  _fireChartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Budget',
+          data: planned,
+          backgroundColor: '#BFDBFE',
+          borderColor: '#93C5FD',
+          borderWidth: 1,
+          borderRadius: 3,
+          order: 2,
+        },
+        {
+          type: 'bar',
+          label: 'Actual',
+          data: actual,
+          backgroundColor: actualBg,
+          borderRadius: 3,
+          order: 1,
+        },
+        {
+          type: 'line',
+          label: targetLabel,
+          data: targets,
+          borderColor: '#059669',
+          borderWidth: 1.5,
+          borderDash: [5, 3],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+          order: 0,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if(ctx.raw === null) return null;
+              return ` ${ctx.dataset.label}: ${fmtDollar(ctx.raw)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font:{size:10}, color:'#5C5955' },
+          grid:  { display:false }
+        },
+        y: {
+          ticks: {
+            callback: v => '$' + Math.round(v/1000) + 'k',
+            font:{size:10}, color:'#8A8582'
+          },
+          grid:   { color:'#F0EDE8' },
+          border: { color:'#E8E4DE' }
+        }
+      }
+    }
+  });
 }
 
 
@@ -5220,14 +5531,15 @@ function initIncomeTable(){
   wrap.innerHTML = `
     <table class="expense-table">
       <colgroup>
-        <col style="width:155px"><col style="width:130px">
+        <col style="width:140px"><col style="width:120px">
         <col style="width:74px"><col style="width:74px">
-        <col style="width:88px"><col style="width:26px"><col style="width:28px">
+        <col style="width:84px"><col style="width:58px">
+        <col style="width:26px"><col style="width:26px">
       </colgroup>
       <thead><tr>
         <th>Source</th><th>Description</th>
         <th class="th-num">Budget</th><th class="th-num">Actual</th>
-        <th>Frequency</th><th></th><th></th>
+        <th>Frequency</th><th>Mode</th><th></th><th></th>
       </tr></thead>
       <tbody id="incomeTableBody"></tbody>
     </table>`;
@@ -5260,13 +5572,7 @@ function addIncomeRow(data){
   tr.dataset.rowId = id;
   tr.dataset.isGross = isGross ? '1' : '0';
   tr.innerHTML = `
-    <td>
-      <select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select>
-      <div class="inc-mode-pill">
-        <button class="inc-mode-btn${isGross?' active':''}" onclick="setIncomeMode(${id},'gross')">Gross</button>
-        <button class="inc-mode-btn${!isGross?' active':''}" onclick="setIncomeMode(${id},'net')">Net</button>
-      </div>
-    </td>
+    <td><select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select></td>
     <td><input class="exp-input inc-desc" type="text" placeholder="Note (optional)"
                value="${descVal}" oninput="incRowChanged(${id})"></td>
     <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
@@ -5276,6 +5582,10 @@ function addIncomeRow(data){
         <input class="exp-input inc-actual" type="number" step="1" min="0" placeholder="—"
                value="${actVal}" oninput="incRowChanged(${id})"></div></td>
     <td><select class="exp-input inc-freq" onchange="incRowChanged(${id})">${freqOpts}</select></td>
+    <td><select class="inc-mode-sel" onchange="setIncomeMode(${id}, this.value)">
+          <option value="gross"${isGross?' selected':''}>Gross</option>
+          <option value="net"${!isGross?' selected':''}>Net</option>
+        </select></td>
     <td><button class="inc-expand-btn" id="incExp_${id}" onclick="toggleIncomeExpand(${id})"
                 style="${isGross?'':'display:none'}" title="Show breakdown">&#9654;</button></td>
     <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove">×</button></td>`;
@@ -5333,9 +5643,6 @@ function setIncomeMode(id, mode){
   if(!row) return;
   const isGross = mode === 'gross';
   row.dataset.isGross = isGross ? '1' : '0';
-  row.querySelectorAll('.inc-mode-btn').forEach(b =>
-    b.classList.toggle('active', b.textContent.toLowerCase() === mode)
-  );
   const expBtn = document.getElementById(`incExp_${id}`);
   if(expBtn) expBtn.style.display = isGross ? '' : 'none';
   if(!isGross) _hideIncSubrows(id);
