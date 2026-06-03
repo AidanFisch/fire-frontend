@@ -1972,9 +1972,10 @@ select.exp-input { cursor:pointer; }
         <span class="api-dot" id="apiStatusDot"></span>
       </div>
       <div class="nav">
-        <button id="btnBudget"    onclick="showBudgetTab()">Budget</button>
-        <button id="btnPortfolio" onclick="showPortfolioTab()">Portfolio</button>
-        <button id="btnResults"   onclick="showTab('results')">Model</button>
+        <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
+        <button id="btnPortfolio"   onclick="showPortfolioTab()">Portfolio</button>
+        <button id="btnProperties"  onclick="showPropertiesTab()">Properties</button>
+        <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
       <div class="header-actions">
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
@@ -2250,23 +2251,13 @@ select.exp-input { cursor:pointer; }
           </div>
         </div>
 
-        <!-- Properties -->
+        <!-- Properties (summary only — edit via Properties tab) -->
         <div id="panel-properties" class="drawer-panel" style="margin-top:16px;">
-          <div class="section">
-            <div class="sectionHeader" onclick="toggleSection('propsSectionBody','propsChev')">
-              <div>
-                <h2>Properties</h2>
-                <div class="sub">Each property is its own card. Collapse this when you’re not editing.</div>
-              </div>
-              <div class="row" style="gap:10px;">
-                <button class="btn btn-add-prop" onclick="event.stopPropagation(); addProperty()">+ Add property</button>
-                <div class="chev" id="propsChev">▾</div>
-              </div>
-            </div>
-            <div class="sectionBody" id="propsSectionBody">
-              <div id="propsContainer"></div>
-            </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <h2 style="margin:0;">Properties</h2>
+            <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPropertiesTab();">Open Properties tab ↗</button>
           </div>
+          <div id="drawerPropSummary" style="font-size:12px; color:#5C5955;"></div>
         </div>
 
       </div><!-- /grid -->
@@ -2397,6 +2388,49 @@ select.exp-input { cursor:pointer; }
     <div style="display:none">
       <div id="kpiNWEnd"></div><div id="kpiStocksEnd"></div>
       <div id="kpiEquityEnd"></div><div id="kpiCashEnd"></div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     PROPERTIES TAB
+     ══════════════════════════════════════ -->
+<section id="tab-properties" class="tabs" style="margin-top:18px;">
+  <div style="display:flex; flex-direction:column; gap:20px;">
+
+    <div class="card">
+      <!-- Summary strip -->
+      <div class="port-summary-strip" id="propSummaryStrip">
+        <div class="port-summary-item port-summary-total">
+          <div class="psi-label">Total Value</div>
+          <div class="psi-val" id="propSIValue">—</div>
+        </div>
+        <div class="port-summary-sep"></div>
+        <div class="port-summary-item">
+          <div class="psi-label">Total Debt</div>
+          <div class="psi-val psi-secondary" id="propSIDebt">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Total Equity</div>
+          <div class="psi-val psi-secondary" id="propSIEquity">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Avg LVR</div>
+          <div class="psi-val psi-secondary" id="propSILvr">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Net Monthly</div>
+          <div class="psi-val psi-secondary" id="propSINet">—</div>
+        </div>
+      </div>
+
+      <div class="hr" style="margin:12px 0;"></div>
+
+      <!-- Property cards live here (moved from inputs drawer) -->
+      <div id="propsContainer"></div>
+      <button class="btn ghost btn-add-row" style="margin-top:4px;" onclick="addProperty()">+ Add property</button>
     </div>
 
   </div>
@@ -3309,9 +3343,11 @@ function removeProperty(id){
   state.property_list = state.property_list.filter(p => Number(p.id) !== Number(id));
   saveState();
   renderProperties();
+  updatePropSummaryStrip();
 }
 function renderProperties(){
   const wrap = document.getElementById("propsContainer");
+  if(!wrap) return;
   wrap.innerHTML = "";
 
   state.property_list.forEach((p, idx)=>{
@@ -3515,6 +3551,7 @@ function renderProperties(){
 
 
   });
+  updatePropSummaryStrip();
 }
 
 
@@ -3536,6 +3573,48 @@ function duplicateProperty(id){
   renderProperties();
 }
 
+
+/* ── Properties Tab ─────────────────────────────────────── */
+
+function showPropertiesTab(){
+  showTab('properties');
+  renderProperties();
+  updatePropSummaryStrip();
+}
+
+function updatePropSummaryStrip(){
+  const props = state.property_list || [];
+  const totValue  = props.reduce((s,p) => s + toNumber(p.current_value), 0);
+  const totDebt   = props.reduce((s,p) => s + toNumber(p.loan_balance_current ?? p.original_loan ?? 0), 0);
+  const totEquity = Math.max(totValue - totDebt, 0);
+  const avgLvr    = totValue > 0 ? (totDebt / totValue) : 0;
+  const totNet    = props.reduce((s,p) => s + calcNetMonthlyForProperty(p), 0);
+  const fmt = v => v > 0 ? fmtMoney(v) : (v < 0 ? '-'+fmtMoney(-v) : '—');
+  const s = id => document.getElementById(id);
+  if(s('propSIValue'))  s('propSIValue').textContent = fmtMoney(totValue);
+  if(s('propSIDebt'))   s('propSIDebt').textContent  = fmtMoney(totDebt);
+  if(s('propSIEquity')) s('propSIEquity').textContent= fmtMoney(totEquity);
+  if(s('propSILvr'))    s('propSILvr').textContent   = totValue > 0 ? `${(avgLvr*100).toFixed(0)}%` : '—';
+  if(s('propSINet')){
+    s('propSINet').textContent = totNet !== 0 ? (totNet > 0 ? '+' : '') + fmtMoney(totNet)+'/mo' : '—';
+    s('propSINet').style.color = totNet >= 0 ? '#059669' : '#E11D48';
+  }
+  // Also update drawer summary
+  const dps = document.getElementById('drawerPropSummary');
+  if(dps){
+    if(!props.length){
+      dps.textContent = 'No properties added yet.';
+    } else {
+      const inv = props.filter(p=>!p.is_owner_occupied).length;
+      const ppor = props.filter(p=>p.is_owner_occupied).length;
+      dps.innerHTML = `${props.length} propert${props.length!==1?'ies':'y'}`
+        + (ppor ? ` &nbsp;·&nbsp; ${ppor} PPOR` : '')
+        + (inv  ? ` &nbsp;·&nbsp; ${inv} investment` : '')
+        + `<br>Total equity <strong>${fmtMoney(totEquity)}</strong>`
+        + ` &nbsp;·&nbsp; Net/mo <strong style="color:${totNet>=0?'#059669':'#E11D48'}">${totNet>=0?'+':''}${fmtMoney(totNet)}</strong>`;
+    }
+  }
+}
 
 /** ---------------------------
  *  API health
@@ -4912,6 +4991,9 @@ window.addEventListener("load", ()=>{
   }
   // Render scenarios on load so the list is ready when you go to Model tab
   renderScenarios();
+  // Render properties on load so the tab is populated on first visit
+  renderProperties();
+  updatePropSummaryStrip();
 });
 
 /* ====== RESULTS sub-tabs ====== */
