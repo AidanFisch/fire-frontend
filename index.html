@@ -1410,6 +1410,74 @@ label { color: #5C5955 !important; }
 .topbar .brand   { flex: 1 0 auto; }
 .topbar .header-actions { flex: 1 0 auto; justify-content: flex-end; display: flex !important; }
 
+/* ══════════════════════════════════════
+   PORTFOLIO TAB
+   ══════════════════════════════════════ */
+.port-summary-strip {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  background: #F8F7F4; border: 1px solid #E8E4DE; border-radius: 8px;
+  padding: 12px 16px;
+}
+.port-summary-item { flex: 1; min-width: 80px; text-align: center; }
+.port-summary-total { min-width: 110px; }
+.port-summary-sep { width: 1px; background: #E8E4DE; flex-shrink: 0; margin: 0 4px; align-self: stretch; min-height: 36px; }
+.psi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #8A8582; }
+.psi-val   { font-size: 18px; font-weight: 700; color: #1C1C1A; margin-top: 3px; }
+.psi-secondary { font-size: 14px; color: #3C3C3A; }
+
+/* Portfolio year table */
+.port-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.port-year-table {
+  table-layout: fixed;
+  min-width: 1100px;
+}
+.port-year-table th, .port-year-table td { width:76px; text-align:right; padding:4px 5px; white-space:nowrap; overflow:hidden; }
+.port-year-table th:first-child, .port-year-table td:first-child { width:150px; text-align:left; }
+.port-year-table th:nth-child(2), .port-year-table td:nth-child(2) { width:148px; text-align:left; }
+.port-year-table th:last-child, .port-year-table td:last-child { width:30px; }
+.port-th-current { background:#E8F5F0 !important; color:#059669 !important; }
+.port-th-future  { color:#C8C4BC !important; }
+.port-cell-future { background:#FAFAF7; }
+.port-cell-locked .port-cell-input,
+.port-cell-input.port-cell-locked { background:#F2F0EA !important; color:#9A9692 !important; cursor:pointer; }
+.port-lock-icon { font-size:10px; cursor:pointer; opacity:.5; margin-left:3px; vertical-align:middle; }
+.port-lock-icon:hover { opacity:1; }
+.port-lock-open { opacity:.75; color:#059669; }
+.port-totals-row td { background:#F8F7F4 !important; border-top:2px solid #E8E4DE; padding:5px 5px; font-size:11px; font-weight:600; }
+.port-cell-input { width:100%; border:none !important; background:transparent !important; text-align:right; font-size:12px; padding:3px 2px; box-sizing:border-box; }
+.port-cell-input:focus { background:#fff !important; border:1px solid #1D9E75 !important; border-radius:3px; outline:none; box-shadow:0 0 0 2px rgba(29,158,117,.15); }
+/* Name/type inputs inside fixed-width cells */
+.port-year-table td:first-child .exp-input,
+.port-year-table td:nth-child(2) .exp-input { width:100%; box-sizing:border-box; }
+
+/* Data Sources sync panel (in core inputs) */
+.sync-panel { margin-top: 14px; }
+.sync-panel-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.sync-all-btn { font-size:11px !important; padding:3px 10px !important; }
+.sync-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid #F0EDE8; }
+.sync-row:last-child { border-bottom:none; }
+.sync-field-lbl { font-size:12px; color:#3C3C3A; font-weight:500; }
+.sync-field-val { font-size:11px; color:#8A8582; text-align:right; white-space:nowrap; min-width:80px; }
+.sync-pills { display:flex; gap:3px; }
+.sync-pill { font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid #D8D4CC; background:#fff; color:#5C5955; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.sync-pill:hover { border-color:#8A8582; }
+.sync-pill.active { background:#1C1C1A; color:#fff; border-color:#1C1C1A; }
+.sync-pill:disabled { opacity:.4; cursor:default; }
+/* Input locked by sync */
+.input-synced { background:#F2F0EA !important; color:#5C5955 !important; pointer-events:none; }
+
+/* Model actions sub-bar */
+#modelActionsBar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #D8D4CC;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+body.landing #modelActionsBar { display: none !important; }
+
 /* Budget section labels & summary strip */
 .budget-section-lbl {
   font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
@@ -1888,19 +1956,23 @@ select.exp-input { cursor:pointer; }
         <span class="api-dot" id="apiStatusDot"></span>
       </div>
       <div class="nav">
-        <button id="btnResults" onclick="showTab('results')">Results</button>
-        <button id="btnBudget"  onclick="showBudgetTab()">Budget</button>
+        <button id="btnBudget"    onclick="showBudgetTab()">Budget</button>
+        <button id="btnPortfolio" onclick="showPortfolioTab()">Portfolio</button>
+        <button id="btnResults"   onclick="showTab('results')">Model</button>
       </div>
       <div class="header-actions">
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
-        <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-        <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
-        <button class="btn primary" id="btnRunModel" onclick="runModel()">Run Model</button>
       </div>
       <!-- Hidden anchors for showTab() JS compatibility -->
       <button id="btnHome"   style="display:none"></button>
       <button id="btnInputs" style="display:none"></button>
       <button id="themeToggle" style="display:none"></button>
+    </div>
+    <!-- Model-only action bar — shown below header only on the Model tab -->
+    <div id="modelActionsBar" style="display:none;">
+      <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
+      <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
+      <button class="btn primary" id="btnRunModel" onclick="runModel()">Run Model</button>
     </div>
 	
 <!-- LANDING -->
@@ -2011,7 +2083,7 @@ select.exp-input { cursor:pointer; }
 		  <div class="sub">
 			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
 			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
-			<b>3) Results</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
+			<b>3) Model</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
 		  </div>
 
 		  <div class="hr"></div>
@@ -2040,7 +2112,7 @@ select.exp-input { cursor:pointer; }
 
 		  <div class="row">
 			<button class="btn primary" onclick="openInputsDrawer()">Edit Inputs</button>
-			<button class="btn" onclick="showTab('results')">Go to Results</button>
+			<button class="btn" onclick="showTab('results')">Go to Model</button>
 		  </div>
 		</div>
 
@@ -2118,6 +2190,14 @@ select.exp-input { cursor:pointer; }
                 <div><label>Todays Lifestyle Income</label><input id="todays_lifestyle_income" type="number" step="1"/></div>
                 <div><label>Current Income</label><input id="current_income" type="number" step="1"/></div>
                 <div><label>Current Expenses</label><input id="current_expenses" type="number" step="1"/></div>
+              </div>
+              <!-- Data Sources panel -->
+              <div class="sync-panel" id="syncPanel">
+                <div class="sync-panel-hd">
+                  <span class="budget-section-lbl" style="margin:0;">Data Sources</span>
+                  <button class="btn ghost sync-all-btn" onclick="syncAllFields()">Sync all</button>
+                </div>
+                <div id="syncPanelRows"></div>
               </div>
               <div class="hr"></div>
             </div>
@@ -2376,9 +2456,10 @@ select.exp-input { cursor:pointer; }
 
     <!-- FIRE progress card -->
     <div class="card">
-      <div class="results-section-header" style="margin-bottom:12px;">
-        <div class="title">Savings vs FIRE Target</div>
-        <div class="sub">Monthly net savings vs your FIRE model target — last 12 months</div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
+        <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Savings vs FIRE Target</span>
+        <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">last 12 months</span>
       </div>
       <div id="fireProgressContent">
         <div class="small muted">Log at least one month to see your savings rate vs target.</div>
@@ -2388,6 +2469,81 @@ select.exp-input { cursor:pointer; }
   </div>
 </section>
 
+
+
+<!-- ══════════════════════════════════════
+     PORTFOLIO TAB
+     ══════════════════════════════════════ -->
+<section id="tab-portfolio" class="tabs" style="margin-top:18px;">
+  <div style="display:flex; flex-direction:column; gap:20px;">
+
+    <!-- Asset tracker card -->
+    <div class="card">
+      <!-- Year nav header -->
+      <div class="budget-card-head">
+        <div class="budget-month-nav">
+          <button class="btn ghost" onclick="portYearStep(-1)">◀</button>
+          <span id="portYearLabel" style="min-width:60px; text-align:center; color:#1C1C1A;">—</span>
+          <button class="btn ghost" onclick="portYearStep(1)">▶</button>
+        </div>
+        <span id="portSaveStatus" class="budget-save-status"></span>
+      </div>
+
+      <!-- Net worth summary strip (reflects current month) -->
+      <div class="port-summary-strip">
+        <div class="port-summary-item port-summary-total">
+          <div class="psi-label">Net Worth</div>
+          <div class="psi-val" id="psiTotal">—</div>
+        </div>
+        <div class="port-summary-sep"></div>
+        <div class="port-summary-item">
+          <div class="psi-label">Cash &amp; Savings</div>
+          <div class="psi-val psi-secondary" id="psiCash">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Stocks &amp; ETFs</div>
+          <div class="psi-val psi-secondary" id="psiStocks">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Super</div>
+          <div class="psi-val psi-secondary" id="psiSuper">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Property</div>
+          <div class="psi-val psi-secondary" id="psiProperty">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Other</div>
+          <div class="psi-val psi-secondary" id="psiOther">—</div>
+        </div>
+      </div>
+
+      <!-- Year table -->
+      <p class="budget-section-lbl" style="margin-top:16px;">Asset Values by Month</p>
+      <div class="port-table-scroll">
+        <table class="expense-table port-year-table">
+          <thead id="portYearHead"></thead>
+          <tbody id="portYearBody"></tbody>
+          <tfoot id="portYearFoot"></tfoot>
+        </table>
+      </div>
+      <button class="btn ghost btn-add-row" onclick="addPortfolioAsset()" style="margin-top:8px; font-size:12px;">+ Add asset</button>
+    </div>
+
+    <!-- History chart card -->
+    <div class="card">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
+        <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Net Worth History</span>
+        <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">all time</span>
+      </div>
+      <div id="portHistoryContent">
+        <div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
 
 </div><!-- /.wrap -->
 
@@ -2431,10 +2587,15 @@ select.exp-input { cursor:pointer; }
  *  State + Defaults
  *  --------------------------*/
 const LS_KEY = "fire_frontend_state_v3";
+
+// ─── DEV MODE — set false before shipping ───────────────
+const DEV_MODE = true;
+// ────────────────────────────────────────────────────────
 let state = {
   apiBase: "https://fire-api-wixz.onrender.com",
   apiPath: "/fire",
   mode: "yearly",
+  syncModes: {},   // keyed by input field id: 'manual' | 'sync'
   inputs: {
     current_age: 25,
     end_age: 65,
@@ -4705,6 +4866,15 @@ window.addEventListener("load", ()=>{
   initIncomeTable();      // build income table once
   initExpenseTable();     // build expense table once
   initLanding();
+  // Re-lock any fields that were synced before page refresh
+  if(state.syncModes){
+    SYNC_FIELD_DEFS.forEach(def => {
+      if(state.syncModes[def.key] === 'sync'){
+        const el = document.getElementById(def.key);
+        if(el) el.classList.add('input-synced');
+      }
+    });
+  }
 });
 
 /* ====== RESULTS sub-tabs ====== */
@@ -4752,6 +4922,9 @@ function openInputsDrawer(){
   drawerEl.setAttribute("aria-hidden","false");
   drawerEl.querySelector("button, [href], input, select, textarea")?.focus();
 
+  // Load data sources and render sync panel
+  loadSyncData();
+
   // Close on ESC / backdrop
   document.addEventListener("keydown", handleDrawerEsc, { once:false });
   backdrop.addEventListener("click", closeInputsDrawer, { once:true });
@@ -4792,6 +4965,8 @@ const _origShowTab = showTab;
 showTab = function(name){
   ensureInputsAtHome();
   _origShowTab(name);
+  const modelActions = document.getElementById('modelActionsBar');
+  if(modelActions) modelActions.style.display = (name === 'results') ? 'flex' : 'none';
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -5291,17 +5466,28 @@ async function renderFireProgress(){
   fromD.setMonth(fromD.getMonth() - 11);
   const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
 
-  // Fetch model projections and budget series in parallel
-  const [projections, seriesResp] = await Promise.all([
-    fetchFireModelTargets(),
-    fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`)
-      .then(r => r.ok ? r.json() : Promise.reject('series ' + r.status))
-      .catch(() => null)
-  ]);
+  // Fetch budget series immediately (fast); use cached projections if available
+  let seriesResp = null;
+  try {
+    const r = await fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`);
+    if(r.ok) seriesResp = await r.json();
+  } catch(_){}
 
   if(!seriesResp){
     wrap.innerHTML = '<div class="small muted">Could not load savings data from API.</div>';
     return;
+  }
+
+  // Use cached projections if available; otherwise kick off background fetch and re-render when done
+  let projections = _fireProjectionsCache;
+  if(!projections){
+    fetchFireModelTargets().then(p => {
+      if(p){
+        // Only re-render if this section is still visible
+        const currentWrap = document.getElementById('fireProgressContent');
+        if(currentWrap) renderFireProgress();
+      }
+    }).catch(()=>{});
   }
 
   const series = seriesResp.series || [];
@@ -5347,14 +5533,6 @@ async function renderFireProgress(){
 
   wrap.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <!-- Status row -->
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span class="small muted">${logged.length} month${logged.length!==1?'s':''} logged · ${onTrackCount}/${logged.length} on target
-          <span style="color:#C8C4BC;margin-left:6px;" title="Target: ${targetSource}">ⓘ</span>
-        </span>
-        <span class="fp-status-pill ${onTrack?'':'fp-behind'}">${onTrack ? '✓ On track' : fmtDollar(Math.abs(avgMo-avgTarget))+'/mo gap'}</span>
-      </div>
 
       <!-- Stat grid -->
       <div class="fp-stat-grid">
@@ -5862,10 +6040,6 @@ function renderExpenseChart(){
   if(!document.getElementById('expenseBarCanvas')){
     wrap.innerHTML = '<canvas id="expenseBarCanvas"></canvas>';
   }
-
-  if(!document.getElementById('expenseBarCanvas')){
-    wrap.innerHTML = '<canvas id="expenseBarCanvas"></canvas>';
-  }
   const canvas = document.getElementById('expenseBarCanvas');
   const hasActual = rows.some(r => r.actual !== null);
 
@@ -5928,7 +6102,7 @@ function saveIncomeRowsToStorage(monthStr){
     const isGross = row.dataset.isGross !== '0';
     const volB = document.querySelector(`#incSub_${id}_vol .inc-vol_b`)?.value.trim() ?? '';
     const volA = document.querySelector(`#incSub_${id}_vol .inc-vol_a`)?.value.trim() ?? '';
-    if(src || budg || act) rows.push({
+    if(budg || act) rows.push({
       source: src, description: desc, budget: budg, actual: act, freq,
       is_gross: isGross, vol_budget: volB, vol_actual: volA
     });
@@ -6105,6 +6279,561 @@ function showInputsPanel(which){
       g.btn.classList.toggle("active", isActive);
       g.btn.setAttribute("aria-selected", String(isActive));
     }
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   PORTFOLIO TAB
+   ═══════════════════════════════════════════════════════ */
+
+const PORT_TYPES = [
+  { key:'cash',     label:'Cash & Savings'  },
+  { key:'stocks',   label:'Stocks & ETFs'   },
+  { key:'super',    label:'Superannuation'  },
+  { key:'property', label:'Property'        },
+  { key:'other',    label:'Other'           },
+];
+const PORT_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let _portYear = new Date().getFullYear();
+let _portChartInstance = null;
+let _portUnlockedMonths = new Set(); // past months user has confirmed to unlock
+
+function portLoad(){
+  try {
+    const r = localStorage.getItem('wm_portfolio');
+    if(r){
+      const d = JSON.parse(r);
+      // Migrate old snapshot-based format → monthly format
+      if(!d.monthly && d.snapshots?.length){
+        d.monthly = {};
+        d.snapshots.forEach(s => {
+          if(!s.month) return;
+          const mv = {};
+          (d.assets||[]).forEach(a => { if(s[a.type] > 0) mv[a.id] = s[a.type]/Math.max(1,(d.assets||[]).filter(x=>x.type===a.type).length); });
+          d.monthly[s.month] = mv;
+        });
+        delete d.snapshots;
+      }
+      if(!d.monthly) d.monthly = {};
+      return d;
+    }
+  } catch(_){}
+  return { assets:[], monthly:{} };
+}
+function portSave(data){
+  try { localStorage.setItem('wm_portfolio', JSON.stringify(data)); } catch(_){}
+}
+
+/** Returns assets with .value set from current month's stored data */
+function portGetCurrentData(){
+  const d = portLoad();
+  const month = todayMonthStr();
+  const mv = (d.monthly||{})[month] || {};
+  return (d.assets||[]).map(a => ({ ...a, value: mv[a.id] || 0 }));
+}
+
+function portTotals(assets){
+  const t = { cash:0, stocks:0, super:0, property:0, other:0, total:0 };
+  (assets||[]).forEach(a => {
+    const k = Object.prototype.hasOwnProperty.call(t, a.type) ? a.type : 'other';
+    t[k] += a.value || 0;
+    t.total += a.value || 0;
+  });
+  return t;
+}
+
+function showPortfolioTab(){
+  showTab('portfolio');
+  renderPortfolioTab();
+}
+
+function renderPortfolioTab(){
+  const d = portLoad();
+  renderPortYear(d);
+  updatePortSummary();
+  renderPortHistoryChart(d);
+}
+
+function portYearStep(delta){
+  _portYear += delta;
+  renderPortYear(portLoad());
+}
+
+function _portMonthsForYear(year){
+  return Array.from({length:12}, (_,i) => `${year}-${String(i+1).padStart(2,'0')}`);
+}
+
+function renderPortYear(data){
+  const el = document.getElementById('portYearLabel');
+  if(el) el.textContent = _portYear;
+  const today  = todayMonthStr();
+  const months = _portMonthsForYear(_portYear);
+  const assets = data.assets || [];
+
+  // ── Header ──
+  const head = document.getElementById('portYearHead');
+  if(head){
+    head.innerHTML = `<tr>
+      <th style="text-align:left;">Asset</th>
+      <th style="text-align:left;">Type</th>
+      ${months.map((m,i) => {
+        const isPast    = m < today;
+        const isCurrent = m === today;
+        const isFuture  = m > today;
+        const unlocked  = _portUnlockedMonths.has(m);
+        const locked    = isPast && !unlocked;
+        const lockBtn   = isPast
+          ? (locked
+              ? `<button class="port-lock-icon" onclick="portUnlockMonth('${m}')" title="Click to edit ${PORT_MONTH_NAMES[i]} ${_portYear}">🔒</button>`
+              : `<button class="port-lock-icon port-lock-open" onclick="portRelockMonth('${m}')" title="Click to lock ${PORT_MONTH_NAMES[i]} ${_portYear}">🔓</button>`)
+          : '';
+        const cls       = isFuture ? 'port-th-future' : isCurrent ? 'port-th-current' : '';
+        return `<th class="${cls}">${PORT_MONTH_NAMES[i]}${lockBtn}</th>`;
+      }).join('')}
+      <th></th>
+    </tr>`;
+  }
+
+  // ── Body ──
+  const body = document.getElementById('portYearBody');
+  if(body){
+    body.innerHTML = '';
+    if(assets.length === 0){
+      _appendPortAssetRow({ id:1, name:'', type:'cash' }, data, months, today);
+    } else {
+      assets.forEach(a => _appendPortAssetRow(a, data, months, today));
+    }
+  }
+
+  // ── Footer totals ──
+  _renderPortFoot(data, months);
+}
+
+function _appendPortAssetRow(asset, data, months, today){
+  const body = document.getElementById('portYearBody');
+  if(!body) return;
+  const typeOpts = PORT_TYPES.map(t =>
+    `<option value="${t.key}"${asset.type===t.key?' selected':''}>${t.label}</option>`
+  ).join('');
+  const tr = document.createElement('tr');
+  tr.className = 'port-asset-row';
+  tr.dataset.portId = asset.id;
+  const cells = months.map(m => {
+    const isPast   = m < today;
+    const isFuture = m > today;
+    const locked   = isPast && !_portUnlockedMonths.has(m);
+    const val      = ((data.monthly||{})[m]||{})[asset.id] || '';
+    if(isFuture) return `<td class="port-cell-future"></td>`;
+    const lockedClass = locked ? 'port-cell-locked' : '';
+    const readOnly    = locked ? 'readonly' : '';
+    const onClick     = locked ? `onclick="portUnlockMonth('${m}')"` : '';
+    return `<td><input class="port-cell-input ${lockedClass}" type="number" min="0" step="1000"
+      value="${val}" ${readOnly} ${onClick}
+      data-aid="${asset.id}" data-month="${m}" oninput="portCellChanged(this)"></td>`;
+  });
+  tr.innerHTML = `
+    <td><input class="exp-input port-name" type="text" placeholder="Asset name"
+         value="${escapeHtml(asset.name||'')}" oninput="portAssetMetaChanged(${asset.id},'name',this.value)"></td>
+    <td><select class="exp-input port-type" onchange="portAssetMetaChanged(${asset.id},'type',this.value)">${typeOpts}</select></td>
+    ${cells.join('')}
+    <td><button class="exp-del" onclick="deletePortAsset(${asset.id})" title="Remove">✕</button></td>`;
+  body.appendChild(tr);
+}
+
+function _renderPortFoot(data, months){
+  const foot = document.getElementById('portYearFoot');
+  if(!foot) return;
+  const assets = data.assets || [];
+  const tots = months.map(m => {
+    const mv = (data.monthly||{})[m] || {};
+    return assets.reduce((s,a) => s+(mv[a.id]||0), 0);
+  });
+  foot.innerHTML = `<tr class="port-totals-row">
+    <td colspan="2" style="text-align:left; color:#1C1C1A;">Net Worth</td>
+    ${tots.map(t => `<td style="color:${t>0?'#059669':'#A8A4A0'};">${t>0?'$'+Math.round(t/1000)+'k':'—'}</td>`).join('')}
+    <td></td>
+  </tr>`;
+}
+
+function portUnlockMonth(month){
+  const [y,m] = month.split('-');
+  const label = new Date(y, m-1).toLocaleString('default',{month:'long',year:'numeric'});
+  if(!confirm(`Edit ${label}?\n\nThis will update your historical record.`)) return;
+  _portUnlockedMonths.add(month);
+  renderPortYear(portLoad());
+}
+
+function portRelockMonth(month){
+  _portUnlockedMonths.delete(month);
+  renderPortYear(portLoad());
+}
+
+function portCellChanged(input){
+  clearTimeout(window._portCellTimer);
+  window._portCellTimer = setTimeout(()=>{
+    const d    = portLoad();
+    const aid  = Number(input.dataset.aid);
+    const mon  = input.dataset.month;
+    const val  = parseFloat(input.value) || 0;
+    if(!d.monthly) d.monthly = {};
+    if(!d.monthly[mon]) d.monthly[mon] = {};
+    if(val > 0) d.monthly[mon][aid] = val; else delete d.monthly[mon][aid];
+    if(!Object.keys(d.monthly[mon]).length) delete d.monthly[mon];
+    portSave(d);
+    _renderPortFoot(d, _portMonthsForYear(_portYear));
+    updatePortSummary();
+    reapplySyncedFields();
+    renderSyncPanel();
+    renderPortHistoryChart(d);
+    const st = document.getElementById('portSaveStatus');
+    if(st){ st.textContent='Saved ✓'; st.className='budget-save-status saved'; }
+  }, 600);
+}
+
+function portAssetMetaChanged(id, field, value){
+  clearTimeout(window._portMetaTimer);
+  window._portMetaTimer = setTimeout(()=>{
+    const d = portLoad();
+    const a = (d.assets||[]).find(x => x.id === id);
+    if(a) a[field] = value;
+    portSave(d);
+    updatePortSummary();
+    const st = document.getElementById('portSaveStatus');
+    if(st){ st.textContent='Saved ✓'; st.className='budget-save-status saved'; }
+  }, 600);
+}
+
+function addPortfolioAsset(){
+  const d = portLoad();
+  const maxId = (d.assets||[]).reduce((m,a) => Math.max(m, a.id||0), 0);
+  const newAsset = { id: maxId+1, name:'', type:'cash' };
+  d.assets = [...(d.assets||[]), newAsset];
+  portSave(d);
+  const months = _portMonthsForYear(_portYear);
+  _appendPortAssetRow(newAsset, d, months, todayMonthStr());
+  _renderPortFoot(d, months);
+}
+
+function deletePortAsset(id){
+  const d = portLoad();
+  d.assets = (d.assets||[]).filter(a => a.id !== id);
+  Object.keys(d.monthly||{}).forEach(m => { if(d.monthly[m]) delete d.monthly[m][id]; });
+  portSave(d);
+  document.querySelector(`#portYearBody [data-port-id="${id}"]`)?.remove();
+  _renderPortFoot(d, _portMonthsForYear(_portYear));
+  updatePortSummary();
+}
+
+function updatePortSummary(){
+  const t   = portTotals(portGetCurrentData());
+  const fmt = v => v > 0 ? fmtDollar(v) : '—';
+  const s   = id => document.getElementById(id);
+  if(s('psiTotal'))    s('psiTotal').textContent    = t.total > 0 ? fmtDollar(t.total) : '—';
+  if(s('psiCash'))     s('psiCash').textContent     = fmt(t.cash);
+  if(s('psiStocks'))   s('psiStocks').textContent   = fmt(t.stocks);
+  if(s('psiSuper'))    s('psiSuper').textContent    = fmt(t.super);
+  if(s('psiProperty')) s('psiProperty').textContent = fmt(t.property);
+  if(s('psiOther'))    s('psiOther').textContent    = fmt(t.other);
+}
+
+function renderPortHistoryChart(data){
+  const wrap = document.getElementById('portHistoryContent');
+  if(!wrap) return;
+  const monthly = data.monthly || {};
+  const assets  = data.assets  || [];
+  const months  = Object.keys(monthly)
+    .filter(m => assets.some(a => (monthly[m][a.id]||0) > 0))
+    .sort();
+  if(months.length < 2){
+    if(_portChartInstance){ _portChartInstance.destroy(); _portChartInstance=null; }
+    wrap.innerHTML = '<div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>';
+    return;
+  }
+  if(!document.getElementById('portHistoryCanvas')){
+    wrap.innerHTML = '<canvas id="portHistoryCanvas" style="max-height:280px;"></canvas>';
+  }
+  const ctx    = document.getElementById('portHistoryCanvas').getContext('2d');
+  const labels = months.map(m => { const [y,mo]=m.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short',year:'2-digit'}); });
+  const totals = months.map(m => assets.reduce((s,a) => s+(monthly[m][a.id]||0), 0));
+  const TYPE_COLORS = { cash:'#3B82F6', stocks:'#F59E0B', super:'#8B5CF6', property:'#EC4899', other:'#6B7280' };
+  const typeDs = PORT_TYPES.map(pt => {
+    const vals = months.map(m => assets.filter(a=>a.type===pt.key).reduce((s,a)=>s+(monthly[m][a.id]||0),0));
+    if(!vals.some(v=>v>0)) return null;
+    return { label:pt.label, data:vals, borderColor:TYPE_COLORS[pt.key], backgroundColor:'transparent', borderDash:[4,3], borderWidth:1.5, tension:.3, pointRadius:2, fill:false };
+  }).filter(Boolean);
+  const datasets = [
+    { label:'Net Worth', data:totals, borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,.1)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#1D9E75', borderWidth:2.5 },
+    ...typeDs
+  ];
+  if(_portChartInstance){ _portChartInstance.destroy(); _portChartInstance=null; }
+  _portChartInstance = new Chart(ctx, {
+    type:'line', data:{ labels, datasets },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        tooltip:{ callbacks:{ label: c => c.dataset.label+': '+fmtDollar(c.parsed.y) } }
+      },
+      scales:{
+        y:{ ticks:{ callback: v => '$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+
+/* ── Data Sources sync system ─────────────────────────── */
+
+// Which input fields can be synced, and from where
+const SYNC_FIELD_DEFS = [
+  { key:'current_income',         label:'Current Income',        source:'budget',    sourceLabel:'Budget avg'  },
+  { key:'current_expenses',       label:'Current Expenses',      source:'budget',    sourceLabel:'Budget avg'  },
+  { key:'initial_savings',        label:'Initial Savings',       source:'portfolio', sourceLabel:'Portfolio'   },
+  { key:'starting_stock_value',   label:'Starting Stock Value',  source:'portfolio', sourceLabel:'Portfolio'   },
+  { key:'super_starting_balance', label:'Super Balance',         source:'portfolio', sourceLabel:'Portfolio'   },
+];
+
+let _syncBudgetData = null;   // { income: annualised, expenses: annualised }
+
+/** Fetch budget averages + read portfolio from storage, then re-render the panel */
+async function loadSyncData(){
+  // Portfolio comes from localStorage — always available immediately
+  renderSyncPanel();
+
+  // Budget needs an API call
+  const base = (state.apiBase||'').replace(/\/+$/,'');
+  const toM = todayMonthStr();
+  const fromD = new Date(); fromD.setMonth(fromD.getMonth()-5);
+  const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
+  try {
+    const r = await fetch(`${base}/budget/series?from_month=${fromM}&to_month=${toM}`);
+    if(!r.ok) return;
+    const data = await r.json();
+    const series = data.series||[];
+    const incS = series.filter(m=>(m.income_actual??m.income_planned)!=null && (m.income_actual??m.income_planned)>0);
+    const expS = series.filter(m=>(m.expense_actual??m.expense_planned)!=null && (m.expense_actual??m.expense_planned)>0);
+    const avg = (arr, fn) => arr.length ? arr.reduce((s,m)=>s+fn(m),0)/arr.length : 0;
+    const avgInc = avg(incS, m=>m.income_actual??m.income_planned??0);
+    const avgExp = avg(expS, m=>m.expense_actual??m.expense_planned??0);
+    if(avgInc > 0 || avgExp > 0){
+      _syncBudgetData = { income: Math.round(avgInc*12), expenses: Math.round(avgExp*12) };
+      renderSyncPanel();
+      // Re-apply any fields already set to sync budget
+      SYNC_FIELD_DEFS.filter(d=>d.source==='budget').forEach(d=>{
+        if((state.syncModes||{})[d.key] === 'sync') applySyncValue(d.key);
+      });
+    }
+  } catch(_){}
+}
+
+/** Get the live source value for a given field key */
+function getSyncValue(key){
+  const def = SYNC_FIELD_DEFS.find(d=>d.key===key);
+  if(!def) return null;
+  if(def.source === 'budget'){
+    if(!_syncBudgetData) return null;
+    return key==='current_income' ? _syncBudgetData.income : _syncBudgetData.expenses;
+  }
+  if(def.source === 'portfolio'){
+    const t = portTotals(portGetCurrentData());
+    if(key==='initial_savings')        return t.cash   > 0 ? t.cash   : null;
+    if(key==='starting_stock_value')   return t.stocks > 0 ? t.stocks : null;
+    if(key==='super_starting_balance') return t.super  > 0 ? t.super  : null;
+  }
+  return null;
+}
+
+/** Apply the synced value to a field's input + state */
+function applySyncValue(key){
+  const val = getSyncValue(key);
+  if(val === null) return;
+  state.inputs[key] = val;
+  const el = document.getElementById(key);
+  if(el){ el.value = val; el.classList.add('input-synced'); }
+}
+
+/** Unlock a field (switch back to manual) */
+function unlockField(key){
+  const el = document.getElementById(key);
+  if(el) el.classList.remove('input-synced');
+}
+
+/** Toggle a field between manual and sync modes */
+function setSyncMode(key, mode){
+  if(!state.syncModes) state.syncModes = {};
+  state.syncModes[key] = mode;
+  if(mode === 'sync'){
+    applySyncValue(key);
+  } else {
+    unlockField(key);
+  }
+  saveState();
+  renderSyncPanel();
+}
+
+/** Sync all fields that have a value available */
+function syncAllFields(){
+  if(!state.syncModes) state.syncModes = {};
+  SYNC_FIELD_DEFS.forEach(def => {
+    if(getSyncValue(def.key) !== null){
+      state.syncModes[def.key] = 'sync';
+      applySyncValue(def.key);
+    }
+  });
+  saveState();
+  renderSyncPanel();
+}
+
+/** Render the sync panel rows */
+function renderSyncPanel(){
+  const container = document.getElementById('syncPanelRows');
+  if(!container) return;
+  if(!state.syncModes) state.syncModes = {};
+  container.innerHTML = SYNC_FIELD_DEFS.map(def => {
+    const mode     = state.syncModes[def.key] || 'manual';
+    const srcVal   = getSyncValue(def.key);
+    const hasData  = srcVal !== null;
+    const valLabel = hasData ? fmtDollar(srcVal)+'/yr' : 'No data yet';
+    return `<div class="sync-row">
+      <span class="sync-field-lbl">${def.label}</span>
+      <span class="sync-field-val" style="color:${hasData?'#5C5955':'#C8C4BC'}">${valLabel}</span>
+      <div class="sync-pills">
+        <button class="sync-pill${mode==='manual'?' active':''}" onclick="setSyncMode('${def.key}','manual')">Manual</button>
+        <button class="sync-pill${mode==='sync'?' active':''}"${!hasData?' disabled':''} onclick="setSyncMode('${def.key}','sync')">${def.sourceLabel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Dev mode test data ───────────────────────────────── */
+function fillTestData(){
+  // Model inputs
+  const testInputs = {
+    current_age: 32, end_age: 65,
+    todays_lifestyle_income: 80000,
+    current_income: 140000, current_expenses: 62000,
+    initial_savings: 85000,
+    inflation: 0.025, average_salary_increase: 0.035,
+    stock_growth: 0.07, stock_yearly_contribution: 15000,
+    starting_stock_value: 45000, stock_swr: 0.04,
+    super_swr: 0.04, super_access_age: 60,
+    super_starting_balance: 95000, super_sg_rate: 0.115,
+    super_growth: 0.065, super_additional_annual: 5000,
+  };
+  Object.entries(testInputs).forEach(([k,v]) => {
+    state.inputs[k] = v;
+    const el = document.getElementById(k);
+    if(el) el.value = v;
+  });
+
+  // Budget — populate current month's form then autosave
+  const _seedCurrentBudget = () => {
+    const incBody = document.getElementById('incomeTableBody');
+    const expBody = document.getElementById('expenseTableBody');
+    if(incBody){ incBody.innerHTML=''; _incRowCounter=0; }
+    if(expBody){ expBody.innerHTML=''; _expRowCounter=0; }
+    addIncomeRow({ source:'Salary / Wages', description:'Main job', budget:8500, actual:8200, freq:'Monthly', is_gross:false });
+    [
+      { group:'Housing',      subcategory:'Rent / Mortgage',         description:'Apartment', budget:2400, actual:2400 },
+      { group:'Food & Drink', subcategory:'Groceries',               description:'',          budget:600,  actual:570  },
+      { group:'Transport',    subcategory:'Fuel',                    description:'',          budget:200,  actual:185  },
+      { group:'Housing',      subcategory:'Utilities',               description:'',          budget:180,  actual:195  },
+      { group:'Food & Drink', subcategory:'Dining Out',              description:'',          budget:300,  actual:340  },
+      { group:'Health',       subcategory:'Private Health Insurance',description:'',          budget:200,  actual:200  },
+      { group:'Personal',     subcategory:'Clothing',                description:'',          budget:150,  actual:90   },
+    ].forEach(r => addExpenseRow({ ...r, freq:'Monthly' }));
+    updateBudgetSummary();
+    doAutosave();
+  };
+
+  // Seed 11 past months directly via API so series chart has data
+  const _seedPastMonths = async () => {
+    const base = (state.apiBase||'').replace(/\/+$/,'');
+    for(let i=11; i>=1; i--){
+      const d = new Date(); d.setMonth(d.getMonth()-i);
+      const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const jitter = () => Math.round((Math.random()-0.4)*300);
+      try {
+        await fetch(`${base}/budget/save_month`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            month: m,
+            income_planned: 8500, income_actual: 8200 + jitter(),
+            expenses: [
+              {category:'Rent / Mortgage',  planned:2400, actual:2400,        frequency:'Monthly'},
+              {category:'Groceries',         planned:600,  actual:580+jitter(),frequency:'Monthly'},
+              {category:'Fuel',              planned:200,  actual:190+jitter(),frequency:'Monthly'},
+              {category:'Utilities',                planned:180,  actual:185+jitter(),frequency:'Monthly'},
+              {category:'Dining Out',               planned:300,  actual:310+jitter(),frequency:'Monthly'},
+              {category:'Private Health Insurance', planned:200,  actual:200,         frequency:'Monthly'},
+            ]
+          })
+        });
+      } catch(_){}
+    }
+  };
+
+  // Run: seed past months in background, then populate current month form
+  _seedPastMonths().then(()=>{
+    if(document.getElementById('budgetMonthLabel')){
+      _seedCurrentBudget();
+      loadBudgetYear(budgetYear);
+      renderFireProgress();
+    }
+    // Refresh sync panel with fresh budget averages
+    loadSyncData();
+  });
+  // If already on budget tab, populate immediately too
+  if(document.getElementById('tab-budget')?.classList.contains('active')) _seedCurrentBudget();
+
+  // Portfolio assets — new monthly format
+  const portAssets = [
+    { id:1, name:'ING Savings',     type:'cash'     },
+    { id:2, name:'Vanguard VDHG',   type:'stocks'   },
+    { id:3, name:'AustralianSuper', type:'super'    },
+    { id:4, name:'Family Home',     type:'property' },
+  ];
+  const portMonthly = {};
+  for(let i=11; i>=0; i--){
+    const d = new Date(); d.setMonth(d.getMonth()-i);
+    const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const g = (11-i)*0.008;
+    portMonthly[m] = {
+      1: Math.round(85000 + (11-i)*400),
+      2: Math.round(45000 * (1+g)),
+      3: Math.round(95000 * (1+g*0.9)),
+      4: 750000
+    };
+  }
+  localStorage.setItem('wm_portfolio', JSON.stringify({ assets: portAssets, monthly: portMonthly }));
+
+  saveState();
+  // Refresh portfolio tab if open
+  if(document.getElementById('tab-portfolio')?.classList.contains('active')) renderPortfolioTab();
+  renderSyncPanel();
+
+  const btn = document.getElementById('devFillBtn');
+  if(btn){ btn.textContent='✓ Filled'; setTimeout(()=>{ btn.textContent='🧪 Fill test data'; },2000); }
+}
+
+window.addEventListener('load', ()=>{
+  if(!DEV_MODE) return;
+  const btn = document.createElement('button');
+  btn.id = 'devFillBtn';
+  btn.textContent = '🧪 Fill test data';
+  btn.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:9999;background:#1C1C1A;color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;opacity:.85;';
+  btn.onclick = fillTestData;
+  document.body.appendChild(btn);
+});
+
+/** Re-apply all currently-synced fields — call after portfolio assets change */
+function reapplySyncedFields(){
+  if(!state.syncModes) return;
+  SYNC_FIELD_DEFS.forEach(def => {
+    if(state.syncModes[def.key] === 'sync') applySyncValue(def.key);
   });
 }
 
