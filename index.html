@@ -971,25 +971,25 @@ th{
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 16px;
-		height: 16px;
+		width: 14px;
+		height: 14px;
 		border-radius: 50%;
-		border: 1.5px solid #1D9E75;
-		background: transparent;
-		color: #1D9E75;
-		font-size: 10px;
+		background: #C8C4BE;
+		color: #fff;
+		font-size: 9px;
 		font-weight: 700;
+		font-style: normal;
 		cursor: pointer;
 		flex-shrink: 0;
 		user-select: none;
-		transition: background .15s, color .15s, transform .12s, box-shadow .12s;
+		transition: background .15s;
 		line-height: 1;
+		vertical-align: middle;
+		position: relative;
+		top: -1px;
 	  }
 	  .info-tip:hover, .info-tip.tip-open {
-		background: #1D9E75;
-		color: white;
-		transform: scale(1.2);
-		box-shadow: 0 0 0 3px rgba(29,158,117,.18);
+		background: #6B7280;
 	  }
 	  #infoTooltip {
 		position: absolute;
@@ -2426,7 +2426,7 @@ select.exp-input { cursor:pointer; }
                 <div>
                   <label style="display:flex; align-items:center; gap:5px;">
                     CPI Rate (for CGT)
-                    <span class="info-tip" data-tip="cpi_rate">ⓘ</span>
+                    <span class="info-tip" data-tip="cpi_rate">?</span>
                   </label>
                   <input id="cpi_rate" type="number" step="0.001"/>
                 </div>
@@ -3750,7 +3750,7 @@ function renderProperties(){
 	          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
 	          <span class="prop-toggle-label">Main residence (PPOR)</span>
 	        </label>
-	        <span class="info-tip" data-tip="ppor" style="margin-left:4px;">ⓘ</span>
+	        <span class="info-tip" data-tip="ppor" style="margin-left:4px;">?</span>
 	        <button class="btn ghost ppor-timeline-btn" id="ppor-edit-btn-${p.id}"
 	                onclick="event.stopPropagation(); togglePporTimeline(${p.id})">
 	          ${(p.ppor_periods||[]).length > 1 ? `${(p.ppor_periods||[]).length} periods ▸` : 'Edit timeline ▸'}
@@ -3784,7 +3784,7 @@ function renderProperties(){
       <div id="p_${p.id}_sale_fields" style="display:${hasSale ? '' : 'none'}; margin-top:6px;">
         <div class="prop-section-label" style="display:flex; align-items:center; gap:6px;">
           Sale details
-          <span class="info-tip" data-tip="sale_price" style="font-size:11px;">ⓘ</span>
+          <span class="info-tip" data-tip="sale_price">?</span>
           <span style="font-size:10px; color:#8A8582;">(CGT calculated automatically)</span>
         </div>
         <div class="fieldgrid" style="margin-top:6px;">
@@ -4181,7 +4181,7 @@ function renderPporRows(id){
         <input type="checkbox" ${pr.six_year_rule?'checked':''} ${hasEnd?'':'disabled'}
                onchange="updatePporPeriod(${id},${idx},'six_year_rule',this.checked)" />
         6-year rule
-        <span class="info-tip" data-tip="six_year_rule">ⓘ</span>
+        <span class="info-tip" data-tip="six_year_rule">?</span>
       </label>
       <button class="btn ghost ppor-remove-btn" onclick="removePporPeriod(${id},${idx})">✕</button>
     `;
