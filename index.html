@@ -751,21 +751,21 @@ th{
 	  }
 
 	  .propBody {
-		margin-top: 16px;
-		padding-top: 16px;
+		margin-top: 10px;
+		padding-top: 10px;
 		border-top: 1px solid #F0EDE8;
 	  }
 
 	  .prop-section-label {
 		grid-column: 1 / -1;
-		font-size: 11px;
-		font-weight: 600;
+		font-size: 10px;
+		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
-		color: #5C5955;
-		margin-top: 20px;
+		color: #8A8582;
+		margin-top: 14px;
 		margin-bottom: 2px;
-		padding-top: 16px;
+		padding-top: 12px;
 		border-top: 1px solid #F0EDE8;
 	  }
 	  .prop-section-label:first-child {
@@ -784,8 +784,8 @@ th{
 		background: #FAFAF8 !important;
 		border: 1px solid #D8D4CC !important;
 		border-radius: 8px !important;
-		padding: 10px 12px !important;
-		font-size: 14px !important;
+		padding: 8px 10px !important;
+		font-size: 13px !important;
 		color: #1C1C1A !important;
 		box-shadow: none !important;
 	  }
@@ -844,9 +844,9 @@ th{
 		grid-column: 1 / -1;
 		display: flex;
 		align-items: center;
-		padding: 8px 10px;
+		padding: 6px 10px;
 		border-radius: 8px;
-		margin: 4px -10px 0;
+		margin: 2px -10px 0;
 		transition: background 150ms;
 	  }
 	  .prop-toggle-row.ppor-active {
@@ -874,47 +874,69 @@ th{
 		background: #F8F7F4;
 		border: 1px solid #E8E4DE;
 		border-radius: 8px;
-		padding: 10px 12px;
+		padding: 8px 12px 10px;
 		margin-top: 6px;
 	  }
+	  .ppor-panel-hdr {
+		font-size: 10px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: .06em;
+		color: #8A8582;
+		margin-bottom: 6px;
+	  }
+	  /* Single horizontal row: [from] → [to] [6yr chip] [✕] */
 	  .ppor-row {
 		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		padding: 8px 0;
-		border-bottom: 1px solid #EDE9E2;
-	  }
-	  .ppor-row:last-child { border-bottom: none; }
-	  .ppor-row-dates {
-		display: flex;
+		flex-direction: row;
 		align-items: center;
-		gap: 8px;
+		gap: 6px;
+		padding: 5px 0;
+		border-bottom: 1px solid #EDE9E2;
 		flex-wrap: wrap;
 	  }
-	  .ppor-row-lbl { font-size: 10px; color: #8A8582; display: block; margin-bottom: 2px; }
+	  .ppor-row:last-child { border-bottom: none; }
+	  .ppor-arrow { color: #8A8582; font-size: 13px; flex-shrink: 0; }
 	  .ppor-input {
 		font-size: 12px;
-		padding: 4px 8px;
+		padding: 4px 7px;
 		border: 1px solid #D8D4CC;
 		border-radius: 6px;
 		background: white;
 		color: #1C1C1A;
-		width: 130px;
+		width: 126px;
 	  }
-	  .ppor-input.ppor-to::placeholder { color: #A8A4A0; }
-	  .ppor-arrow { color: #8A8582; font-size: 14px; flex-shrink: 0; }
-	  .ppor-row-opts {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	  }
-	  .ppor-sixyr-label {
-		display: flex;
+	  .ppor-input.ppor-to::placeholder { color: #B0ABA6; font-style: italic; }
+	  /* 6-yr chip — pill style */
+	  .ppor-sixyr-chip {
+		display: inline-flex;
 		align-items: center;
 		gap: 5px;
-		font-size: 12px;
-		color: #5C5955;
+		padding: 3px 8px 3px 6px;
+		border-radius: 20px;
+		border: 1.5px solid #A7F3D0;
+		background: #F0FDF8;
+		font-size: 11px;
+		font-weight: 500;
+		color: #1D9E75;
 		cursor: pointer;
+		user-select: none;
+		transition: background .12s, border-color .12s;
+		flex-shrink: 0;
+	  }
+	  .ppor-sixyr-chip input[type="checkbox"] {
+		width: 12px; height: 12px;
+		margin: 0; padding: 0;
+		cursor: pointer;
+		accent-color: #1D9E75;
+	  }
+	  .ppor-sixyr-chip:hover { background: #DCFCE7; border-color: #6EE7B7; }
+	  .ppor-sixyr-chip.chip-disabled {
+		opacity: .45;
+		pointer-events: none;
+		border-color: #D8D4CC;
+		background: #F4F2EE;
+		color: #8A8582;
 	  }
 	  .ppor-remove-btn {
 		font-size: 11px !important;
@@ -952,15 +974,23 @@ th{
 		width: 16px;
 		height: 16px;
 		border-radius: 50%;
-		background: #E8E4DE;
-		color: #5C5955;
+		border: 1.5px solid #1D9E75;
+		background: transparent;
+		color: #1D9E75;
 		font-size: 10px;
+		font-weight: 700;
 		cursor: pointer;
 		flex-shrink: 0;
 		user-select: none;
-		transition: background .15s;
+		transition: background .15s, color .15s, transform .12s, box-shadow .12s;
+		line-height: 1;
 	  }
-	  .info-tip:hover { background: #1D9E75; color: white; }
+	  .info-tip:hover, .info-tip.tip-open {
+		background: #1D9E75;
+		color: white;
+		transform: scale(1.2);
+		box-shadow: 0 0 0 3px rgba(29,158,117,.18);
+	  }
 	  #infoTooltip {
 		position: absolute;
 		z-index: 9999;
@@ -3727,8 +3757,8 @@ function renderProperties(){
 	        </button>
 	      </div>
 	      <div class="ppor-timeline-panel hidden" id="ppor-panel-${p.id}">
-	        <div id="ppor-rows-${p.id}" style="margin:8px 0;"></div>
-	        <button class="btn ghost btn-add-row" style="margin-top:2px; font-size:11px;"
+	        <div id="ppor-rows-${p.id}"></div>
+	        <button class="btn ghost btn-add-row" style="margin-top:6px; font-size:11px;"
 	                onclick="event.stopPropagation(); addPporPeriod(${p.id})">+ Add period</button>
 	        <div class="ppor-conflict" id="ppor-conflict-${p.id}" style="display:none;"></div>
 	      </div>
@@ -4123,36 +4153,37 @@ function renderPporRows(id){
 
   wrap.innerHTML = '';
   if (!periods.length){
-    wrap.innerHTML = '<div style="font-size:12px; color:#8A8582; padding:4px 0;">No PPOR periods — property is always investment.</div>';
+    wrap.innerHTML = '<div style="font-size:12px; color:#8A8582; padding:4px 0;">No PPOR periods — property treated as investment throughout.</div>';
     return;
   }
 
+  // Panel header
+  const hdr = document.createElement('div');
+  hdr.className = 'ppor-panel-hdr';
+  hdr.textContent = 'PPOR periods · "To" blank = ongoing';
+  wrap.appendChild(hdr);
+
   periods.forEach((pr, idx) => {
+    const hasEnd = !!pr.to;
     const row = document.createElement('div');
     row.className = 'ppor-row';
     row.innerHTML = `
-      <div class="ppor-row-dates">
-        <div>
-          <label class="ppor-row-lbl">From</label>
-          <input class="ppor-input" type="month" value="${pr.from||''}"
-                 onchange="updatePporPeriod(${id},${idx},'from',this.value)" />
-        </div>
-        <span class="ppor-arrow">→</span>
-        <div>
-          <label class="ppor-row-lbl">To</label>
-          <input class="ppor-input ppor-to" type="month" value="${pr.to||''}"
-                 placeholder="Ongoing"
-                 onchange="updatePporPeriod(${id},${idx},'to',this.value||null)" />
-        </div>
-      </div>
-      <div class="ppor-row-opts">
-        <label class="ppor-sixyr-label" title="Apply 6-year absence rule after this period ends">
-          <input type="checkbox" ${pr.six_year_rule?'checked':''} ${pr.to?'':'disabled'}
-                 onchange="updatePporPeriod(${id},${idx},'six_year_rule',this.checked)" />
-          6-yr rule <span class="info-tip" data-tip="six_year_rule">ⓘ</span>
-        </label>
-        <button class="btn ghost ppor-remove-btn" onclick="removePporPeriod(${id},${idx})">✕</button>
-      </div>
+      <input class="ppor-input" type="month" value="${pr.from||''}"
+             title="From"
+             onchange="updatePporPeriod(${id},${idx},'from',this.value)" />
+      <span class="ppor-arrow">→</span>
+      <input class="ppor-input ppor-to" type="month" value="${pr.to||''}"
+             placeholder="ongoing"
+             title="To (blank = ongoing)"
+             onchange="updatePporPeriod(${id},${idx},'to',this.value||null)" />
+      <label class="ppor-sixyr-chip${hasEnd ? '' : ' chip-disabled'}"
+             title="${hasEnd ? 'Claim 6-year CGT absence rule after this period ends' : 'Set an end date to enable the 6-year absence rule'}">
+        <input type="checkbox" ${pr.six_year_rule?'checked':''} ${hasEnd?'':'disabled'}
+               onchange="updatePporPeriod(${id},${idx},'six_year_rule',this.checked)" />
+        6-year rule
+        <span class="info-tip" data-tip="six_year_rule">ⓘ</span>
+      </label>
+      <button class="btn ghost ppor-remove-btn" onclick="removePporPeriod(${id},${idx})">✕</button>
     `;
     wrap.appendChild(row);
   });
@@ -4295,11 +4326,18 @@ const INFO_TIPS = {
 
 let _tipTimeout = null;
 
+let _activeTipEl = null;
+
 function showInfoTip(key, el){
   const tip = INFO_TIPS[key];
   if (!tip) return;
   let tooltip = document.getElementById('infoTooltip');
   if (!tooltip) return;
+
+  // Mark the icon as "open"
+  if (_activeTipEl && _activeTipEl !== el) _activeTipEl.classList.remove('tip-open');
+  _activeTipEl = el;
+  el.classList.add('tip-open');
 
   tooltip.querySelector('.tip-title').textContent = tip.title;
   tooltip.querySelector('.tip-body').textContent  = tip.body;
@@ -4326,18 +4364,22 @@ function hideInfoTip(){
   _tipTimeout = setTimeout(() => {
     const tooltip = document.getElementById('infoTooltip');
     if (tooltip) tooltip.style.display = 'none';
+    if (_activeTipEl) { _activeTipEl.classList.remove('tip-open'); _activeTipEl = null; }
   }, 150);
 }
 
 function initInfoTips(){
-  document.querySelectorAll('.info-tip').forEach(el => {
+  // Avoid double-binding: mark each element once
+  document.querySelectorAll('.info-tip:not([data-tip-bound])').forEach(el => {
+    el.setAttribute('data-tip-bound', '1');
     const key = el.dataset.tip;
     el.addEventListener('mouseenter', () => showInfoTip(key, el));
     el.addEventListener('mouseleave', hideInfoTip);
     el.addEventListener('click', (e) => { e.stopPropagation(); showInfoTip(key, el); });
   });
   const tooltip = document.getElementById('infoTooltip');
-  if (tooltip){
+  if (tooltip && !tooltip._tipBound){
+    tooltip._tipBound = true;
     tooltip.addEventListener('mouseenter', () => clearTimeout(_tipTimeout));
     tooltip.addEventListener('mouseleave', hideInfoTip);
   }
