@@ -3915,6 +3915,10 @@ function renderProperties(){
 
   });
   updatePropSummaryStrip();
+  // Populate CGT previews for any properties that already have a sale date
+  (state.property_list || []).forEach(p => {
+    if (p.sale_date || p.sale_year) _renderCgtPreview(p.id);
+  });
   // Wire up info tooltips for newly rendered elements
   initInfoTips();
 }
@@ -4613,6 +4617,18 @@ async function runModel(){
   renderResults(result);
   showTab("results");
   if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
+  _postRunRefresh();
+}
+
+function _postRunRefresh(){
+  // Dashboard — FIRE card, stats, net-worth chart all depend on lastResult
+  renderDashboard();
+  // Property summary strip (equity, LVR)
+  updatePropSummaryStrip();
+  // CGT previews for any properties with a planned sale
+  (state.property_list || []).forEach(p => {
+    if (p.sale_date || p.sale_year) _renderCgtPreview(p.id);
+  });
 }
 
 // Draw a vertical "FIRE" marker line on the chart
