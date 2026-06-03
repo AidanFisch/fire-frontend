@@ -3557,10 +3557,12 @@ function addProperty(){
     property_growth: 0.03,
     rental_growth: 0.03,
     year_bought: new Date().getFullYear(),
+    purchase_date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`,
     loan_term_years: 30,
     use_offset: true,
     is_owner_occupied: false,
     ppor_periods: [],
+    sale_date: null,
     sale_year: null,
     sale_price: null
   });
@@ -3600,9 +3602,14 @@ function renderProperties(){
 
     const netMoColor = sum.netMo < 0 ? 'negative' : (sum.netMo > 0 ? 'positive' : '');
     const thisYear = new Date().getFullYear();
-    const yearLabel = p.year_bought
-      ? (p.year_bought <= thisYear ? `Purchased ${p.year_bought}` : `Planned ${p.year_bought}`)
-      : '';
+    let yearLabel = '';
+    if (p.purchase_date || p.year_bought) {
+      const pd   = p.purchase_date || `${p.year_bought}-01`;
+      const yr   = parseInt(pd.split('-')[0], 10);
+      const mo   = parseInt((pd.split('-')[1] || '1'), 10);
+      const moName = new Date(yr, mo-1, 1).toLocaleString('en-AU', {month:'short'});
+      yearLabel  = yr <= thisYear ? `Purchased ${moName} ${yr}` : `Planned ${moName} ${yr}`;
+    }
     header.innerHTML = `
       <div class="propCardHeaderLeft">
         <div class="propCardNameRow">
@@ -3642,7 +3649,6 @@ function renderProperties(){
 	const fieldGroups = [
 	  { label: "General", fields: [
 	    ["name", "text", "Name"],
-	    ["year_bought", "number", "Year Bought"],
 	  ]},
 	  { label: "Purchase", fields: [
 	    ["purchase_price", "number", "Purchase Price"],
@@ -3692,6 +3698,18 @@ function renderProperties(){
 	    g.appendChild(t);
 	  }
 	  if (grp.label === "General") {
+	    // Purchase date (month precision)
+	    const pdWrap = document.createElement("div");
+	    pdWrap.innerHTML = `
+	      <label style="font-size:12px; color:#5C5955; display:block; margin-bottom:4px;">Purchase Date</label>
+	      <input type="month" id="p_${p.id}_purchase_date"
+	             value="${p.purchase_date || `${p.year_bought||2020}-01`}"
+	             style="font-size:13px; padding:5px 10px; border:1px solid #D8D4CC; border-radius:8px;
+	                    background:white; color:#1C1C1A; width:160px;"
+	             onchange="updatePurchaseDate(${p.id}, this.value)" />
+	    `;
+	    g.appendChild(pdWrap);
+
 	    const pporWrap = document.createElement("div");
 	    pporWrap.className = "prop-ppor-section";
 	    const isPporActive = _isPporNow(p);
@@ -3724,7 +3742,7 @@ function renderProperties(){
     // ---- Sale section ----
     const saleDiv = document.createElement('div');
     saleDiv.className = 'prop-sale-section';
-    const hasSale = !!p.sale_year;
+    const hasSale = !!(p.sale_date || p.sale_year);
     saleDiv.innerHTML = `
       <div class="prop-toggle-row" style="margin-top:8px;">
         <label class="prop-toggle">
@@ -3741,10 +3759,10 @@ function renderProperties(){
         </div>
         <div class="fieldgrid" style="margin-top:6px;">
           <div>
-            <label>Sale Year</label>
-            <input id="p_${p.id}_sale_year" type="text" inputmode="numeric"
-                   value="${p.sale_year||''}" placeholder="e.g. 2035"
-                   oninput="updateSaleField(${p.id},'sale_year',this.value)" />
+            <label>Sale Date</label>
+            <input id="p_${p.id}_sale_date" type="month"
+                   value="${p.sale_date || (p.sale_year ? p.sale_year+'-12' : '')}"
+                   onchange="updateSaleField(${p.id},'sale_date',this.value)" />
           </div>
           <div>
             <label>Sale Price <span style="font-size:10px; color:#8A8582;">(blank = projected)</span></label>
@@ -3767,6 +3785,7 @@ function renderProperties(){
         fields.style.display = '';
       } else {
         fields.style.display = 'none';
+        prop.sale_date  = null;
         prop.sale_year  = null;
         prop.sale_price = null;
         saveState();
@@ -3843,8 +3862,8 @@ function renderProperties(){
             pporQuickEl.checked = false;
             return;
           }
-          // Add a simple open-ended period from year_bought
-          const from = `${prop.year_bought || new Date().getFullYear()}-01`;
+          // Add a simple open-ended period from purchase_date
+          const from = prop.purchase_date || `${prop.year_bought || new Date().getFullYear()}-01`;
           prop.ppor_periods = [{ from, to: null, six_year_rule: false }];
           prop.is_owner_occupied = true;
           prop.monthly_rent  = 0;
@@ -3873,9 +3892,14 @@ function renderProperties(){
 function updateSaleField(id, field, rawVal){
   const prop = state.property_list.find(x => Number(x.id) === Number(id));
   if (!prop) return;
-  if (field === 'sale_year'){
-    const v = parseInt(rawVal, 10);
-    prop.sale_year = (isNaN(v) || rawVal.trim() === '') ? null : v;
+  if (field === 'sale_date'){
+    if (!rawVal || !rawVal.trim()) {
+      prop.sale_date = null;
+      prop.sale_year = null;
+    } else {
+      prop.sale_date = rawVal.trim();
+      prop.sale_year = parseInt(rawVal.split('-')[0], 10);
+    }
   } else if (field === 'sale_price'){
     const v = parseFloat(String(rawVal).replace(/[,$]/g,''));
     prop.sale_price = (isNaN(v) || rawVal.trim() === '') ? null : v;
@@ -3888,28 +3912,44 @@ function _renderCgtPreview(id){
   const el = document.getElementById(`p_${id}_cgt_preview`);
   if (!el) return;
   const prop = state.property_list.find(x => Number(x.id) === Number(id));
-  if (!prop || !prop.sale_year) { el.innerHTML = ''; return; }
+  if (!prop || !(prop.sale_date || prop.sale_year)) { el.innerHTML = ''; return; }
 
-  const saleYr   = prop.sale_year;
-  const costBase = (toNumber(prop.purchase_price) + toNumber(prop.purchase_fees));
-  const cpi      = toNumber(state.inputs?.cpi_rate ?? 0.025);
-  const buyYr    = prop.year_bought || new Date().getFullYear();
-  const projVal  = toNumber(prop.current_value) * Math.pow(1 + toNumber(prop.property_growth||0.03), saleYr - new Date().getFullYear());
+  // Parse sale year/month from sale_date (preferred) or legacy sale_year
+  let saleYr, saleMo;
+  if (prop.sale_date) {
+    const parts = prop.sale_date.split('-');
+    saleYr = parseInt(parts[0], 10);
+    saleMo = parseInt(parts[1], 10);
+  } else {
+    saleYr = prop.sale_year;
+    saleMo = 12;
+  }
+  const saleDateLabel = prop.sale_date
+    ? new Date(saleYr, saleMo - 1, 1).toLocaleString('en-AU', {month:'short', year:'numeric'})
+    : String(saleYr);
+
+  const costBase  = (toNumber(prop.purchase_price) + toNumber(prop.purchase_fees));
+  const buyYr     = prop.year_bought || new Date().getFullYear();
+  const yrsToSale = saleYr - new Date().getFullYear() + (saleMo - (new Date().getMonth()+1)) / 12;
+  const projVal   = toNumber(prop.current_value) * Math.pow(1 + toNumber(prop.property_growth||0.03), yrsToSale);
   const salePrice = prop.sale_price || projVal;
 
   const totalGain = salePrice - costBase;
   if (totalGain <= 0){ el.innerHTML = '<div class="cgt-info">No gain — no CGT.</div>'; return; }
 
-  const CGT_REFORM = 2027;
+  const REFORM_ABS = 2027 * 12 + 7;
+  const saleAbs    = saleYr * 12 + saleMo;
+  const buyAbs     = buyYr * 12 + (prop.purchase_date ? parseInt(prop.purchase_date.split('-')[1]||1,10) : 1);
+
   let regimeLabel = '';
-  if      (saleYr < CGT_REFORM)  regimeLabel = 'Pre-2027 rules: 50% discount';
-  else if (buyYr >= CGT_REFORM)  regimeLabel = 'Post-2027 rules: CPI indexation + 30% min';
-  else                           regimeLabel = 'Split rules: 50% discount (pre-2027) + indexation (post-2027)';
+  if      (saleAbs < REFORM_ABS)  regimeLabel = 'Pre-2027 rules: 50% discount';
+  else if (buyAbs  >= REFORM_ABS) regimeLabel = 'Post-2027 rules: CPI indexation + 30% min';
+  else                            regimeLabel = 'Split rules: 50% discount (pre-2027) + indexation (post-2027)';
 
   el.innerHTML = `
     <div class="cgt-info">
       <span class="cgt-regime">${regimeLabel}</span>
-      <span>Projected gain: <strong>${fmtMoney(totalGain)}</strong></span>
+      <span>Sale: <strong>${saleDateLabel}</strong> &nbsp;·&nbsp; Projected gain: <strong>${fmtMoney(totalGain)}</strong></span>
       <span style="font-size:10px; color:#8A8582;">Run model for exact CGT calculation</span>
     </div>
   `;
@@ -3918,6 +3958,33 @@ function _renderCgtPreview(id){
 function fmtMoneyInput(v){
   if (!v && v !== 0) return '';
   return Number(v).toLocaleString('en-AU', {maximumFractionDigits:0});
+}
+
+function updatePurchaseDate(id, value){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop || !value) return;
+  prop.purchase_date = value;                              // "YYYY-MM"
+  prop.year_bought   = parseInt(value.split('-')[0], 10); // keep in sync for API
+  // If ppor_periods has an auto-seeded period starting at old year_bought-01, update it
+  if (prop.ppor_periods && prop.ppor_periods.length === 1 && !prop.ppor_periods[0].to) {
+    prop.ppor_periods[0].from = value;
+  }
+  saveState();
+  // Re-render the year badge without full re-render
+  const card = document.getElementById(`p_${id}_purchase_date`)?.closest('.propCard');
+  if (card) {
+    const badge = card.querySelector('.propYearBadge');
+    if (badge) {
+      const yr   = parseInt(value.split('-')[0], 10);
+      const mo   = parseInt(value.split('-')[1], 10);
+      const thisYear = new Date().getFullYear();
+      const moName = new Date(yr, mo-1, 1).toLocaleString('en-AU', {month:'short'});
+      badge.textContent = yr <= thisYear
+        ? `Purchased ${moName} ${yr}`
+        : `Planned ${moName} ${yr}`;
+    }
+  }
+  updatePropSummaryStrip();
 }
 
 
@@ -3985,14 +4052,32 @@ function updatePropSummaryStrip(){
  *  Property migration
  *  --------------------------*/
 function _migrateProperty(p){
+  // Derive purchase_date from year_bought if absent
+  if (!p.purchase_date && p.year_bought) {
+    p.purchase_date = `${p.year_bought}-01`;
+  }
+  // Sync year_bought from purchase_date (keep in step)
+  if (p.purchase_date) {
+    p.year_bought = parseInt(p.purchase_date.split('-')[0], 10);
+  }
   // Add ppor_periods if absent (derive from legacy is_owner_occupied)
   if (!p.ppor_periods) {
+    const from = p.purchase_date || `${p.year_bought || new Date().getFullYear()}-01`;
     p.ppor_periods = p.is_owner_occupied
-      ? [{ from: `${p.year_bought || new Date().getFullYear()}-01`, to: null, six_year_rule: false }]
+      ? [{ from, to: null, six_year_rule: false }]
       : [];
   }
   if (p.sale_year  === undefined) p.sale_year  = null;
   if (p.sale_price === undefined) p.sale_price = null;
+  // Derive sale_date from legacy sale_year if absent (assume December)
+  if (!p.sale_date && p.sale_year) {
+    p.sale_date = `${p.sale_year}-12`;
+  }
+  // Keep sale_year synced from sale_date
+  if (p.sale_date) {
+    p.sale_year = parseInt(p.sale_date.split('-')[0], 10);
+  }
+  if (p.sale_date === undefined) p.sale_date = null;
   return p;
 }
 
@@ -4085,7 +4170,7 @@ function addPporPeriod(id){
     : null;
   const defaultFrom = lastEnd
     ? lastEnd
-    : `${prop.year_bought || new Date().getFullYear()}-01`;
+    : (prop.purchase_date || `${prop.year_bought || new Date().getFullYear()}-01`);
   prop.ppor_periods.push({ from: defaultFrom, to: null, six_year_rule: false });
   // Sync is_owner_occupied
   prop.is_owner_occupied = _derivedIsOwnerOccupied(prop);
