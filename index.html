@@ -1929,6 +1929,19 @@ select.exp-input { cursor:pointer; }
 }
 .btn-settings-icon:hover { background:#F0EDE8; border-color:#C8C4BC; color:#1C1C1A; }
 
+/* ── Dashboard ──────────────────────────────────────── */
+.dash-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+@media(max-width:640px){ .dash-stats-row { grid-template-columns:repeat(2,1fr); } }
+.dash-stat-card { padding:14px 16px !important; }
+.dash-stat-sub { font-size:11px; color:#8A8582; margin-top:3px; }
+.dash-progress-track { height:10px; background:#F0EDE8; border-radius:99px; overflow:hidden; margin-top:6px; }
+.dash-progress-fill  { height:100%; border-radius:99px; background:#1D9E75; transition:width .6s ease; }
+.dash-fire-header { display:flex; align-items:flex-start; justify-content:space-between; }
+.dash-fire-label { font-size:20px; font-weight:700; color:#1C1C1A; }
+.dash-fire-sub   { font-size:12px; color:#8A8582; margin-top:3px; }
+.dash-fire-pct   { font-size:28px; font-weight:800; color:#059669; line-height:1; }
+.dash-no-data    { font-size:12px; color:#A8A4A0; padding:4px 0; }
+
 /* ── Scenarios table ───────────────────────────────── */
 .scen-table { width:100%; border-collapse:collapse; font-size:12px; }
 .scen-table th { text-align:left; padding:6px 10px; font-size:11px; color:#8A8582; border-bottom:2px solid #E8E4DE; white-space:nowrap; font-weight:600; }
@@ -1972,6 +1985,7 @@ select.exp-input { cursor:pointer; }
         <span class="api-dot" id="apiStatusDot"></span>
       </div>
       <div class="nav">
+        <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
         <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
         <button id="btnPortfolio"   onclick="showPortfolioTab()">Portfolio</button>
         <button id="btnProperties"  onclick="showPropertiesTab()">Properties</button>
@@ -2388,6 +2402,60 @@ select.exp-input { cursor:pointer; }
     <div style="display:none">
       <div id="kpiNWEnd"></div><div id="kpiStocksEnd"></div>
       <div id="kpiEquityEnd"></div><div id="kpiCashEnd"></div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     DASHBOARD / OVERVIEW TAB
+     ══════════════════════════════════════ -->
+<section id="tab-dashboard" class="tabs" style="margin-top:18px;">
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <!-- FIRE Progress card -->
+    <div class="card">
+      <p class="budget-section-lbl" style="margin:0 0 10px;">FIRE Progress</p>
+      <div id="dashFireCard">
+        <div class="dash-progress-track"><div class="dash-progress-fill" style="width:0%;"></div></div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="dash-stats-row">
+      <div class="card dash-stat-card">
+        <div class="psi-label">Net Worth</div>
+        <div class="psi-val" id="dashNW">—</div>
+        <div class="dash-stat-sub" id="dashNWDelta"></div>
+      </div>
+      <div class="card dash-stat-card">
+        <div class="psi-label">Savings Rate</div>
+        <div class="psi-val" id="dashSR">—</div>
+        <div class="dash-stat-sub" id="dashSRSub"></div>
+      </div>
+      <div class="card dash-stat-card">
+        <div class="psi-label">This Month</div>
+        <div class="psi-val" id="dashThisMonth">—</div>
+        <div class="dash-stat-sub" id="dashThisMonthSub"></div>
+      </div>
+      <div class="card dash-stat-card">
+        <div class="psi-label">Months Logged</div>
+        <div class="psi-val" id="dashMonthsLogged">—</div>
+        <div class="dash-stat-sub" id="dashMonthsLoggedSub"></div>
+      </div>
+    </div>
+
+    <!-- Net Worth trend chart -->
+    <div class="card">
+      <p class="budget-section-lbl" style="margin:0 0 12px;">Net Worth Trend</p>
+      <div id="dashNWChartWrap"><canvas id="dashNWCanvas" style="max-height:240px;"></canvas></div>
+    </div>
+
+    <!-- Budget trend chart -->
+    <div class="card">
+      <p class="budget-section-lbl" style="margin:0 0 12px;">Monthly Savings vs Target</p>
+      <div id="dashBudgetChartWrap"><div class="small muted" style="padding:8px 0">Log budget months to see your savings history.</div></div>
     </div>
 
   </div>
@@ -3170,7 +3238,7 @@ function showTab(name){
 
 function enterApp(){
   document.body.classList.remove("landing");
-  showTab("results");
+  showDashboard();
 }
 
 function initLanding(){
@@ -4347,6 +4415,8 @@ renderAnalysisFlags({ rows, cols, fireIndex, cashKey });
   renderPropertyEndTable(last, propPrefixes);
   renderFullTable();
   renderScenarios(); // refresh save button visibility + comparison table
+  // Refresh dashboard if it's the active tab
+  if(document.getElementById('tab-dashboard')?.classList.contains('active')) renderDashboard();
 }
 
 
@@ -4994,6 +5064,8 @@ window.addEventListener("load", ()=>{
   // Render properties on load so the tab is populated on first visit
   renderProperties();
   updatePropSummaryStrip();
+  // Render dashboard
+  renderDashboard();
 });
 
 /* ====== RESULTS sub-tabs ====== */
@@ -5467,6 +5539,7 @@ async function doAutosave(){
   if(status){ status.textContent = 'Saved ✓'; status.className = 'budget-save-status saved'; }
   loadBudgetYear(budgetYear);
   renderFireProgress();
+  if(document.getElementById('tab-dashboard')?.classList.contains('active')) renderDashboard();
 }
 
 /** Load year overview from localStorage and render table */
@@ -6866,6 +6939,232 @@ function renderSyncPanel(){
       </div>
     </div>`;
   }).join('');
+}
+
+/* ── Dashboard ─────────────────────────────────────────
+   Overview tab: FIRE progress, net worth, savings rate,
+   net worth trend chart, monthly savings vs target.
+   ─────────────────────────────────────────────────────── */
+let _dashNWChart     = null;
+let _dashBudgetChart = null;
+
+function showDashboard(){
+  showTab('dashboard');
+  renderDashboard();
+}
+
+function renderDashboard(){
+  _dashFireCard();
+  _dashStats();
+  _dashNWChart_render();
+  _dashBudgetChart_render();
+}
+
+function _dashCurrentNW(){
+  const portTot  = portTotals(portGetCurrentData()).total;
+  const propEquity = (state.property_list||[]).reduce((s,p)=>s+propertySummary(p).equity, 0);
+  return portTot + propEquity;
+}
+
+function _dashFireCard(){
+  const el = document.getElementById('dashFireCard');
+  if(!el) return;
+  const currentNW = _dashCurrentNW();
+  const sum = state.lastResult ? _extractModelSummary() : null;
+  const fireNW  = sum?.fire_nw  ?? null;
+  const fireAge = sum?.fire_age ?? null;
+
+  if(fireAge && fireNW){
+    const pct = Math.min(100, Math.max(0, (currentNW/fireNW)*100));
+    const barColor = pct >= 100 ? '#059669' : pct >= 50 ? '#F59E0B' : '#1D9E75';
+    el.innerHTML = `
+      <div class="dash-fire-header">
+        <div>
+          <div class="dash-fire-label">🔥 FIRE @ ${Math.round(fireAge)}</div>
+          <div class="dash-fire-sub">${fmtDollar(currentNW)} tracked &nbsp;/&nbsp; ${fmtDollar(fireNW)} target</div>
+        </div>
+        <div class="dash-fire-pct" style="color:${barColor}">${pct.toFixed(0)}%</div>
+      </div>
+      <div class="dash-progress-track" style="margin-top:10px;">
+        <div class="dash-progress-fill" style="width:${pct}%;background:${barColor};"></div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div class="dash-fire-label" style="color:#A8A4A0;font-size:15px;">Run the model to see your FIRE progress</div>
+          <div class="dash-fire-sub">Tracked net worth: <strong>${fmtDollar(currentNW)}</strong></div>
+        </div>
+        <button class="btn primary" style="white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
+      </div>
+      <div class="dash-progress-track" style="margin-top:10px;">
+        <div class="dash-progress-fill" style="width:0%;"></div>
+      </div>`;
+  }
+}
+
+function _dashStats(){
+  const s = id => document.getElementById(id);
+  const set = (id, txt, sub, color) => {
+    if(s(id)) s(id).textContent = txt;
+    if(sub && s(id+'Sub')){ s(id+'Sub').textContent = sub; if(color) s(id+'Sub').style.color = color; }
+  };
+
+  // Net worth
+  const currentNW = _dashCurrentNW();
+  const portData   = portLoad();
+  const months     = Object.keys(portData.monthly||{}).sort();
+  let nwDelta = null;
+  if(months.length >= 2){
+    const prev = months[months.length-2];
+    const prevNW = portTotals((portData.assets||[]).map(a=>({...a, value:(portData.monthly[prev][a.id]||0)}))).total
+                 + (state.property_list||[]).reduce((s,p)=>s+propertySummary(p).equity, 0);
+    nwDelta = currentNW - prevNW;
+  }
+  set('dashNW', fmtDollar(currentNW), nwDelta!=null ? (nwDelta>=0?'+':'')+fmtDollar(nwDelta)+' vs last mo' : 'No history yet', nwDelta>=0?'#059669':'#E11D48');
+
+  // Savings rate (last 6 months avg from budget)
+  const toM   = todayMonthStr();
+  const fromD = new Date(); fromD.setMonth(fromD.getMonth()-5);
+  const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
+  const series = budgGetSeries(fromM, toM).series.filter(m=>m.income_actual!=null && m.income_actual>0);
+  let srStr = '—', srSub = 'No budget data yet', srColor = '#A8A4A0';
+  if(series.length){
+    const avgInc = series.reduce((s,m)=>s+(m.income_actual||0),0)/series.length;
+    const avgExp = series.reduce((s,m)=>s+(m.expense_actual||0),0)/series.length;
+    const sr = avgInc>0 ? Math.max(0,(avgInc-avgExp)/avgInc) : 0;
+    srStr = `${Math.round(sr*100)}%`;
+    const modelSR = state.inputs.current_income>0
+      ? Math.max(0,(state.inputs.current_income-state.inputs.current_expenses)/state.inputs.current_income)
+      : null;
+    srSub = modelSR ? `Model assumes ${Math.round(modelSR*100)}%` : `${series.length} months avg`;
+    srColor = modelSR ? (sr >= modelSR-0.02 ? '#059669' : '#F59E0B') : '#059669';
+  }
+  set('dashSR', srStr, srSub, srColor);
+
+  // This month net
+  const thisSeries = budgGetSeries(toM, toM).series[0];
+  const thisNet = thisSeries?.net_actual ?? thisSeries?.net_planned ?? null;
+  const modelMoTarget = fireModelTargetMonthly();
+  let tmStr = thisNet!=null ? (thisNet>=0?'+':'')+fmtDollar(thisNet) : '—';
+  let tmSub = '', tmColor = '#A8A4A0';
+  if(thisNet!=null && modelMoTarget>0){
+    const delta = thisNet - modelMoTarget;
+    tmSub = `Target ${fmtDollar(modelMoTarget)}/mo`;
+    tmColor = thisNet >= modelMoTarget ? '#059669' : '#F59E0B';
+  } else if(thisNet!=null){
+    tmSub = 'No model target yet';
+    tmColor = thisNet>=0?'#059669':'#E11D48';
+  }
+  if(s('dashThisMonth')) s('dashThisMonth').textContent = tmStr;
+  if(s('dashThisMonth')) s('dashThisMonth').style.color = thisNet!=null?(thisNet>=0?'#059669':'#E11D48'):'';
+  if(s('dashThisMonthSub')){ s('dashThisMonthSub').textContent=tmSub; s('dashThisMonthSub').style.color=tmColor; }
+
+  // Months logged
+  const d = _budgLoad();
+  const loggedMonths = Object.values(d.months||{}).filter(m=>m.income_actual||m.income_planned>0).length;
+  const loggedYears  = (loggedMonths/12).toFixed(1);
+  set('dashMonthsLogged', String(loggedMonths), loggedMonths>0?`${loggedYears} years of data`:'Start logging in Budget');
+}
+
+function _dashNWChart_render(){
+  const wrap = document.getElementById('dashNWChartWrap');
+  if(!wrap) return;
+  const portData = portLoad();
+  const monthly  = portData.monthly||{};
+  const assets   = portData.assets||[];
+  const months   = Object.keys(monthly).filter(m=>assets.some(a=>(monthly[m][a.id]||0)>0)).sort();
+  if(months.length < 2){
+    if(_dashNWChart){ _dashNWChart.destroy(); _dashNWChart=null; }
+    wrap.innerHTML='<div class="small muted" style="padding:8px 0;">Add at least 2 months of portfolio data to see your net worth trend.</div>';
+    return;
+  }
+  if(!wrap.querySelector('#dashNWCanvas')) wrap.innerHTML='<canvas id="dashNWCanvas" style="max-height:240px;"></canvas>';
+  const ctx = wrap.querySelector('#dashNWCanvas').getContext('2d');
+  const labels = months.map(m=>{ const [y,mo]=m.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short',year:'2-digit'}); });
+  const totals = months.map(m=>assets.reduce((s,a)=>s+(monthly[m][a.id]||0),0)
+    + (state.property_list||[]).reduce((s,p)=>s+propertySummary(p).equity,0));
+
+  // FIRE target line from model projections
+  const targetLine = [];
+  if(_fireProjectionsCache && state.lastResult){
+    months.forEach(m=>{
+      const year = Number(m.split('-')[0]);
+      const tgt  = fireModelTargetForYear(year, _fireProjectionsCache);
+      // Rough cumulative: just show the model's FIRE NW at that year if available
+      targetLine.push(null); // placeholder — better to overlay FIRE number
+    });
+  }
+
+  if(_dashNWChart){ _dashNWChart.destroy(); _dashNWChart=null; }
+  const sum = state.lastResult ? _extractModelSummary() : null;
+  const fireNW = sum?.fire_nw ?? null;
+  const datasets = [
+    { label:'Net Worth', data:totals, borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#1D9E75', borderWidth:2.5 },
+  ];
+  if(fireNW){
+    datasets.push({ label:'FIRE Target', data:Array(months.length).fill(fireNW), borderColor:'#F59E0B', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+  }
+  _dashNWChart = new Chart(ctx, {
+    type:'line', data:{ labels, datasets },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        tooltip:{ callbacks:{ label: c=>c.dataset.label+': '+fmtDollar(c.parsed.y) } }
+      },
+      scales:{
+        y:{ ticks:{ callback:v=>'$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
+}
+
+function _dashBudgetChart_render(){
+  const wrap = document.getElementById('dashBudgetChartWrap');
+  if(!wrap) return;
+  // Last 12 months of budget data
+  const toM   = todayMonthStr();
+  const fromD = new Date(); fromD.setMonth(fromD.getMonth()-11);
+  const fromM = `${fromD.getFullYear()}-${String(fromD.getMonth()+1).padStart(2,'0')}`;
+  const series = budgGetSeries(fromM, toM).series;
+  const logged = series.filter(m=>m.net_actual!=null);
+  if(logged.length < 1){
+    if(_dashBudgetChart){ _dashBudgetChart.destroy(); _dashBudgetChart=null; }
+    wrap.innerHTML='<div class="small muted" style="padding:8px 0;">Log budget months to see your savings history.</div>';
+    return;
+  }
+  if(!wrap.querySelector('#dashBudgetCanvas')) wrap.innerHTML='<canvas id="dashBudgetCanvas" style="max-height:200px;"></canvas>';
+  const ctx = wrap.querySelector('#dashBudgetCanvas').getContext('2d');
+  const labels = series.map(m=>{ const [y,mo]=m.month.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short'}); });
+  const actuals = series.map(m=>m.net_actual);
+  const targets = series.map(m=>{ const yr=Number(m.month.split('-')[0]); return fireModelTargetMonthly() || null; });
+  if(_dashBudgetChart){ _dashBudgetChart.destroy(); _dashBudgetChart=null; }
+  _dashBudgetChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        { label:'Actual net savings', data:actuals,
+          backgroundColor: actuals.map(v=>v==null?'transparent':v>=0?'rgba(29,158,117,.7)':'rgba(225,29,72,.65)'),
+          borderRadius:3, borderSkipped:false },
+        { label:'Model target', data:targets, type:'line',
+          borderColor:'#F59E0B', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        tooltip:{ callbacks:{ label: c=>c.dataset.label+': '+fmtDollar(c.parsed.y) } }
+      },
+      scales:{
+        y:{ ticks:{ callback:v=>'$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' }, beginAtZero:false },
+        x:{ grid:{ display:false } }
+      }
+    }
+  });
 }
 
 /* ── Scenarios ─────────────────────────────────────────
