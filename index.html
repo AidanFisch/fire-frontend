@@ -698,6 +698,16 @@ th{
 		padding: 3px 10px;
 		flex-shrink: 0;
 	  }
+	  .propYearBadge {
+		font-size: 11px;
+		letter-spacing: 0.02em;
+		background: #E8F5EF;
+		color: #1D9E75;
+		border-radius: 20px;
+		padding: 3px 10px;
+		flex-shrink: 0;
+		font-weight: 500;
+	  }
 
 	  .propStatsRow {
 		display: flex;
@@ -849,6 +859,130 @@ th{
 		margin-top: 20px;
 		padding-top: 16px;
 		border-top: 1px solid #F0EDE8;
+	  }
+
+	  /* ---- PPOR timeline ---- */
+	  .prop-ppor-section { margin-top: 2px; }
+	  .ppor-timeline-btn {
+		font-size: 11px !important;
+		padding: 2px 8px !important;
+		margin-left: 8px;
+		color: #1D9E75 !important;
+		border-color: #1D9E75 !important;
+	  }
+	  .ppor-timeline-panel {
+		background: #F8F7F4;
+		border: 1px solid #E8E4DE;
+		border-radius: 8px;
+		padding: 10px 12px;
+		margin-top: 6px;
+	  }
+	  .ppor-row {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: 8px 0;
+		border-bottom: 1px solid #EDE9E2;
+	  }
+	  .ppor-row:last-child { border-bottom: none; }
+	  .ppor-row-dates {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	  }
+	  .ppor-row-lbl { font-size: 10px; color: #8A8582; display: block; margin-bottom: 2px; }
+	  .ppor-input {
+		font-size: 12px;
+		padding: 4px 8px;
+		border: 1px solid #D8D4CC;
+		border-radius: 6px;
+		background: white;
+		color: #1C1C1A;
+		width: 130px;
+	  }
+	  .ppor-input.ppor-to::placeholder { color: #A8A4A0; }
+	  .ppor-arrow { color: #8A8582; font-size: 14px; flex-shrink: 0; }
+	  .ppor-row-opts {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	  }
+	  .ppor-sixyr-label {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 12px;
+		color: #5C5955;
+		cursor: pointer;
+	  }
+	  .ppor-remove-btn {
+		font-size: 11px !important;
+		padding: 2px 6px !important;
+		color: #E11D48 !important;
+		border-color: #E11D48 !important;
+		margin-left: auto;
+	  }
+	  .ppor-conflict {
+		color: #E11D48;
+		font-size: 11px;
+		margin-top: 6px;
+		background: #FEF2F2;
+		border-radius: 6px;
+		padding: 4px 8px;
+	  }
+
+	  /* ---- Sale section ---- */
+	  .prop-sale-section { margin-top: 8px; }
+	  .cgt-preview {
+		background: #F0F9F5;
+		border: 1px solid #A7F3D0;
+		border-radius: 6px;
+		padding: 8px 12px;
+		font-size: 12px;
+	  }
+	  .cgt-info { display: flex; flex-direction: column; gap: 3px; }
+	  .cgt-regime { font-weight: 600; color: #1D9E75; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+
+	  /* ---- Info tooltips ---- */
+	  .info-tip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #E8E4DE;
+		color: #5C5955;
+		font-size: 10px;
+		cursor: pointer;
+		flex-shrink: 0;
+		user-select: none;
+		transition: background .15s;
+	  }
+	  .info-tip:hover { background: #1D9E75; color: white; }
+	  #infoTooltip {
+		position: absolute;
+		z-index: 9999;
+		background: #1C1C1A;
+		color: #F8F7F4;
+		border-radius: 10px;
+		padding: 12px 14px;
+		width: 280px;
+		box-shadow: 0 8px 24px rgba(0,0,0,.25);
+		pointer-events: auto;
+		display: none;
+	  }
+	  .tip-title {
+		font-size: 13px;
+		font-weight: 700;
+		margin-bottom: 6px;
+		color: #FFFFFF;
+	  }
+	  .tip-body {
+		font-size: 12px;
+		color: #C8C4BE;
+		line-height: 1.5;
 	  }
 
 	  .btn-add-prop {
@@ -1988,7 +2122,6 @@ select.exp-input { cursor:pointer; }
         <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
         <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
         <button id="btnPortfolio"   onclick="showPortfolioTab()">Portfolio</button>
-        <button id="btnProperties"  onclick="showPropertiesTab()">Properties</button>
         <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
       <div class="header-actions">
@@ -2260,6 +2393,20 @@ select.exp-input { cursor:pointer; }
                 <div><label>Super Employee Contribution Rate</label><input id="super_sg_rate" type="number" step="0.001"/></div>
                 <div><label>Super Growth</label><input id="super_growth" type="number" step="0.001"/></div>
                 <div><label>Super Additional Contributions</label><input id="super_additional_annual" type="number" step="1"/></div>
+                <div>
+                  <label style="display:flex; align-items:center; gap:5px;">
+                    CPI Rate (for CGT)
+                    <span class="info-tip" data-tip="cpi_rate">ⓘ</span>
+                  </label>
+                  <input id="cpi_rate" type="number" step="0.001"/>
+                </div>
+              </div>
+              <div style="margin-top:10px;">
+                <label class="prop-toggle" style="display:flex; align-items:center; gap:10px; font-size:13px; cursor:pointer;">
+                  <input type="checkbox" id="on_income_support" />
+                  <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+                  <span>On income support / Age Pension (exempt from 30% CGT minimum)</span>
+                </label>
               </div>
             </div>
           </div>
@@ -2269,7 +2416,7 @@ select.exp-input { cursor:pointer; }
         <div id="panel-properties" class="drawer-panel" style="margin-top:16px;">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
             <h2 style="margin:0;">Properties</h2>
-            <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPropertiesTab();">Open Properties tab ↗</button>
+            <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPortfolioTab();">Open in Portfolio ↗</button>
           </div>
           <div id="drawerPropSummary" style="font-size:12px; color:#5C5955;"></div>
         </div>
@@ -2462,47 +2609,7 @@ select.exp-input { cursor:pointer; }
 </section>
 
 
-<!-- ══════════════════════════════════════
-     PROPERTIES TAB
-     ══════════════════════════════════════ -->
-<section id="tab-properties" class="tabs" style="margin-top:18px;">
-  <div style="display:flex; flex-direction:column; gap:20px;">
-
-    <div class="card">
-      <!-- Summary strip -->
-      <div class="port-summary-strip" id="propSummaryStrip">
-        <div class="port-summary-item port-summary-total">
-          <div class="psi-label">Total Value</div>
-          <div class="psi-val" id="propSIValue">—</div>
-        </div>
-        <div class="port-summary-sep"></div>
-        <div class="port-summary-item">
-          <div class="psi-label">Total Debt</div>
-          <div class="psi-val psi-secondary" id="propSIDebt">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Total Equity</div>
-          <div class="psi-val psi-secondary" id="propSIEquity">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Avg LVR</div>
-          <div class="psi-val psi-secondary" id="propSILvr">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Net Monthly</div>
-          <div class="psi-val psi-secondary" id="propSINet">—</div>
-        </div>
-      </div>
-
-      <div class="hr" style="margin:12px 0;"></div>
-
-      <!-- Property cards live here (moved from inputs drawer) -->
-      <div id="propsContainer"></div>
-      <button class="btn ghost btn-add-row" style="margin-top:4px;" onclick="addProperty()">+ Add property</button>
-    </div>
-
-  </div>
-</section>
+<!-- Properties section is now inside tab-portfolio -->
 
 
 <!-- ══════════════════════════════════════
@@ -2667,6 +2774,46 @@ select.exp-input { cursor:pointer; }
       <button class="btn ghost btn-add-row" onclick="addPortfolioAsset()" style="margin-top:8px; font-size:12px;">+ Add asset</button>
     </div>
 
+    <!-- Property model inputs -->
+    <div class="card" style="border-left:4px solid #1D9E75; padding-left:18px;">
+      <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;">
+        <div>
+          <div style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">⚙ Property model inputs</div>
+          <div style="font-size:12px; color:#8A8582; margin-top:3px; line-height:1.5;">These cards tell the FIRE model about mortgages, rental income and growth rates. Edit the monthly table above to track value snapshots separately.</div>
+        </div>
+      </div>
+
+      <!-- Property summary strip -->
+      <div class="port-summary-strip" id="propSummaryStrip" style="margin-top:4px;">
+        <div class="port-summary-item port-summary-total">
+          <div class="psi-label">Total Value</div>
+          <div class="psi-val" id="propSIValue">—</div>
+        </div>
+        <div class="port-summary-sep"></div>
+        <div class="port-summary-item">
+          <div class="psi-label">Total Debt</div>
+          <div class="psi-val psi-secondary" id="propSIDebt">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Total Equity</div>
+          <div class="psi-val psi-secondary" id="propSIEquity">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Avg LVR</div>
+          <div class="psi-val psi-secondary" id="propSILvr">—</div>
+        </div>
+        <div class="port-summary-item">
+          <div class="psi-label">Net Monthly</div>
+          <div class="psi-val psi-secondary" id="propSINet">—</div>
+        </div>
+      </div>
+
+      <div class="hr" style="margin:12px 0;"></div>
+
+      <div id="propsContainer"></div>
+      <button class="btn ghost btn-add-row" style="margin-top:4px;" onclick="addProperty()">+ Add property</button>
+    </div>
+
     <!-- History chart card -->
     <div class="card">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -2684,6 +2831,12 @@ select.exp-input { cursor:pointer; }
 
 </div><!-- /.wrap -->
 
+
+<!-- Info tooltip (shared, positioned by JS) -->
+<div id="infoTooltip" role="tooltip">
+  <div class="tip-title"></div>
+  <div class="tip-body"></div>
+</div>
 
 <!-- Toast notification -->
 <div id="toast" class="toast" role="alert" aria-live="assertive">
@@ -2752,7 +2905,9 @@ let state = {
     super_starting_balance: 120000,
     super_sg_rate: 0.115,
     super_growth: 0.065,
-    super_additional_annual: 0
+    super_additional_annual: 0,
+    cpi_rate: 0.025,
+    on_income_support: false
   },
   property_list: [
     {
@@ -3014,6 +3169,8 @@ const FIELD_META = {
   starting_stock_value: { type: "money" },
   super_starting_balance: { type: "money" },
   super_additional_annual: { type: "money" },
+  cpi_rate: { type: "percent" },
+  on_income_support: { type: "bool" },
 };
 
 const PROP_FIELD_META = {
@@ -3195,7 +3352,7 @@ function loadState(){
       }
 
       if (Array.isArray(parsed.property_list)) {
-        state.property_list = parsed.property_list;
+        state.property_list = parsed.property_list.map(_migrateProperty);
       }
 
       if (isPlainObject(parsed.chartToggles) && parsed.chartTogglesVersion === state.chartTogglesVersion) {
@@ -3298,6 +3455,13 @@ function bindCoreInputs(){
 
     const meta = FIELD_META[k] || { type: "money" };
 
+    // Boolean checkbox: just sync checked state
+    if (meta.type === "bool"){
+      el.checked = !!state.inputs[k];
+      el.onchange = () => { state.inputs[k] = el.checked; saveState(); };
+      continue;
+    }
+
     // Use text inputs so we can display formatted values like "$500,000" or "2.5%"
     if (meta.type === "money" || meta.type === "percent"){
       el.type = "text";
@@ -3395,7 +3559,10 @@ function addProperty(){
     year_bought: new Date().getFullYear(),
     loan_term_years: 30,
     use_offset: true,
-    is_owner_occupied: false
+    is_owner_occupied: false,
+    ppor_periods: [],
+    sale_year: null,
+    sale_price: null
   });
 
   // keep collapsed on add (don’t auto-open)
@@ -3419,7 +3586,7 @@ function renderProperties(){
   wrap.innerHTML = "";
 
   state.property_list.forEach((p, idx)=>{
-    const isPPOR = !!p.is_owner_occupied;
+    const isPPOR = _isPporNow(p);
 
     const card = document.createElement("div");
     card.className = "card propCard";
@@ -3432,11 +3599,16 @@ function renderProperties(){
     header.className = "propCardHeader";
 
     const netMoColor = sum.netMo < 0 ? 'negative' : (sum.netMo > 0 ? 'positive' : '');
+    const thisYear = new Date().getFullYear();
+    const yearLabel = p.year_bought
+      ? (p.year_bought <= thisYear ? `Purchased ${p.year_bought}` : `Planned ${p.year_bought}`)
+      : '';
     header.innerHTML = `
       <div class="propCardHeaderLeft">
         <div class="propCardNameRow">
           <span class="propCardName">${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
           <span class="propTypeBadge">${isPPOR ? "PPOR" : "Investment"}</span>
+          ${yearLabel ? `<span class="propYearBadge">${yearLabel}</span>` : ''}
         </div>
         <div class="propStatsRow">
           <div class="propStat">
@@ -3520,15 +3692,86 @@ function renderProperties(){
 	    g.appendChild(t);
 	  }
 	  if (grp.label === "General") {
-	    const t = document.createElement("div");
-	    t.className = "prop-toggle-row" + (isPPOR ? " ppor-active" : "");
-	    t.id = `occ-row-${p.id}`;
-	    t.innerHTML = `<label class="prop-toggle"><input type="checkbox" id="p_${p.id}_is_owner_occupied" /><span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span><span class="prop-toggle-label">Owner-occupied (PPOR)</span></label>`;
-	    g.appendChild(t);
+	    const pporWrap = document.createElement("div");
+	    pporWrap.className = "prop-ppor-section";
+	    const isPporActive = _isPporNow(p);
+	    pporWrap.innerHTML = `
+	      <div class="prop-toggle-row${isPporActive ? ' ppor-active' : ''}" id="occ-row-${p.id}">
+	        <label class="prop-toggle">
+	          <input type="checkbox" id="p_${p.id}_ppor_quick" ${isPporActive ? 'checked' : ''} />
+	          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+	          <span class="prop-toggle-label">Main residence (PPOR)</span>
+	        </label>
+	        <span class="info-tip" data-tip="ppor" style="margin-left:4px;">ⓘ</span>
+	        <button class="btn ghost ppor-timeline-btn" id="ppor-edit-btn-${p.id}"
+	                onclick="event.stopPropagation(); togglePporTimeline(${p.id})">
+	          ${(p.ppor_periods||[]).length > 1 ? `${(p.ppor_periods||[]).length} periods ▸` : 'Edit timeline ▸'}
+	        </button>
+	      </div>
+	      <div class="ppor-timeline-panel hidden" id="ppor-panel-${p.id}">
+	        <div id="ppor-rows-${p.id}" style="margin:8px 0;"></div>
+	        <button class="btn ghost btn-add-row" style="margin-top:2px; font-size:11px;"
+	                onclick="event.stopPropagation(); addPporPeriod(${p.id})">+ Add period</button>
+	        <div class="ppor-conflict" id="ppor-conflict-${p.id}" style="display:none;"></div>
+	      </div>
+	    `;
+	    g.appendChild(pporWrap);
 	  }
 	});
 
     body.appendChild(g);
+
+    // ---- Sale section ----
+    const saleDiv = document.createElement('div');
+    saleDiv.className = 'prop-sale-section';
+    const hasSale = !!p.sale_year;
+    saleDiv.innerHTML = `
+      <div class="prop-toggle-row" style="margin-top:8px;">
+        <label class="prop-toggle">
+          <input type="checkbox" id="p_${p.id}_sale_toggle" ${hasSale ? 'checked' : ''} />
+          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+          <span class="prop-toggle-label">Plan to sell</span>
+        </label>
+      </div>
+      <div id="p_${p.id}_sale_fields" style="display:${hasSale ? '' : 'none'}; margin-top:6px;">
+        <div class="prop-section-label" style="display:flex; align-items:center; gap:6px;">
+          Sale details
+          <span class="info-tip" data-tip="sale_price" style="font-size:11px;">ⓘ</span>
+          <span style="font-size:10px; color:#8A8582;">(CGT calculated automatically)</span>
+        </div>
+        <div class="fieldgrid" style="margin-top:6px;">
+          <div>
+            <label>Sale Year</label>
+            <input id="p_${p.id}_sale_year" type="text" inputmode="numeric"
+                   value="${p.sale_year||''}" placeholder="e.g. 2035"
+                   oninput="updateSaleField(${p.id},'sale_year',this.value)" />
+          </div>
+          <div>
+            <label>Sale Price <span style="font-size:10px; color:#8A8582;">(blank = projected)</span></label>
+            <input id="p_${p.id}_sale_price" type="text" inputmode="decimal"
+                   value="${p.sale_price ? fmtMoneyInput(p.sale_price) : ''}" placeholder="Leave blank"
+                   oninput="updateSaleField(${p.id},'sale_price',this.value)" />
+          </div>
+        </div>
+        <div id="p_${p.id}_cgt_preview" class="cgt-preview" style="margin-top:8px;"></div>
+      </div>
+    `;
+    body.appendChild(saleDiv);
+
+    const saleToggle = saleDiv.querySelector(`#p_${p.id}_sale_toggle`);
+    saleToggle.onchange = () => {
+      const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+      if (!prop) return;
+      const fields = document.getElementById(`p_${p.id}_sale_fields`);
+      if (saleToggle.checked) {
+        fields.style.display = '';
+      } else {
+        fields.style.display = 'none';
+        prop.sale_year  = null;
+        prop.sale_price = null;
+        saveState();
+      }
+    };
 
     const actions = document.createElement("div");
     actions.className = "prop-actions";
@@ -3582,44 +3825,99 @@ function renderProperties(){
       saveState();
     };
 
-    const occEl = document.getElementById(`p_${p.id}_is_owner_occupied`);
-    occEl.checked = !!p.is_owner_occupied;
-	occEl.onchange = () => {
-	  const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-	  if (!prop) return;
+    // PPOR quick-toggle: creates/removes a single open-ended period
+    const pporQuickEl = document.getElementById(`p_${p.id}_ppor_quick`);
+    if (pporQuickEl) {
+      pporQuickEl.onchange = () => {
+        const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
+        if (!prop) return;
+        if (!prop.ppor_periods) prop.ppor_periods = [];
 
-	  const wantsPPOR = !!occEl.checked;
-
-	  if (wantsPPOR) {
-		// If another PPOR already exists (not this one), block it + popup + revert UI
-		const otherPPORExists = state.property_list.some(x =>
-		  Number(x.id) !== Number(p.id) && !!x.is_owner_occupied
-		);
-
-		if (otherPPORExists) {
-		  showToast("PPOR limit", "Only 1 PPOR allowed.");
-		  occEl.checked = false;           // revert checkbox UI immediately
-		  prop.is_owner_occupied = false;  // revert state
-		  saveState();
-		  return; // do NOT re-render
-		}
-
-		// Allowed to become PPOR
-		prop.is_owner_occupied = true;
-		prop.monthly_rent = 0;
-		prop.rental_growth = 0;
-	  } else {
-		// Turning PPOR off is always allowed
-		prop.is_owner_occupied = false;
-	  }
-
-	  saveState();
-	  renderProperties();
-	};
+        if (pporQuickEl.checked) {
+          // Check no other property is currently PPOR
+          const conflict = state.property_list.some(x =>
+            Number(x.id) !== Number(p.id) && _isPporNow(x)
+          );
+          if (conflict) {
+            showToast('PPOR conflict', 'Another property is already marked as PPOR. Edit its timeline first.');
+            pporQuickEl.checked = false;
+            return;
+          }
+          // Add a simple open-ended period from year_bought
+          const from = `${prop.year_bought || new Date().getFullYear()}-01`;
+          prop.ppor_periods = [{ from, to: null, six_year_rule: false }];
+          prop.is_owner_occupied = true;
+          prop.monthly_rent  = 0;
+          prop.rental_growth = 0;
+        } else {
+          // Close all open periods at today's month
+          const now = new Date();
+          const toStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+          prop.ppor_periods = prop.ppor_periods.map(pr =>
+            pr.to ? pr : { ...pr, to: toStr }
+          );
+          prop.is_owner_occupied = false;
+        }
+        saveState();
+        renderProperties();
+      };
+    }
 
 
   });
   updatePropSummaryStrip();
+  // Wire up info tooltips for newly rendered elements
+  initInfoTips();
+}
+
+function updateSaleField(id, field, rawVal){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  if (field === 'sale_year'){
+    const v = parseInt(rawVal, 10);
+    prop.sale_year = (isNaN(v) || rawVal.trim() === '') ? null : v;
+  } else if (field === 'sale_price'){
+    const v = parseFloat(String(rawVal).replace(/[,$]/g,''));
+    prop.sale_price = (isNaN(v) || rawVal.trim() === '') ? null : v;
+  }
+  saveState();
+  _renderCgtPreview(id);
+}
+
+function _renderCgtPreview(id){
+  const el = document.getElementById(`p_${id}_cgt_preview`);
+  if (!el) return;
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop || !prop.sale_year) { el.innerHTML = ''; return; }
+
+  const saleYr   = prop.sale_year;
+  const costBase = (toNumber(prop.purchase_price) + toNumber(prop.purchase_fees));
+  const cpi      = toNumber(state.inputs?.cpi_rate ?? 0.025);
+  const buyYr    = prop.year_bought || new Date().getFullYear();
+  const projVal  = toNumber(prop.current_value) * Math.pow(1 + toNumber(prop.property_growth||0.03), saleYr - new Date().getFullYear());
+  const salePrice = prop.sale_price || projVal;
+
+  const totalGain = salePrice - costBase;
+  if (totalGain <= 0){ el.innerHTML = '<div class="cgt-info">No gain — no CGT.</div>'; return; }
+
+  const CGT_REFORM = 2027;
+  let regimeLabel = '';
+  if      (saleYr < CGT_REFORM)  regimeLabel = 'Pre-2027 rules: 50% discount';
+  else if (buyYr >= CGT_REFORM)  regimeLabel = 'Post-2027 rules: CPI indexation + 30% min';
+  else                           regimeLabel = 'Split rules: 50% discount (pre-2027) + indexation (post-2027)';
+
+  el.innerHTML = `
+    <div class="cgt-info">
+      <span class="cgt-regime">${regimeLabel}</span>
+      <span>Projected gain: <strong>${fmtMoney(totalGain)}</strong></span>
+      <span style="font-size:10px; color:#8A8582;">Run model for exact CGT calculation</span>
+    </div>
+  `;
+}
+
+function fmtMoneyInput(v){
+  if (!v && v !== 0) return '';
+  return Number(v).toLocaleString('en-AU', {maximumFractionDigits:0});
 }
 
 
@@ -3645,9 +3943,8 @@ function duplicateProperty(id){
 /* ── Properties Tab ─────────────────────────────────────── */
 
 function showPropertiesTab(){
-  showTab('properties');
-  renderProperties();
-  updatePropSummaryStrip();
+  // Properties are now part of the Portfolio tab
+  showPortfolioTab();
 }
 
 function updatePropSummaryStrip(){
@@ -3673,14 +3970,291 @@ function updatePropSummaryStrip(){
     if(!props.length){
       dps.textContent = 'No properties added yet.';
     } else {
-      const inv = props.filter(p=>!p.is_owner_occupied).length;
-      const ppor = props.filter(p=>p.is_owner_occupied).length;
+      const inv  = props.filter(p => !_isPporNow(p)).length;
+      const ppor = props.filter(p =>  _isPporNow(p)).length;
       dps.innerHTML = `${props.length} propert${props.length!==1?'ies':'y'}`
         + (ppor ? ` &nbsp;·&nbsp; ${ppor} PPOR` : '')
         + (inv  ? ` &nbsp;·&nbsp; ${inv} investment` : '')
         + `<br>Total equity <strong>${fmtMoney(totEquity)}</strong>`
         + ` &nbsp;·&nbsp; Net/mo <strong style="color:${totNet>=0?'#059669':'#E11D48'}">${totNet>=0?'+':''}${fmtMoney(totNet)}</strong>`;
     }
+  }
+}
+
+/** ---------------------------
+ *  Property migration
+ *  --------------------------*/
+function _migrateProperty(p){
+  // Add ppor_periods if absent (derive from legacy is_owner_occupied)
+  if (!p.ppor_periods) {
+    p.ppor_periods = p.is_owner_occupied
+      ? [{ from: `${p.year_bought || new Date().getFullYear()}-01`, to: null, six_year_rule: false }]
+      : [];
+  }
+  if (p.sale_year  === undefined) p.sale_year  = null;
+  if (p.sale_price === undefined) p.sale_price = null;
+  return p;
+}
+
+// Is this property currently PPOR (today's date)?
+function _isPporNow(p){
+  const periods = p.ppor_periods || [];
+  if (!periods.length) return !!p.is_owner_occupied;
+  const now = new Date();
+  const nowAbs = now.getFullYear() * 12 + now.getMonth() + 1;
+  for (const pr of periods){
+    const [fy, fm] = pr.from.split('-').map(Number);
+    const fAbs = fy * 12 + fm;
+    let tAbs = 999999;
+    if (pr.to){ const [ty, tm] = pr.to.split('-').map(Number); tAbs = ty * 12 + tm; }
+    if (nowAbs >= fAbs && nowAbs <= tAbs) return true;
+  }
+  return false;
+}
+
+// Derive is_owner_occupied from ppor_periods for the API payload
+function _derivedIsOwnerOccupied(p){
+  return _isPporNow(p);
+}
+
+/** ---------------------------
+ *  PPOR Timeline UI
+ *  --------------------------*/
+function togglePporTimeline(id){
+  const panel = document.getElementById(`ppor-panel-${id}`);
+  const btn   = document.getElementById(`ppor-edit-btn-${id}`);
+  if (!panel) return;
+  const open = panel.classList.toggle('hidden');
+  if (btn) btn.textContent = open ? 'Edit timeline ▸' : 'Edit timeline ▾';
+  if (!open) renderPporRows(id);
+}
+
+function renderPporRows(id){
+  const wrap = document.getElementById(`ppor-rows-${id}`);
+  if (!wrap) return;
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  const periods = prop.ppor_periods || [];
+
+  wrap.innerHTML = '';
+  if (!periods.length){
+    wrap.innerHTML = '<div style="font-size:12px; color:#8A8582; padding:4px 0;">No PPOR periods — property is always investment.</div>';
+    return;
+  }
+
+  periods.forEach((pr, idx) => {
+    const row = document.createElement('div');
+    row.className = 'ppor-row';
+    row.innerHTML = `
+      <div class="ppor-row-dates">
+        <div>
+          <label class="ppor-row-lbl">From</label>
+          <input class="ppor-input" type="month" value="${pr.from||''}"
+                 onchange="updatePporPeriod(${id},${idx},'from',this.value)" />
+        </div>
+        <span class="ppor-arrow">→</span>
+        <div>
+          <label class="ppor-row-lbl">To</label>
+          <input class="ppor-input ppor-to" type="month" value="${pr.to||''}"
+                 placeholder="Ongoing"
+                 onchange="updatePporPeriod(${id},${idx},'to',this.value||null)" />
+        </div>
+      </div>
+      <div class="ppor-row-opts">
+        <label class="ppor-sixyr-label" title="Apply 6-year absence rule after this period ends">
+          <input type="checkbox" ${pr.six_year_rule?'checked':''} ${pr.to?'':'disabled'}
+                 onchange="updatePporPeriod(${id},${idx},'six_year_rule',this.checked)" />
+          6-yr rule <span class="info-tip" data-tip="six_year_rule">ⓘ</span>
+        </label>
+        <button class="btn ghost ppor-remove-btn" onclick="removePporPeriod(${id},${idx})">✕</button>
+      </div>
+    `;
+    wrap.appendChild(row);
+  });
+
+  checkPporConflicts();
+}
+
+function addPporPeriod(id){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  if (!prop.ppor_periods) prop.ppor_periods = [];
+  // Default: start from next year if periods exist, else from year_bought
+  const lastEnd = prop.ppor_periods.length
+    ? (prop.ppor_periods[prop.ppor_periods.length-1].to || null)
+    : null;
+  const defaultFrom = lastEnd
+    ? lastEnd
+    : `${prop.year_bought || new Date().getFullYear()}-01`;
+  prop.ppor_periods.push({ from: defaultFrom, to: null, six_year_rule: false });
+  // Sync is_owner_occupied
+  prop.is_owner_occupied = _derivedIsOwnerOccupied(prop);
+  saveState();
+  renderPporRows(id);
+}
+
+function removePporPeriod(id, idx){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  prop.ppor_periods.splice(idx, 1);
+  prop.is_owner_occupied = _derivedIsOwnerOccupied(prop);
+  saveState();
+  renderPporRows(id);
+  renderProperties();
+}
+
+function updatePporPeriod(id, idx, field, value){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop || !prop.ppor_periods[idx]) return;
+  prop.ppor_periods[idx][field] = value;
+  // If 'to' is cleared, set six_year_rule = false (can't apply to open period)
+  if (field === 'to' && !value) prop.ppor_periods[idx].six_year_rule = false;
+  prop.is_owner_occupied = _derivedIsOwnerOccupied(prop);
+  saveState();
+  renderPporRows(id);
+  updatePropSummaryStrip();
+}
+
+function checkPporConflicts(){
+  // Build flat list of (propId, from_abs, to_abs)
+  const segments = [];
+  (state.property_list || []).forEach(p => {
+    (p.ppor_periods || []).forEach(pr => {
+      const [fy, fm] = pr.from.split('-').map(Number);
+      const fAbs = fy * 12 + fm;
+      let tAbs = 999999;
+      if (pr.to){ const [ty, tm] = pr.to.split('-').map(Number); tAbs = ty * 12 + tm; }
+      segments.push({ id: p.id, fAbs, tAbs });
+    });
+  });
+
+  // Find conflicts (two segments from different properties that overlap)
+  const conflicted = new Set();
+  for (let a = 0; a < segments.length; a++){
+    for (let b = a + 1; b < segments.length; b++){
+      if (segments[a].id === segments[b].id) continue; // same property — ok
+      const overlap = segments[a].fAbs <= segments[b].tAbs && segments[b].fAbs <= segments[a].tAbs;
+      if (overlap){ conflicted.add(segments[a].id); conflicted.add(segments[b].id); }
+    }
+  }
+
+  (state.property_list || []).forEach(p => {
+    const el = document.getElementById(`ppor-conflict-${p.id}`);
+    if (!el) return;
+    if (conflicted.has(p.id)){
+      el.textContent = '⚠ PPOR overlap with another property — only one PPOR at a time.';
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+/** ---------------------------
+ *  Info tooltip system
+ *  --------------------------*/
+const INFO_TIPS = {
+  ppor: {
+    title: 'Main Residence (PPOR)',
+    body: 'Your Principal Place of Residence is fully exempt from Capital Gains Tax. You can only have one PPOR at a time. If you move out, the 6-year absence rule may extend the exemption.'
+  },
+  six_year_rule: {
+    title: '6-Year Absence Rule',
+    body: 'If you move out of your PPOR and rent it out, you can keep the CGT exemption for up to 6 years — as long as you don\'t nominate another property as your PPOR during that time. If you move back in, the 6-year clock resets.'
+  },
+  cgt_pre2027: {
+    title: 'CGT Discount (pre-July 2027)',
+    body: 'For properties sold before 1 July 2027, capital gains are halved (50% discount) if you\'ve owned the property for more than 12 months. The remainder is taxed at your marginal rate.'
+  },
+  cgt_post2027: {
+    title: 'CGT Reform (from July 2027)',
+    body: 'From 1 July 2027 the 50% discount is replaced by CPI indexation of your cost base (only real gains above inflation are taxed) plus a 30% minimum tax rate. This applies to the post-2027 portion of any gain.'
+  },
+  cost_base: {
+    title: 'Cost Base',
+    body: 'Purchase price plus purchase costs (stamp duty, legal fees). A higher cost base means a lower taxable gain. From July 2027 the cost base is also adjusted upward for CPI inflation each year.'
+  },
+  sale_price: {
+    title: 'Expected Sale Price',
+    body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
+  },
+  savings_rate: {
+    title: 'Savings Rate',
+    body: 'Net savings divided by net income. The single most powerful lever for reaching FIRE — a 50% savings rate gets you there in roughly 17 years regardless of income level.'
+  },
+  fire_number: {
+    title: 'FIRE Number',
+    body: 'The net worth needed to retire, calculated as your target annual expenses divided by the safe withdrawal rate (SWR). At 4% SWR, multiply annual expenses by 25.'
+  },
+  swr: {
+    title: 'Safe Withdrawal Rate (SWR)',
+    body: 'The annual percentage of your portfolio you can sustainably withdraw. 4% is the commonly cited figure from the Trinity Study (1998), meaning a portfolio should last 30+ years.'
+  },
+  super_access: {
+    title: 'Super Access Age',
+    body: 'The preservation age at which you can access superannuation. Currently 60 for most Australians. Super is generally tax-free in pension phase after age 60.'
+  },
+  offset: {
+    title: 'Offset Account',
+    body: 'A linked savings account whose balance reduces the loan principal for interest calculation. E.g. $100k loan with $20k offset → interest charged on $80k only. Your cash savings effectively "cancel" that portion of interest.'
+  },
+  negative_gearing: {
+    title: 'Negative Gearing',
+    body: 'When a property\'s costs (interest, rates, strata, etc.) exceed its rental income, the net loss can be offset against your other taxable income, reducing your tax bill. This is reflected in the Net Rent column.'
+  },
+  cpi_rate: {
+    title: 'CPI Assumption',
+    body: 'Annual inflation rate used to index property cost bases from July 2027 onwards. The RBA targets 2–3% over the medium term. This only affects the CGT calculation on property sales after July 2027.'
+  }
+};
+
+let _tipTimeout = null;
+
+function showInfoTip(key, el){
+  const tip = INFO_TIPS[key];
+  if (!tip) return;
+  let tooltip = document.getElementById('infoTooltip');
+  if (!tooltip) return;
+
+  tooltip.querySelector('.tip-title').textContent = tip.title;
+  tooltip.querySelector('.tip-body').textContent  = tip.body;
+  tooltip.style.display = '';
+
+  // Position near the icon
+  const rect = el.getBoundingClientRect();
+  const scrollY = window.scrollY || 0;
+  let top  = rect.bottom + scrollY + 6;
+  let left = rect.left;
+
+  // Keep within viewport
+  const ttW = 280;
+  if (left + ttW > window.innerWidth - 12) left = window.innerWidth - ttW - 12;
+  if (left < 8) left = 8;
+
+  tooltip.style.top  = top  + 'px';
+  tooltip.style.left = left + 'px';
+
+  clearTimeout(_tipTimeout);
+}
+
+function hideInfoTip(){
+  _tipTimeout = setTimeout(() => {
+    const tooltip = document.getElementById('infoTooltip');
+    if (tooltip) tooltip.style.display = 'none';
+  }, 150);
+}
+
+function initInfoTips(){
+  document.querySelectorAll('.info-tip').forEach(el => {
+    const key = el.dataset.tip;
+    el.addEventListener('mouseenter', () => showInfoTip(key, el));
+    el.addEventListener('mouseleave', hideInfoTip);
+    el.addEventListener('click', (e) => { e.stopPropagation(); showInfoTip(key, el); });
+  });
+  const tooltip = document.getElementById('infoTooltip');
+  if (tooltip){
+    tooltip.addEventListener('mouseenter', () => clearTimeout(_tipTimeout));
+    tooltip.addEventListener('mouseleave', hideInfoTip);
   }
 }
 
@@ -4732,6 +5306,11 @@ function syncInputsFromUI(){
   for (const k of Object.keys(state.inputs)){
     const el = document.getElementById(k);
     if (!el) continue;
+    // Boolean checkboxes
+    if (el.type === 'checkbox'){
+      state.inputs[k] = el.checked;
+      continue;
+    }
     // Only update if the field isn't blank
 	const raw = String(el.value ?? "").trim();
 	const meta = FIELD_META[k] || { type: "money" };
@@ -4784,6 +5363,7 @@ function hydrateUI(){
   // bindCoreInputs() + attachUnitInputBehavior already handles formatting + values.
 
   renderProperties();
+  initInfoTips();
   pingAPI();
 
   if(state.lastResult){
@@ -5115,6 +5695,9 @@ function openInputsDrawer(){
 
   // Load data sources and render sync panel
   loadSyncData();
+
+  // Wire info tooltips for drawer content
+  initInfoTips();
 
   // Close on ESC / backdrop
   document.addEventListener("keydown", handleDrawerEsc, { once:false });
@@ -6594,6 +7177,8 @@ function renderPortfolioTab(){
   renderPortYear(d);
   updatePortSummary();
   renderPortHistoryChart(d);
+  renderProperties();
+  updatePropSummaryStrip();
 }
 
 function portYearStep(delta){
