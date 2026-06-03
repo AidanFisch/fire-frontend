@@ -849,9 +849,6 @@ th{
 		margin: 2px -10px 0;
 		transition: background 150ms;
 	  }
-	  .prop-toggle-row.ppor-active {
-		background: #EDFAF5;
-	  }
 
 	  .prop-actions {
 		display: flex;
@@ -862,14 +859,7 @@ th{
 	  }
 
 	  /* ---- PPOR timeline ---- */
-	  .prop-ppor-section { margin-top: 2px; }
-	  .ppor-timeline-btn {
-		font-size: 11px !important;
-		padding: 2px 8px !important;
-		margin-left: 8px;
-		color: #1D9E75 !important;
-		border-color: #1D9E75 !important;
-	  }
+	  .prop-ppor-section { margin-top: 0; }
 	  .ppor-timeline-panel {
 		background: #F8F7F4;
 		border: 1px solid #E8E4DE;
@@ -3742,24 +3732,16 @@ function renderProperties(){
 
 	    const pporWrap = document.createElement("div");
 	    pporWrap.className = "prop-ppor-section";
-	    const isPporActive = _isPporNow(p);
+	    pporWrap.style.cssText = "grid-column:1/-1;";
 	    pporWrap.innerHTML = `
-	      <div class="prop-toggle-row${isPporActive ? ' ppor-active' : ''}" id="occ-row-${p.id}">
-	        <label class="prop-toggle">
-	          <input type="checkbox" id="p_${p.id}_ppor_quick" ${isPporActive ? 'checked' : ''} />
-	          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
-	          <span class="prop-toggle-label">Main residence (PPOR)</span>
-	        </label>
-	        <span class="info-tip" data-tip="ppor" style="margin-left:4px;">?</span>
-	        <button class="btn ghost ppor-timeline-btn" id="ppor-edit-btn-${p.id}"
-	                onclick="event.stopPropagation(); togglePporTimeline(${p.id})">
-	          ${(p.ppor_periods||[]).length > 1 ? `${(p.ppor_periods||[]).length} periods ▸` : 'Edit timeline ▸'}
-	        </button>
+	      <div class="prop-section-label" style="display:flex;align-items:center;gap:6px;">
+	        PPOR Periods
+	        <span class="info-tip" data-tip="ppor">?</span>
 	      </div>
-	      <div class="ppor-timeline-panel hidden" id="ppor-panel-${p.id}">
+	      <div class="ppor-timeline-panel" id="ppor-panel-${p.id}">
 	        <div id="ppor-rows-${p.id}"></div>
-	        <button class="btn ghost btn-add-row" style="margin-top:6px; font-size:11px;"
-	                onclick="event.stopPropagation(); addPporPeriod(${p.id})">+ Add period</button>
+	        <button class="btn ghost btn-add-row" style="margin-top:6px;font-size:11px;"
+	                onclick="event.stopPropagation();addPporPeriod(${p.id})">+ Add period</button>
 	        <div class="ppor-conflict" id="ppor-conflict-${p.id}" style="display:none;"></div>
 	      </div>
 	    `;
@@ -3875,45 +3857,10 @@ function renderProperties(){
     };
 
     // PPOR quick-toggle: creates/removes a single open-ended period
-    const pporQuickEl = document.getElementById(`p_${p.id}_ppor_quick`);
-    if (pporQuickEl) {
-      pporQuickEl.onchange = () => {
-        const prop = state.property_list.find(x => Number(x.id) === Number(p.id));
-        if (!prop) return;
-        if (!prop.ppor_periods) prop.ppor_periods = [];
-
-        if (pporQuickEl.checked) {
-          // Check no other property is currently PPOR
-          const conflict = state.property_list.some(x =>
-            Number(x.id) !== Number(p.id) && _isPporNow(x)
-          );
-          if (conflict) {
-            showToast('PPOR conflict', 'Another property is already marked as PPOR. Edit its timeline first.');
-            pporQuickEl.checked = false;
-            return;
-          }
-          // Add a simple open-ended period from purchase_date
-          const from = prop.purchase_date || `${prop.year_bought || new Date().getFullYear()}-01`;
-          prop.ppor_periods = [{ from, to: null, six_year_rule: false }];
-          prop.is_owner_occupied = true;
-          prop.monthly_rent  = 0;
-          prop.rental_growth = 0;
-        } else {
-          // Close all open periods at today's month
-          const now = new Date();
-          const toStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-          prop.ppor_periods = prop.ppor_periods.map(pr =>
-            pr.to ? pr : { ...pr, to: toStr }
-          );
-          prop.is_owner_occupied = false;
-        }
-        saveState();
-        renderProperties();
-      };
-    }
-
-
   });
+
+  // Populate PPOR rows now that all cards are in the DOM
+  (state.property_list || []).forEach(p => renderPporRows(p.id));
   updatePropSummaryStrip();
   // Populate CGT previews for any properties that already have a sale date
   (state.property_list || []).forEach(p => {
@@ -4139,14 +4086,6 @@ function _derivedIsOwnerOccupied(p){
 /** ---------------------------
  *  PPOR Timeline UI
  *  --------------------------*/
-function togglePporTimeline(id){
-  const panel = document.getElementById(`ppor-panel-${id}`);
-  const btn   = document.getElementById(`ppor-edit-btn-${id}`);
-  if (!panel) return;
-  const open = panel.classList.toggle('hidden');
-  if (btn) btn.textContent = open ? 'Edit timeline ▸' : 'Edit timeline ▾';
-  if (!open) renderPporRows(id);
-}
 
 function renderPporRows(id){
   const wrap = document.getElementById(`ppor-rows-${id}`);
