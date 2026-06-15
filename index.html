@@ -141,6 +141,14 @@
       };
     };
 
+    window._fbSaveSubscription = async (subData) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      await setDoc(doc(db, 'profiles', user.uid), {
+        subscription: subData
+      }, { merge: true });
+    };
+
     // Broadcast auth state changes as DOM events so main script can react
     onAuthStateChanged(auth, user => {
       window.dispatchEvent(new CustomEvent('fbAuthChange', { detail: { user } }));
@@ -6493,11 +6501,60 @@ function setBilling(cycle) {
   }
 }
 
+const STRIPE_PRICES = {
+  monthly: 'price_1TiVteRXLXEvQm5zmwzBS13C',
+  annual:  'price_1TiVsARXLXEvQm5z2lZAG7L8'
+};
+const API_BASE = 'https://fire-api-wixz.onrender.com';
+
 async function authStartCheckout() {
-  // Stripe is not yet wired — show coming-soon message
-  // TODO: replace with Stripe Checkout redirect once price IDs are configured
-  showToast('Coming soon', 'Pro payments launching very soon. Stay tuned!');
-  closeUpgradeModal();
+  if (!_currentUser) { closeUpgradeModal(); openAuthModal(); return; }
+  const btn = document.getElementById('upgradeCheckoutBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirecting…'; }
+  try {
+    const res = await fetch(`${API_BASE}/stripe/create-checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        price_id:    STRIPE_PRICES[_billingCycle],
+        email:       _currentUser.email,
+        success_url: window.location.origin + window.location.pathname,
+        cancel_url:  window.location.origin + window.location.pathname
+      })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.detail || 'No checkout URL returned');
+    }
+  } catch(e) {
+    showToast('Checkout error', e.message || 'Could not start checkout. Try again.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Go Pro →'; }
+  }
+}
+
+async function _handleCheckoutSuccess(sessionId) {
+  try {
+    const res  = await fetch(`${API_BASE}/stripe/verify-session?session_id=${sessionId}`);
+    const data = await res.json();
+    if (data.paid) {
+      await window._fbSaveSubscription?.({
+        tier:              'pro',
+        stripeSessionId:   sessionId,
+        subscriptionId:    data.subscription_id,
+        status:            data.subscription_status,
+        currentPeriodEnd:  data.current_period_end
+      });
+      _proStatus = true;
+      _updatePlanBadge();
+      showToast('Welcome to Pro! 🎉', 'All features unlocked. Enjoy!');
+    }
+  } catch(e) {
+    console.error('Checkout verification failed:', e);
+  }
+  // Clean up URL params
+  window.history.replaceState({}, '', window.location.pathname);
 }
 
 // ---- Save prompt (anonymous users) ----
@@ -6529,6 +6586,12 @@ function _fbErrMsg(e) {
  *  --------------------------*/
 loadState();
 window.addEventListener("load", ()=>{
+  // Handle return from Stripe checkout
+  const _sp = new URLSearchParams(window.location.search);
+  if (_sp.get('checkout_success') === 'true') {
+    _handleCheckoutSuccess(_sp.get('session_id'));
+  }
+
   bindCoreInputs();
   hydrateUI();
   initIncomeTable();      // build income table once
