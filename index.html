@@ -103,8 +103,12 @@
     window._fbSave = async (stateObj) => {
       const user = auth.currentUser;
       if (!user) return;
+      const portfolio = localStorage.getItem('wm_portfolio');
+      const budget    = localStorage.getItem('wm_budget');
       await setDoc(doc(db, 'profiles', user.uid), {
-        state: JSON.parse(JSON.stringify(stateObj)),
+        state:     JSON.parse(JSON.stringify(stateObj)),
+        portfolio: portfolio ? JSON.parse(portfolio) : null,
+        budget:    budget    ? JSON.parse(budget)    : null,
         updatedAt: serverTimestamp()
       });
     };
@@ -113,7 +117,12 @@
       const user = auth.currentUser;
       if (!user) return null;
       const snap = await getDoc(doc(db, 'profiles', user.uid));
-      return snap.exists() ? snap.data().state : null;
+      if (!snap.exists()) return null;
+      const data = snap.data();
+      // Restore portfolio + budget back into localStorage so the app picks them up
+      if (data.portfolio) localStorage.setItem('wm_portfolio', JSON.stringify(data.portfolio));
+      if (data.budget)    localStorage.setItem('wm_budget',    JSON.stringify(data.budget));
+      return data.state || null;
     };
 
     // Broadcast auth state changes as DOM events so main script can react
@@ -6386,6 +6395,7 @@ function _budgLoad(){
 }
 function _budgStore(data){
   try{ localStorage.setItem(_WM_BUDGET_KEY, JSON.stringify(data)); } catch(_){}
+  _queueSync();
 }
 /** Upsert a month record — only replaces keys present in patch */
 function _budgUpsertMonth(monthStr, patch){
@@ -7636,6 +7646,7 @@ function portLoad(){
 }
 function portSave(data){
   try { localStorage.setItem('wm_portfolio', JSON.stringify(data)); } catch(_){}
+  _queueSync();
 }
 
 /** Returns assets with .value set from current month's stored data */
