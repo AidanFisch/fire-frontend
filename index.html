@@ -6511,10 +6511,20 @@ async function authStartCheckout() {
   if (!_currentUser) { closeUpgradeModal(); openAuthModal(); return; }
   const btn = document.getElementById('upgradeCheckoutBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Redirecting…'; }
+
+  // After 6s without a response, hint that the server is waking up (Render free tier)
+  const hintTimer = setTimeout(() => {
+    if (btn && btn.textContent === 'Redirecting…') btn.textContent = 'Waking server… (~30s)';
+  }, 6000);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
+
   try {
     const res = await fetch(`${API_BASE}/stripe/create-checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         price_id:    STRIPE_PRICES[_billingCycle],
         email:       _currentUser.email,
@@ -6522,6 +6532,8 @@ async function authStartCheckout() {
         cancel_url:  window.location.origin + window.location.pathname
       })
     });
+    clearTimeout(hintTimer);
+    clearTimeout(timeout);
     const data = await res.json();
     if (data.url) {
       window.location.href = data.url;
@@ -6529,7 +6541,12 @@ async function authStartCheckout() {
       throw new Error(data.detail || 'No checkout URL returned');
     }
   } catch(e) {
-    showToast('Checkout error', e.message || 'Could not start checkout. Try again.');
+    clearTimeout(hintTimer);
+    clearTimeout(timeout);
+    const msg = e.name === 'AbortError'
+      ? 'Server took too long — please try again.'
+      : (e.message || 'Could not start checkout. Try again.');
+    showToast('Checkout error', msg, 4000);
     if (btn) { btn.disabled = false; btn.textContent = 'Go Pro →'; }
   }
 }
