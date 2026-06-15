@@ -6562,6 +6562,7 @@ async function _handleCheckoutSuccess(sessionId) {
   try {
     const res  = await fetch(`${API_BASE}/stripe/verify-session?session_id=${sessionId}`);
     const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `Server error ${res.status}`);
     if (data.paid) {
       await window._fbSaveSubscription?.({
         tier:              'pro',
@@ -6572,10 +6573,11 @@ async function _handleCheckoutSuccess(sessionId) {
       });
       _proStatus = true;
       _updatePlanBadge();
-      showToast('Welcome to Pro! 🎉', 'All features unlocked. Enjoy!');
+      showToast('Welcome to Pro!', 'All features unlocked.', 5000);
     }
   } catch(e) {
     console.error('Checkout verification failed:', e);
+    showToast('Upgrade error', e.message || 'Could not verify payment. Contact support.', 5000);
   }
   // Clean up URL params
   window.history.replaceState({}, '', window.location.pathname);
