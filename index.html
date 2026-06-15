@@ -6266,8 +6266,15 @@ async function _onFbLogin(user) {
     _updatePlanBadge();
     _checkOnboarding(cloud?.userProfile);
     _setSyncStatus('saved');
-    const name = cloud?.userProfile?.firstName || user.email.split('@')[0];
-    showToast('Signed in', `Welcome back, ${name}`);
+    // Process Stripe checkout return — must run after user is confirmed logged in
+    if (_pendingCheckoutSession) {
+      const sid = _pendingCheckoutSession;
+      _pendingCheckoutSession = null;
+      await _handleCheckoutSuccess(sid);
+    } else {
+      const name = cloud?.userProfile?.firstName || user.email.split('@')[0];
+      showToast('Signed in', `Welcome back, ${name}`);
+    }
   } catch(err) {
     console.error('Cloud load error:', err);
     _setSyncStatus('error');
@@ -6602,11 +6609,14 @@ function _fbErrMsg(e) {
  *  Init
  *  --------------------------*/
 loadState();
+// Capture checkout session before Firebase resolves; processed in _onFbLogin once user is ready
+let _pendingCheckoutSession = null;
 window.addEventListener("load", ()=>{
-  // Handle return from Stripe checkout
   const _sp = new URLSearchParams(window.location.search);
   if (_sp.get('checkout_success') === 'true') {
-    _handleCheckoutSuccess(_sp.get('session_id'));
+    _pendingCheckoutSession = _sp.get('session_id');
+    // Clear params from URL without reload
+    window.history.replaceState({}, '', window.location.pathname);
   }
 
   bindCoreInputs();
