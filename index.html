@@ -6066,7 +6066,12 @@ async function authRegister() {
 async function authSignOut() {
   toggleUserMenu(false);
   await window._fbSignOut?.();
-  showToast('Signed out', 'Your data is saved locally.');
+  // Clear all local data so the next user starts clean
+  localStorage.removeItem(LS_KEY);
+  localStorage.removeItem('wm_portfolio');
+  localStorage.removeItem('wm_budget');
+  // Return to landing screen
+  initLanding();
 }
 
 async function authGoogleSignIn() {
