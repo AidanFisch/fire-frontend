@@ -105,12 +105,24 @@
       if (!user) return;
       const portfolio = localStorage.getItem('wm_portfolio');
       const budget    = localStorage.getItem('wm_budget');
+      const scenarios = localStorage.getItem('wm_scenarios');
+      // merge:true preserves userProfile/subscription fields on routine saves
       await setDoc(doc(db, 'profiles', user.uid), {
         state:     JSON.parse(JSON.stringify(stateObj)),
         portfolio: portfolio ? JSON.parse(portfolio) : null,
         budget:    budget    ? JSON.parse(budget)    : null,
+        scenarios: scenarios ? JSON.parse(scenarios) : null,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
+    };
+
+    window._fbSaveProfile = async (profileData) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      await setDoc(doc(db, 'profiles', user.uid), {
+        userProfile:  profileData,
+        subscription: { tier: 'free' }
+      }, { merge: true });
     };
 
     window._fbLoad = async () => {
@@ -119,10 +131,14 @@
       const snap = await getDoc(doc(db, 'profiles', user.uid));
       if (!snap.exists()) return null;
       const data = snap.data();
-      // Restore portfolio + budget back into localStorage so the app picks them up
       if (data.portfolio) localStorage.setItem('wm_portfolio', JSON.stringify(data.portfolio));
       if (data.budget)    localStorage.setItem('wm_budget',    JSON.stringify(data.budget));
-      return data.state || null;
+      if (data.scenarios) localStorage.setItem('wm_scenarios', JSON.stringify(data.scenarios));
+      return {
+        state:        data.state        || null,
+        userProfile:  data.userProfile  || null,
+        subscription: data.subscription || { tier: 'free' }
+      };
     };
 
     // Broadcast auth state changes as DOM events so main script can react
@@ -2269,6 +2285,122 @@ select.exp-input { cursor:pointer; }
   .user-menu-signout:hover { background: #FEF2F2; }
   .btn-auth { font-size: 12px !important; padding: 5px 12px !important; }
 
+  /* ---- Onboarding modal ---- */
+  .onboard-backdrop {
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10002;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .onboard-box {
+    background:#fff;border-radius:16px;padding:32px;width:420px;
+    max-width:calc(100vw - 32px);box-shadow:0 24px 64px rgba(0,0,0,.2);
+  }
+  .onboard-step{display:none;} .onboard-step.active{display:block;}
+  .onboard-title{font-size:20px;font-weight:800;color:#1C1C1A;margin-bottom:4px;}
+  .onboard-sub{font-size:13px;color:#8A8582;margin-bottom:22px;line-height:1.5;}
+  .onboard-pip-row{display:flex;gap:5px;margin-bottom:22px;}
+  .onboard-pip{height:3px;border-radius:99px;background:#E8E4DE;flex:1;}
+  .onboard-pip.done{background:#059669;}
+  .onboard-field{margin-bottom:12px;}
+  .onboard-field label{display:block;font-size:11px;font-weight:600;color:#5C5955;margin-bottom:4px;}
+  .onboard-field input,.onboard-field select{
+    width:100%;padding:9px 11px;border:1px solid #D8D4CC;border-radius:8px;
+    font-size:14px;color:#1C1C1A;background:#FAFAF8;box-sizing:border-box;transition:border-color .15s;
+  }
+  .onboard-field input:focus,.onboard-field select:focus{outline:none;border-color:#059669;}
+  .onboard-field .opt-label{font-size:11px;color:#B0ABA6;margin-left:4px;font-weight:400;}
+  .onboard-actions{display:flex;gap:8px;margin-top:20px;}
+  .onboard-primary{
+    flex:1;padding:10px;background:#059669;color:#fff;border:none;
+    border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;
+  }
+  .onboard-primary:hover{background:#047857;}
+  .onboard-skip{
+    padding:10px 16px;background:none;border:1px solid #D8D4CC;
+    border-radius:8px;font-size:13px;color:#8A8582;cursor:pointer;
+  }
+
+  /* ---- Upgrade / Pricing modal ---- */
+  .upgrade-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10002;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .upgrade-box{
+    background:#fff;border-radius:16px;padding:32px;width:520px;
+    max-width:calc(100vw - 32px);box-shadow:0 24px 64px rgba(0,0,0,.2);position:relative;
+  }
+  .upgrade-title{font-size:20px;font-weight:800;color:#1C1C1A;margin-bottom:4px;}
+  .upgrade-sub{font-size:13px;color:#8A8582;margin-bottom:16px;}
+  .upgrade-reason{
+    font-size:12px;color:#059669;font-weight:600;background:#EDFAF5;
+    border-radius:6px;padding:6px 10px;margin-bottom:16px;
+  }
+  .billing-toggle{
+    display:flex;gap:3px;background:#F4F2EE;border-radius:8px;
+    padding:3px;margin-bottom:20px;width:fit-content;
+  }
+  .billing-opt{
+    padding:5px 16px;border-radius:6px;border:none;background:none;
+    font-size:13px;color:#5C5955;cursor:pointer;font-weight:500;transition:background .15s,color .15s;
+  }
+  .billing-opt.active{background:#fff;color:#1C1C1A;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .plan-card{border:1.5px solid #E8E4DE;border-radius:12px;padding:20px;position:relative;}
+  .plan-card.pro-card{border-color:#059669;}
+  .plan-badge-pill{
+    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+    background:#059669;color:#fff;font-size:10px;font-weight:700;
+    padding:2px 10px;border-radius:99px;letter-spacing:.05em;white-space:nowrap;
+  }
+  .plan-card-name{font-size:12px;font-weight:700;color:#8A8582;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .plan-card-price{font-size:30px;font-weight:800;color:#1C1C1A;line-height:1;margin-bottom:3px;}
+  .plan-card-price sup{font-size:16px;font-weight:600;vertical-align:super;}
+  .plan-card-per{font-size:12px;color:#8A8582;margin-bottom:14px;}
+  .plan-card-features{list-style:none;padding:0;margin:0 0 16px;}
+  .plan-card-features li{font-size:12px;color:#5C5955;padding:3px 0;display:flex;align-items:baseline;gap:6px;}
+  .plan-card-features li::before{content:'✓';color:#059669;font-weight:700;flex-shrink:0;}
+  .plan-card-features li.dim{color:#C8C4BE;}
+  .plan-card-features li.dim::before{content:'–';color:#D8D4CC;}
+  .plan-card-btn{
+    width:100%;padding:9px;border-radius:8px;border:1.5px solid #D8D4CC;
+    background:#fff;font-size:13px;font-weight:600;color:#5C5955;cursor:pointer;transition:all .15s;
+  }
+  .plan-card-btn.pro-btn{background:#059669;border-color:#059669;color:#fff;}
+  .plan-card-btn.pro-btn:hover{background:#047857;}
+  .upgrade-close{
+    position:absolute;top:14px;right:16px;background:none;border:none;
+    font-size:20px;color:#C8C4BE;cursor:pointer;line-height:1;
+  }
+  .upgrade-close:hover{color:#1C1C1A;}
+  .upgrade-note{font-size:11px;color:#B0ABA6;text-align:center;margin-top:14px;}
+
+  /* ---- Save prompt banner ---- */
+  .save-prompt{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:#1C1C1A;color:#F8F7F4;border-radius:12px;
+    padding:14px 18px;display:flex;align-items:center;gap:14px;
+    box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:8000;
+    max-width:480px;width:calc(100vw - 32px);animation:spUp .3s ease;
+  }
+  @keyframes spUp{from{opacity:0;transform:translateX(-50%) translateY(14px);}}
+  .save-prompt-text{font-size:13px;flex:1;line-height:1.45;}
+  .save-prompt-text strong{display:block;font-weight:700;margin-bottom:1px;}
+  .save-prompt-text small{font-size:11px;color:#A8A4A0;}
+  .sp-btn{padding:7px 13px;border-radius:7px;border:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .sp-btn.primary{background:#059669;color:#fff;}
+  .sp-btn.primary:hover{background:#047857;}
+  .sp-btn.ghost{background:rgba(255,255,255,.12);color:#F8F7F4;}
+  .sp-btn.ghost:hover{background:rgba(255,255,255,.2);}
+
+  /* ---- User menu plan section ---- */
+  .user-menu-plan{
+    padding:5px 8px 9px;border-bottom:1px solid #F0EDE8;margin-bottom:4px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .ump-tier{font-size:12px;font-weight:700;color:#1C1C1A;}
+  .ump-tier.pro{color:#059669;}
+  .ump-upgrade{font-size:11px;color:#059669;cursor:pointer;font-weight:600;}
+  .ump-upgrade:hover{text-decoration:underline;}
+
   </style>
 </head>
 
@@ -2311,6 +2443,10 @@ select.exp-input { cursor:pointer; }
           </div>
           <div class="user-menu" id="userMenu" style="display:none;">
             <div class="user-menu-email" id="userMenuEmail"></div>
+            <div class="user-menu-plan" id="userMenuPlan">
+              <span class="ump-tier" id="umpTier">Free plan</span>
+              <span class="ump-upgrade" id="umpUpgrade" onclick="toggleUserMenu(false);showUpgradeModal()">Upgrade →</span>
+            </div>
             <div class="user-menu-sync" id="userMenuSync">Synced ✓</div>
             <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
           </div>
@@ -3026,6 +3162,153 @@ select.exp-input { cursor:pointer; }
 <div id="infoTooltip" role="tooltip">
   <div class="tip-title"></div>
   <div class="tip-body"></div>
+</div>
+
+<!-- Onboarding Modal -->
+<div id="onboardModal" class="onboard-backdrop" style="display:none;">
+  <div class="onboard-box">
+    <div class="onboard-pip-row">
+      <div class="onboard-pip done" id="onPip0"></div>
+      <div class="onboard-pip" id="onPip1"></div>
+      <div class="onboard-pip" id="onPip2"></div>
+    </div>
+
+    <!-- Step 0: Name + State -->
+    <div class="onboard-step active" id="onStep0">
+      <div class="onboard-title">Welcome to WealthModel</div>
+      <div class="onboard-sub">Tell us a bit about yourself so we can personalise your experience.</div>
+      <div class="onboard-field">
+        <label>First name</label>
+        <input type="text" id="onFirstName" placeholder="e.g. Alex" autocomplete="given-name" />
+      </div>
+      <div class="onboard-field">
+        <label>State</label>
+        <select id="onState">
+          <option value="">Select your state…</option>
+          <option value="NSW">New South Wales</option>
+          <option value="VIC">Victoria</option>
+          <option value="QLD">Queensland</option>
+          <option value="SA">South Australia</option>
+          <option value="WA">Western Australia</option>
+          <option value="TAS">Tasmania</option>
+          <option value="NT">Northern Territory</option>
+          <option value="ACT">Australian Capital Territory</option>
+        </select>
+      </div>
+      <div class="onboard-actions">
+        <button class="onboard-primary" onclick="onboardNext(0)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Phone -->
+    <div class="onboard-step" id="onStep1">
+      <div class="onboard-title">One more thing</div>
+      <div class="onboard-sub">Your phone number is only used if you ever need account support — never for marketing.</div>
+      <div class="onboard-field">
+        <label>Phone number <span class="opt-label">(optional)</span></label>
+        <input type="tel" id="onPhone" placeholder="+61 4XX XXX XXX" autocomplete="tel" />
+      </div>
+      <div class="onboard-actions">
+        <button class="onboard-skip" onclick="onboardNext(1)">Skip</button>
+        <button class="onboard-primary" onclick="onboardNext(1)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Choose plan -->
+    <div class="onboard-step" id="onStep2">
+      <div class="onboard-title">Choose your plan</div>
+      <div class="onboard-sub">Start free — upgrade any time. Your data syncs across all devices on both plans.</div>
+      <div class="plan-cards" style="margin-bottom:16px;">
+        <div class="plan-card">
+          <div class="plan-card-name">Free</div>
+          <div class="plan-card-price">$0</div>
+          <div class="plan-card-per">forever</div>
+          <ul class="plan-card-features">
+            <li>Full FIRE model</li>
+            <li>1 property</li>
+            <li>1 saved scenario</li>
+            <li>3 months budget</li>
+            <li>Portfolio tracker</li>
+            <li class="dim">CSV export</li>
+            <li class="dim">Unlimited everything</li>
+          </ul>
+          <button class="plan-card-btn" onclick="onboardComplete('free')">Start free</button>
+        </div>
+        <div class="plan-card pro-card">
+          <div class="plan-badge-pill">MOST POPULAR</div>
+          <div class="plan-card-name">Pro</div>
+          <div class="plan-card-price"><sup>$</sup>5</div>
+          <div class="plan-card-per">/ month · or $50/year</div>
+          <ul class="plan-card-features">
+            <li>Full FIRE model</li>
+            <li>Unlimited properties</li>
+            <li>Unlimited scenarios</li>
+            <li>Unlimited budget</li>
+            <li>Portfolio tracker</li>
+            <li>CSV export</li>
+            <li>Unlimited everything</li>
+          </ul>
+          <button class="plan-card-btn pro-btn" onclick="onboardComplete('pro')">Go Pro →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upgrade Modal -->
+<div id="upgradeModal" class="upgrade-backdrop" style="display:none;"
+     onclick="if(event.target===this)closeUpgradeModal()">
+  <div class="upgrade-box">
+    <button class="upgrade-close" onclick="closeUpgradeModal()">×</button>
+    <div class="upgrade-title">Upgrade to Pro</div>
+    <div class="upgrade-sub">Unlock everything for less than a coffee a month.</div>
+    <div class="upgrade-reason" id="upgradeReason"></div>
+    <div class="billing-toggle">
+      <button class="billing-opt active" id="billMonthly" onclick="setBilling('monthly')">Monthly</button>
+      <button class="billing-opt" id="billAnnual"  onclick="setBilling('annual')">Annual — save 17%</button>
+    </div>
+    <div class="plan-cards">
+      <div class="plan-card">
+        <div class="plan-card-name">Free</div>
+        <div class="plan-card-price">$0</div>
+        <div class="plan-card-per">forever</div>
+        <ul class="plan-card-features">
+          <li>Full FIRE model</li>
+          <li>1 property</li>
+          <li>1 saved scenario</li>
+          <li>3 months budget</li>
+          <li class="dim">CSV export</li>
+        </ul>
+        <button class="plan-card-btn" onclick="closeUpgradeModal()">Stay free</button>
+      </div>
+      <div class="plan-card pro-card">
+        <div class="plan-badge-pill">PRO</div>
+        <div class="plan-card-price" id="upgradePrice"><sup>$</sup>5</div>
+        <div class="plan-card-per" id="upgradePer">/ month, billed monthly</div>
+        <ul class="plan-card-features">
+          <li>Everything in Free</li>
+          <li>Unlimited properties</li>
+          <li>Unlimited scenarios</li>
+          <li>Unlimited budget history</li>
+          <li>CSV export</li>
+        </ul>
+        <button class="plan-card-btn pro-btn" id="upgradeCheckoutBtn" onclick="authStartCheckout()">Go Pro →</button>
+      </div>
+    </div>
+    <div class="upgrade-note">Cancel any time. No lock-in.</div>
+  </div>
+</div>
+
+<!-- Save prompt (anonymous users) -->
+<div id="savePrompt" class="save-prompt" style="display:none;">
+  <div class="save-prompt-text">
+    <strong>Save your results</strong>
+    <small>Sign in to sync your plan across devices — free forever.</small>
+  </div>
+  <div style="display:flex;gap:7px;flex-shrink:0;">
+    <button class="sp-btn primary" onclick="dismissSavePrompt();openAuthModal()">Sign in</button>
+    <button class="sp-btn ghost" onclick="dismissSavePrompt()">Later</button>
+  </div>
 </div>
 
 <!-- Auth Modal -->
@@ -3783,6 +4066,10 @@ function nextPropertyId(){
 
 
 function addProperty(){
+  if (!isPro() && (state.property_list||[]).length >= 1) {
+    showUpgradeModal('Free plan is limited to 1 property. Upgrade to add unlimited properties.');
+    return;
+  }
   const id = nextPropertyId();
 
   state.property_list.push({
@@ -4781,6 +5068,7 @@ async function runModel(){
   showTab("results");
   if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
   _postRunRefresh();
+  showSavePrompt();
 }
 
 function _postRunRefresh(){
@@ -5580,6 +5868,10 @@ function renderFullTable(){
  *  CSV download
  *  --------------------------*/
 function downloadLastCSV(){
+  if (!isPro()) {
+    showUpgradeModal('CSV export is a Pro feature. Upgrade to download your model results.');
+    return;
+  }
   const res = state.lastResult;
   if(!res || !res.rows || !res.rows.length){
     alert("No results to download yet.");
@@ -5947,12 +6239,11 @@ window.addEventListener('fbAuthChange', async (e) => {
 
 async function _onFbLogin(user) {
   closeAuthModal();
-  enterApp(); // always leave the landing page when signed in
+  enterApp();
   try {
-    const cloudState = await window._fbLoad?.();
-    if (cloudState) {
-      // Cloud is source of truth — write to localStorage then re-load
-      localStorage.setItem(LS_KEY, JSON.stringify(cloudState));
+    const cloud = await window._fbLoad?.();
+    if (cloud?.state) {
+      localStorage.setItem(LS_KEY, JSON.stringify(cloud.state));
       loadState();
       bindCoreInputs();
       hydrateUI();
@@ -5961,11 +6252,14 @@ async function _onFbLogin(user) {
       updatePropSummaryStrip();
       if (state.lastResult) renderResults(state.lastResult);
     } else {
-      // New user — upload their current local state immediately
       await window._fbSave?.(state);
     }
+    _loadProStatus(cloud?.subscription);
+    _updatePlanBadge();
+    _checkOnboarding(cloud?.userProfile);
     _setSyncStatus('saved');
-    showToast('Signed in', `Welcome, ${user.email.split('@')[0]}`);
+    const name = cloud?.userProfile?.firstName || user.email.split('@')[0];
+    showToast('Signed in', `Welcome back, ${name}`);
   } catch(err) {
     console.error('Cloud load error:', err);
     _setSyncStatus('error');
@@ -6110,6 +6404,112 @@ document.addEventListener('click', (e) => {
   const badge = document.getElementById('userBadge');
   if (badge && !badge.contains(e.target)) toggleUserMenu(false);
 });
+
+// ---- Pro status ----
+let _proStatus = false;
+let _userProfile = null;
+let _billingCycle = 'monthly';
+
+function isPro(){ return _proStatus; }
+
+function _loadProStatus(subscription) {
+  _proStatus = (subscription?.tier === 'pro');
+}
+
+function _updatePlanBadge() {
+  const tier   = document.getElementById('umpTier');
+  const upLink = document.getElementById('umpUpgrade');
+  if (!tier) return;
+  if (_proStatus) {
+    tier.textContent = 'Pro plan ✓';
+    tier.className = 'ump-tier pro';
+    if (upLink) upLink.style.display = 'none';
+  } else {
+    tier.textContent = 'Free plan';
+    tier.className = 'ump-tier';
+    if (upLink) upLink.style.display = '';
+  }
+}
+
+// ---- Onboarding ----
+function _checkOnboarding(userProfile) {
+  _userProfile = userProfile;
+  if (!userProfile) {
+    // New user — show onboarding
+    document.getElementById('onboardModal').style.display = 'flex';
+  }
+}
+
+function onboardNext(step) {
+  // Validate + advance
+  if (step === 0) {
+    const name  = document.getElementById('onFirstName').value.trim();
+    const state = document.getElementById('onState').value;
+    if (!name) { document.getElementById('onFirstName').focus(); return; }
+    _userProfile = { ..._userProfile, firstName: name, state };
+  } else if (step === 1) {
+    const phone = document.getElementById('onPhone').value.trim();
+    if (phone) _userProfile = { ..._userProfile, phone };
+  }
+  // Show next step
+  document.getElementById(`onStep${step}`).classList.remove('active');
+  document.getElementById(`onStep${step + 1}`).classList.add('active');
+  document.getElementById(`onPip${step + 1}`).classList.add('done');
+}
+
+async function onboardComplete(plan) {
+  document.getElementById('onboardModal').style.display = 'none';
+  _userProfile = { ..._userProfile, createdAt: new Date().toISOString() };
+  await window._fbSaveProfile?.(_userProfile);
+  if (plan === 'pro') {
+    showUpgradeModal('Choose your billing cycle to go Pro.');
+  }
+}
+
+// ---- Upgrade modal ----
+function showUpgradeModal(reason) {
+  const el = document.getElementById('upgradeModal');
+  const r  = document.getElementById('upgradeReason');
+  if (r) { r.textContent = reason || ''; r.style.display = reason ? '' : 'none'; }
+  setBilling('monthly');
+  if (el) el.style.display = 'flex';
+}
+function closeUpgradeModal() {
+  const el = document.getElementById('upgradeModal');
+  if (el) el.style.display = 'none';
+}
+function setBilling(cycle) {
+  _billingCycle = cycle;
+  document.getElementById('billMonthly').classList.toggle('active', cycle === 'monthly');
+  document.getElementById('billAnnual').classList.toggle('active',  cycle === 'annual');
+  const priceEl = document.getElementById('upgradePrice');
+  const perEl   = document.getElementById('upgradePer');
+  if (cycle === 'annual') {
+    priceEl.innerHTML = '<sup>$</sup>50';
+    perEl.textContent = '/ year — save $10';
+  } else {
+    priceEl.innerHTML = '<sup>$</sup>5';
+    perEl.textContent = '/ month, billed monthly';
+  }
+}
+
+async function authStartCheckout() {
+  // Stripe is not yet wired — show coming-soon message
+  // TODO: replace with Stripe Checkout redirect once price IDs are configured
+  showToast('Coming soon', 'Pro payments launching very soon. Stay tuned!');
+  closeUpgradeModal();
+}
+
+// ---- Save prompt (anonymous users) ----
+let _savePromptShown = false;
+function showSavePrompt() {
+  if (_currentUser || _savePromptShown) return;
+  _savePromptShown = true;
+  document.getElementById('savePrompt').style.display = 'flex';
+}
+function dismissSavePrompt() {
+  document.getElementById('savePrompt').style.display = 'none';
+}
 
 function _fbErrMsg(e) {
   const map = {
@@ -8269,6 +8669,7 @@ function _scenLoad(){
 }
 function _scenStore(list){
   try{ localStorage.setItem(_WM_SCENARIOS_KEY, JSON.stringify(list)); } catch(_){}
+  _queueSync();
 }
 
 /** Pull the key headline numbers out of the last model result */
@@ -8304,6 +8705,10 @@ function _extractModelSummary(){
 }
 
 function saveScenario(){
+  if (!isPro() && _scenLoad().length >= 1) {
+    showUpgradeModal('Free plan is limited to 1 saved scenario. Upgrade for unlimited scenarios.');
+    return;
+  }
   const summary = _extractModelSummary();
   if(!summary){ alert('Run the model first.'); return; }
   const today = new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});
