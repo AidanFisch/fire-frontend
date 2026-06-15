@@ -72,6 +72,54 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Firebase (module — exposes helpers to window, dispatches fbAuthChange events) -->
+  <script type="module">
+    import { initializeApp }                              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword,
+             signInWithEmailAndPassword, signOut,
+             onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc,
+             serverTimestamp }                            from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const app  = initializeApp({
+      apiKey:            "AIzaSyCRpRygCMyE3qnTzTBLiZbdjIwc8PqYJ5c",
+      authDomain:        "wealthmodel-976c6.firebaseapp.com",
+      projectId:         "wealthmodel-976c6",
+      storageBucket:     "wealthmodel-976c6.firebasestorage.app",
+      messagingSenderId: "1003822457530",
+      appId:             "1:1003822457530:web:08d1bb85d959f3ee1f5883"
+    });
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // Expose auth actions so non-module code can call them
+    window._fbSignIn  = (e, p) => signInWithEmailAndPassword(auth, e, p);
+    window._fbSignUp  = (e, p) => createUserWithEmailAndPassword(auth, e, p);
+    window._fbSignOut = ()      => signOut(auth);
+    window._fbReset   = (e)     => sendPasswordResetEmail(auth, e);
+
+    window._fbSave = async (stateObj) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      await setDoc(doc(db, 'profiles', user.uid), {
+        state: JSON.parse(JSON.stringify(stateObj)),
+        updatedAt: serverTimestamp()
+      });
+    };
+
+    window._fbLoad = async () => {
+      const user = auth.currentUser;
+      if (!user) return null;
+      const snap = await getDoc(doc(db, 'profiles', user.uid));
+      return snap.exists() ? snap.data().state : null;
+    };
+
+    // Broadcast auth state changes as DOM events so main script can react
+    onAuthStateChanged(auth, user => {
+      window.dispatchEvent(new CustomEvent('fbAuthChange', { detail: { user } }));
+    });
+  </script>
+
   <style>
     /* ========= THEME TOKENS ========= */
 /* ── Shared tokens ── */
@@ -2112,6 +2160,89 @@ select.exp-input { cursor:pointer; }
 .scen-diff-better { color:#059669; font-size:10px; }
 .scen-diff-worse  { color:#E11D48; font-size:10px; }
 
+  /* ---- Auth modal ---- */
+  .auth-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-box {
+    background: #fff; border-radius: 16px;
+    padding: 32px; width: 360px; max-width: calc(100vw - 32px);
+    box-shadow: 0 24px 64px rgba(0,0,0,.2);
+  }
+  .auth-brand { font-size: 18px; font-weight: 800; color: #1C1C1A; letter-spacing: -.02em; }
+  .auth-tagline { font-size: 12px; color: #8A8582; margin: 3px 0 22px; }
+  .auth-tabs {
+    display: flex; border-bottom: 2px solid #F0EDE8; margin-bottom: 20px;
+  }
+  .auth-tab {
+    background: none; border: none; font-size: 13px; font-weight: 600;
+    color: #8A8582; padding: 6px 14px 9px; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+  }
+  .auth-tab.active { color: #059669; border-bottom-color: #059669; }
+  .auth-field { margin-bottom: 11px; }
+  .auth-field label { display: block; font-size: 11px; font-weight: 600; color: #5C5955; margin-bottom: 4px; }
+  .auth-field input {
+    width: 100%; padding: 9px 11px; border: 1px solid #D8D4CC;
+    border-radius: 8px; font-size: 14px; color: #1C1C1A;
+    background: #FAFAF8; box-sizing: border-box; transition: border-color .15s;
+  }
+  .auth-field input:focus { outline: none; border-color: #059669; }
+  .auth-submit {
+    width: 100%; padding: 10px; background: #059669; color: #fff;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; margin-top: 4px; transition: background .15s;
+  }
+  .auth-submit:hover:not(:disabled) { background: #047857; }
+  .auth-submit:disabled { background: #A7F3D0; cursor: not-allowed; }
+  .auth-error { font-size: 12px; margin-top: 8px; min-height: 17px; }
+  .auth-error.err { color: #E11D48; }
+  .auth-error.ok  { color: #059669; }
+  .auth-link { font-size: 12px; color: #059669; text-decoration: none; display: block; text-align: center; margin-top: 10px; cursor: pointer; }
+  .auth-link:hover { text-decoration: underline; }
+
+  /* ---- User badge ---- */
+  .user-badge { position: relative; display: flex; align-items: center; gap: 6px; }
+  .user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #059669; color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; flex-shrink: 0;
+    transition: background .15s;
+  }
+  .user-avatar:hover { background: #047857; }
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #059669; flex-shrink: 0; transition: background .3s;
+  }
+  .sync-dot.syncing { background: #F59E0B; animation: sdpulse 1s ease-in-out infinite; }
+  .sync-dot.error   { background: #E11D48; }
+  @keyframes sdpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .user-menu {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    background: #fff; border: 1px solid #E8E4DE; border-radius: 12px;
+    padding: 8px; min-width: 220px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.13); z-index: 9000;
+  }
+  .user-menu-email {
+    font-size: 12px; color: #5C5955; padding: 4px 8px 9px;
+    border-bottom: 1px solid #F0EDE8; margin-bottom: 4px; word-break: break-all;
+  }
+  .user-menu-sync { font-size: 11px; color: #8A8582; padding: 4px 8px; }
+  .user-menu-signout {
+    display: block; width: 100%; text-align: left;
+    padding: 8px; border: none; background: none;
+    font-size: 13px; color: #E11D48; cursor: pointer;
+    border-radius: 6px; margin-top: 2px;
+  }
+  .user-menu-signout:hover { background: #FEF2F2; }
+  .btn-auth { font-size: 12px !important; padding: 5px 12px !important; }
+
   </style>
 </head>
 
@@ -2145,6 +2276,19 @@ select.exp-input { cursor:pointer; }
         <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
       <div class="header-actions">
+        <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
+        <button class="btn btn-auth" id="btnSignIn" onclick="openAuthModal()">Sign in</button>
+        <div class="user-badge" id="userBadge" style="display:none;">
+          <div class="sync-dot" id="syncDot" title="Synced"></div>
+          <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">
+            <span id="userInitial">?</span>
+          </div>
+          <div class="user-menu" id="userMenu" style="display:none;">
+            <div class="user-menu-email" id="userMenuEmail"></div>
+            <div class="user-menu-sync" id="userMenuSync">Synced ✓</div>
+            <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
+          </div>
+        </div>
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
       </div>
       <!-- Hidden anchors for showTab() JS compatibility -->
@@ -2858,6 +3002,52 @@ select.exp-input { cursor:pointer; }
   <div class="tip-body"></div>
 </div>
 
+<!-- Auth Modal -->
+<div id="authModal" class="auth-backdrop" style="display:none;"
+     onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-box">
+    <div class="auth-brand">WealthModel</div>
+    <div class="auth-tagline">Sign in to sync your plan across devices</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin"    onclick="authShowTab('login')">Sign in</button>
+      <button class="auth-tab"        id="authTabRegister" onclick="authShowTab('register')">Create account</button>
+    </div>
+
+    <!-- Sign in -->
+    <div id="authPanelLogin">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="you@example.com"
+               onkeydown="if(event.key==='Enter')authSignIn()" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter')authSignIn()" autocomplete="current-password" />
+      </div>
+      <button class="auth-submit" id="authLoginBtn" onclick="authSignIn()">Sign in</button>
+      <div class="auth-error" id="authLoginError"></div>
+      <a class="auth-link" onclick="authForgotPassword()">Forgot password?</a>
+    </div>
+
+    <!-- Register -->
+    <div id="authPanelRegister" style="display:none;">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="authRegEmail" placeholder="you@example.com"
+               onkeydown="if(event.key==='Enter')authRegister()" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label>Password <span style="font-weight:400;color:#B0ABA6;">(min 6 characters)</span></label>
+        <input type="password" id="authRegPassword" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter')authRegister()" autocomplete="new-password" />
+      </div>
+      <button class="auth-submit" id="authRegisterBtn" onclick="authRegister()">Create account</button>
+      <div class="auth-error" id="authRegisterError"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast notification -->
 <div id="toast" class="toast" role="alert" aria-live="assertive">
   <div class="icon"></div>
@@ -3346,6 +3536,7 @@ function renderPropertyChips(propPrefixes){
 
 function saveState(){
   localStorage.setItem(LS_KEY, JSON.stringify(state));
+  _queueSync();
 }
 function isPlainObject(x){
   return x && typeof x === "object" && !Array.isArray(x);
@@ -5700,6 +5891,188 @@ function buildTableHTML(rows, cols, {formatters = {}, rightAlign = new Set()} = 
     return `<tr>${cells}</tr>`;
   }).join("");
   return `<table><thead><tr>${ths}</tr></thead><tbody>${tds}</tbody></table>`;
+}
+
+/** ---------------------------
+ *  Firebase Auth + Cloud Sync
+ *  --------------------------*/
+let _currentUser  = null;
+let _syncTimer    = null;
+
+// React to Firebase auth state (fired by the module script above)
+window.addEventListener('fbAuthChange', async (e) => {
+  const user = e.detail.user;
+  _currentUser = user;
+  _updateAuthHeader(user);
+  if (user) {
+    await _onFbLogin(user);
+  } else {
+    // Show sign-in button only after Firebase has confirmed no session
+    document.getElementById('btnSignIn').style.display = '';
+  }
+});
+
+async function _onFbLogin(user) {
+  closeAuthModal();
+  try {
+    const cloudState = await window._fbLoad?.();
+    if (cloudState) {
+      // Cloud is source of truth — write to localStorage then re-load
+      localStorage.setItem(LS_KEY, JSON.stringify(cloudState));
+      loadState();
+      bindCoreInputs();
+      hydrateUI();
+      renderDashboard();
+      renderProperties();
+      updatePropSummaryStrip();
+      if (state.lastResult) renderResults(state.lastResult);
+    } else {
+      // New user — upload their current local state immediately
+      await window._fbSave?.(state);
+    }
+    _setSyncStatus('saved');
+    showToast('Signed in', `Welcome, ${user.email.split('@')[0]}`);
+  } catch(err) {
+    console.error('Cloud load error:', err);
+    _setSyncStatus('error');
+  }
+}
+
+function _updateAuthHeader(user) {
+  const btnIn  = document.getElementById('btnSignIn');
+  const badge  = document.getElementById('userBadge');
+  if (!btnIn || !badge) return;
+  if (user) {
+    btnIn.style.display  = 'none';
+    badge.style.display  = 'flex';
+    document.getElementById('userInitial').textContent  = user.email[0].toUpperCase();
+    document.getElementById('userMenuEmail').textContent = user.email;
+  } else {
+    btnIn.style.display  = '';
+    badge.style.display  = 'none';
+  }
+}
+
+function _setSyncStatus(status) {
+  const dot   = document.getElementById('syncDot');
+  const label = document.getElementById('userMenuSync');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (status === 'syncing' ? ' syncing' : status === 'error' ? ' error' : '');
+  const txt = { saved:'Synced ✓', syncing:'Saving…', error:'Sync error — will retry', idle:'' };
+  dot.title = txt[status] || '';
+  if (label) label.textContent = txt[status] || '';
+}
+
+function _queueSync() {
+  if (!_currentUser) return;
+  _setSyncStatus('syncing');
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async () => {
+    try {
+      await window._fbSave?.(state);
+      _setSyncStatus('saved');
+    } catch(err) {
+      console.error('Sync error:', err);
+      _setSyncStatus('error');
+    }
+  }, 2000);
+}
+
+// ---- Auth modal UI ----
+function openAuthModal() {
+  document.getElementById('authModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('authEmail')?.focus(), 60);
+}
+function closeAuthModal() {
+  const m = document.getElementById('authModal');
+  if (m) m.style.display = 'none';
+}
+function authShowTab(tab) {
+  document.getElementById('authPanelLogin').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('authPanelRegister').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('authTabLogin').classList.toggle('active',    tab === 'login');
+  document.getElementById('authTabRegister').classList.toggle('active', tab === 'register');
+}
+
+async function authSignIn() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authLoginError');
+  const btn   = document.getElementById('authLoginBtn');
+  errEl.className = 'auth-error err';
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Email and password required.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    await window._fbSignIn(email, pass);
+  } catch(e) {
+    errEl.textContent = _fbErrMsg(e);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+async function authRegister() {
+  const email = document.getElementById('authRegEmail').value.trim();
+  const pass  = document.getElementById('authRegPassword').value;
+  const errEl = document.getElementById('authRegisterError');
+  const btn   = document.getElementById('authRegisterBtn');
+  errEl.className = 'auth-error err';
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Email and password required.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    await window._fbSignUp(email, pass);
+  } catch(e) {
+    errEl.textContent = _fbErrMsg(e);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create account';
+  }
+}
+
+async function authSignOut() {
+  toggleUserMenu(false);
+  await window._fbSignOut?.();
+  showToast('Signed out', 'Your data is saved locally.');
+}
+
+async function authForgotPassword() {
+  const email = document.getElementById('authEmail').value.trim();
+  const errEl = document.getElementById('authLoginError');
+  if (!email) { errEl.className = 'auth-error err'; errEl.textContent = 'Enter your email above first.'; return; }
+  try {
+    await window._fbReset?.(email);
+    errEl.className = 'auth-error ok';
+    errEl.textContent = 'Reset email sent — check your inbox.';
+  } catch(e) {
+    errEl.className = 'auth-error err';
+    errEl.textContent = _fbErrMsg(e);
+  }
+}
+
+function toggleUserMenu(force) {
+  const menu = document.getElementById('userMenu');
+  if (!menu) return;
+  menu.style.display = (force !== undefined ? force : menu.style.display === 'none') ? '' : 'none';
+}
+
+// Close user menu on outside click
+document.addEventListener('click', (e) => {
+  const badge = document.getElementById('userBadge');
+  if (badge && !badge.contains(e.target)) toggleUserMenu(false);
+});
+
+function _fbErrMsg(e) {
+  const map = {
+    'auth/invalid-email':        'Invalid email address.',
+    'auth/user-not-found':       'No account found with that email.',
+    'auth/wrong-password':       'Incorrect password.',
+    'auth/invalid-credential':   'Email or password is incorrect.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password':        'Password must be at least 6 characters.',
+    'auth/too-many-requests':    'Too many attempts — try again later.',
+  };
+  return map[e.code] || e.message || 'Something went wrong.';
 }
 
 /** ---------------------------
