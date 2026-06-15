@@ -2969,8 +2969,13 @@ select.exp-input { cursor:pointer; }
         <button class="btn ghost btn-add-row" onclick="addIncomeRow()"
                 style="margin-top:8px; font-size:12px;">+ Add income</button>
 
-        <!-- Summary strip -->
-        <div class="budget-summary-strip" id="budgetSummaryStrip">
+        <p class="budget-section-lbl">Expenses</p>
+        <div id="budgetExpenseWrap"></div>
+        <button class="btn ghost btn-add-row" onclick="addExpenseRow()"
+                style="margin-top:8px; font-size:12px;">+ Add expense</button>
+
+        <!-- Summary strip — centred between income and expenses -->
+        <div class="budget-summary-strip" id="budgetSummaryStrip" style="margin-top:20px;">
           <div class="budget-summary-item">
             <div class="bsi-label">Income <span style="font-size:10px;color:#A8A4A0;font-weight:400;">(net)</span></div>
             <div class="bsi-val" id="bsiIncome">—</div>
@@ -2995,11 +3000,6 @@ select.exp-input { cursor:pointer; }
             <div class="bsi-sub" id="bsiRateA"></div>
           </div>
         </div>
-
-        <p class="budget-section-lbl">Expenses</p>
-        <div id="budgetExpenseWrap"></div>
-        <button class="btn ghost btn-add-row" onclick="addExpenseRow()"
-                style="margin-top:8px; font-size:12px;">+ Add expense</button>
         <div id="expenseChartWrap" style="margin-top:18px; position:relative;"></div>
       </div>
     </div>
