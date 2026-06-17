@@ -1056,6 +1056,8 @@ th{
 	  .stamp-total { display:flex; justify-content:space-between; font-weight:700; border-top:1px solid #FCD34D; margin-top:4px; padding-top:4px; }
 	  .stamp-note { font-size:10px; color:#8A8582; margin-top:4px; }
 	  .stamp-btn-row { display:flex; gap:6px; margin-top:8px; }
+  .btn-event-toggle { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid #1C1C1A; background:#1C1C1A; color:#fff; cursor:pointer; font-weight:500; white-space:nowrap; }
+  .btn-event-toggle.off { background:white; color:#5C5955; border-color:#D8D4CC; }
 
 	  /* ---- State selector ---- */
 	  .prop-state-row { display:flex; align-items:center; gap:8px; grid-column:1/-1; flex-wrap:wrap; margin-top:2px; }
@@ -2886,6 +2888,9 @@ select.exp-input { cursor:pointer; }
 
     <!-- Chart + legend/toggles -->
     <div id="chartSection">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+        <button id="eventMarkersToggle" class="btn-event-toggle" onclick="toggleEventMarkers()">📍 Major events</button>
+      </div>
       <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
       <div class="chips-bar">
         <div class="chips-group">
@@ -4056,6 +4061,14 @@ function showTab(name){
 }
 
 let _appEntered = false;
+let _showEventMarkers = true;
+
+function toggleEventMarkers() {
+  _showEventMarkers = !_showEventMarkers;
+  const btn = document.getElementById('eventMarkersToggle');
+  if (btn) btn.classList.toggle('off', !_showEventMarkers);
+  if (chart) chart.update('none');
+}
 function enterApp(){
   _appEntered = true;
   document.body.classList.remove("landing");
@@ -5432,11 +5445,13 @@ const fireMarkerPlugin = {
     const fireLabel = pluginOptions?.label || "FIRE";
     drawMarker(fireIdx, fireLabel, "rgba(28,28,26,.25)", "#1C1C1A", [4,4], 0);
 
-    // Property buy/sell event markers
-    const events = pluginOptions?.events || [];
-    events.forEach((ev, i) => {
-      drawMarker(ev.index, ev.label, ev.lineColor || ev.color, ev.boxBg || ev.color, [3,3], (i % 3) * 28 + 36);
-    });
+    // Major event markers (property buy/sell, super access, age pension)
+    if (_showEventMarkers) {
+      const events = pluginOptions?.events || [];
+      events.forEach((ev, i) => {
+        drawMarker(ev.index, ev.label, ev.lineColor || ev.color, ev.boxBg || ev.color, [3,3], (i % 3) * 28 + 36);
+      });
+    }
   }
 };
 	
@@ -5774,6 +5789,22 @@ propPrefixes.forEach((prefix, i) => {
         boxBg: SELL_COLORS[pi % SELL_COLORS.length]
       });
     }
+  });
+
+  // Super access and age pension milestones
+  const currAge  = toNumber(state.inputs.current_age) || 30;
+  const superAge = toNumber(state.inputs.super_access_age) || 60;
+  const PENSION_AGE = 67;
+  [
+    [superAge,    `Super access (${superAge})`, '#0EA5E9AA', '#0369A1'],
+    [PENSION_AGE, `Age pension (67)`,           '#A78BFAAA', '#6D28D9'],
+  ].forEach(([age, lbl, lineC, boxC]) => {
+    if (currAge >= age) return;
+    const evYr = modelStartYear + (age - currAge);
+    const idx  = mode === 'yearly'
+      ? rows.findIndex(r => toNumber(r[yearKey]) >= evYr)
+      : rows.findIndex(r => r['Date'] && parseInt(r['Date'].split('-')[0]) >= evYr);
+    if (idx >= 0) propEventMarkers.push({ index: idx, label: lbl, color: lineC, boxBg: boxC });
   });
 
   const ctx = document.getElementById("chartMain");
