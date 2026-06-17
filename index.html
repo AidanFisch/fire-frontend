@@ -2580,17 +2580,24 @@ select.exp-input { cursor:pointer; }
           </div>
 		  
 		  
-		  <div style="display:flex; justify-content:center; margin-top:26px;">
-		  <button class="btn primary big"
-				  style="font-size:18px; padding:18px 36px; min-width:260px;"
-				  onclick="enterApp()">
-			Get Started
-		  </button>
-		</div>
+		  <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:26px;">
+		    <button class="btn primary big"
+				    style="font-size:18px; padding:18px 36px; min-width:260px;"
+				    onclick="enterApp()">
+			  Get Started Free
+		    </button>
+		    <div id="landingSignInRow" style="display:flex; align-items:center; gap:8px;">
+		      <span style="color:rgba(255,255,255,.55); font-size:13px;">Already have an account?</span>
+		      <button onclick="openAuthModal()"
+		              style="background:none; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0;">
+		        Sign in
+		      </button>
+		    </div>
+		  </div>
 
 		<div class="small"
 			 style="text-align:center; margin-top:10px; color:rgba(255,255,255,.55);">
-		  No signup · Export CSV · General information only
+		  No signup required · General information only
 		</div>
 
         </div>
@@ -6377,14 +6384,17 @@ function _updateAuthHeader(user) {
   const btnIn  = document.getElementById('btnSignIn');
   const badge  = document.getElementById('userBadge');
   if (!btnIn || !badge) return;
+  const landingSignIn = document.getElementById('landingSignInRow');
   if (user) {
     btnIn.style.display  = 'none';
     badge.style.display  = 'flex';
     document.getElementById('userInitial').textContent  = user.email[0].toUpperCase();
     document.getElementById('userMenuEmail').textContent = user.email;
+    if (landingSignIn) landingSignIn.style.display = 'none';
   } else {
     btnIn.style.display  = '';
     badge.style.display  = 'none';
+    if (landingSignIn) landingSignIn.style.display = 'flex';
   }
 }
 
