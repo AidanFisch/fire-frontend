@@ -2560,7 +2560,6 @@ select.exp-input { cursor:pointer; }
       <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
       <button class="btn" id="btnSaveScenario" onclick="saveScenario()" style="display:none;">Save Scenario</button>
       <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
-      <button class="btn primary" id="btnRunModel" onclick="runModel()">Run Model</button>
     </div>
 	
 <!-- LANDING -->
@@ -5275,7 +5274,7 @@ async function callPath(base, path, payload){
 
 
 async function runModel(){
-  const runBtn = document.getElementById("btnRunModel");
+  const runBtn = document.getElementById("btnRunModelHeader");
   if(runBtn){ runBtn.textContent = "Running…"; runBtn.disabled = true; }
 
   // Inputs changed — projections cache is stale
