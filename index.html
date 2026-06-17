@@ -2565,6 +2565,12 @@ select.exp-input { cursor:pointer; }
     <div id="modelActionsBar" style="display:none;">
       <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
       <button class="btn" id="btnSaveScenario" onclick="saveScenario()" style="display:none;">Save Scenario</button>
+      <div style="position:relative;">
+        <button class="btn" id="btnLoadScenario" onclick="toggleScenarioDropdown()" style="display:none;">Load Scenario ▾</button>
+        <div id="scenarioDropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:200; background:white; border:1px solid #D8D4CC; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.1); min-width:300px; padding:6px 0; max-height:320px; overflow-y:auto;">
+          <div id="scenariosList"></div>
+        </div>
+      </div>
       <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
     </div>
 	
@@ -2948,22 +2954,8 @@ select.exp-input { cursor:pointer; }
       </div>
     </div>
 
-    <!-- Scenarios section -->
-    <div class="hr"></div>
-    <div class="section">
-      <div class="sectionHeader" onclick="toggleSection('scenariosBody','scenariosChev')">
-        <div class="results-section-header" style="margin:0;">
-          <div class="title">Scenarios</div>
-          <div class="sub" id="scenariosSubtitle">Compare saved runs</div>
-        </div>
-        <div class="chev" id="scenariosChev">▸</div>
-      </div>
-      <div class="sectionBody hidden" id="scenariosBody">
-        <div style="margin-top:16px;">
-          <div id="scenariosList"></div>
-          <button class="btn ghost btn-add-row" style="margin-top:12px;" onclick="saveScenario()">+ Save current scenario</button>
-        </div>
-      </div>
+    <!-- scenariosSubtitle kept for JS compat -->
+    <span id="scenariosSubtitle" style="display:none;"></span>
     </div>
 
     <!-- Debug area -->
@@ -9258,6 +9250,22 @@ function renderScenCompareBar() {
     }).join('');
 }
 
+function toggleScenarioDropdown(force) {
+  const dd = document.getElementById('scenarioDropdown');
+  if (!dd) return;
+  const open = force !== undefined ? force : dd.style.display === 'none';
+  dd.style.display = open ? '' : 'none';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const dd  = document.getElementById('scenarioDropdown');
+  const btn = document.getElementById('btnLoadScenario');
+  if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+
 function _scenLoad(){
   try{ const s = JSON.parse(localStorage.getItem(_WM_SCENARIOS_KEY)||'[]'); return Array.isArray(s)?s:[]; } catch(_){ return []; }
 }
@@ -9364,66 +9372,47 @@ function renameScenario(id){
 
 function renderScenarios(){
   const list = _scenLoad();
-  const sub = document.getElementById('scenariosSubtitle');
-  if(sub) sub.textContent = list.length ? `${list.length} saved` : 'none saved';
 
-  // Show/hide Save Scenario button in actions bar
+  // Show/hide action bar buttons
   const saveBtn = document.getElementById('btnSaveScenario');
+  const loadBtn = document.getElementById('btnLoadScenario');
   if(saveBtn) saveBtn.style.display = state.lastResult ? 'inline-flex' : 'none';
+  if(loadBtn) loadBtn.style.display = list.length ? 'inline-flex' : 'none';
 
   const container = document.getElementById('scenariosList');
   if(!container) return;
 
   if(!list.length){
-    container.innerHTML='<div class="small muted" style="padding:8px 0">Run the model then save scenarios to compare how changes affect your FIRE date — tax rate shifts, salary jumps, extra properties.</div>';
+    container.innerHTML = '';
+    renderScenCompareBar();
     return;
   }
 
-  // Find the best FIRE age among all scenarios to highlight it
   const fireAges = list.map(s=>s.summary?.fire_age).filter(a=>a!=null);
   const bestFire = fireAges.length ? Math.min(...fireAges) : null;
 
-  const rows = list.map((s,i) => {
-    const sum = s.summary||{};
-    const sr  = sum.savings_rate!=null ? `${Math.round(sum.savings_rate*100)}%` : '—';
+  container.innerHTML = list.map((s,i) => {
+    const sum     = s.summary || {};
     const fireAge = sum.fire_age ? Math.round(sum.fire_age) : null;
-    const isNewest = i===0;
-    const isBest = bestFire!=null && fireAge===bestFire && fireAges.length>1;
-
-    // Diff vs most recent (first in list)
+    const isBest  = bestFire != null && fireAge === bestFire && fireAges.length > 1;
+    const color   = s.color || '#ccc';
     let fireDiff = '';
-    if(i>0 && list[0].summary?.fire_age!=null && sum.fire_age!=null){
+    if(i > 0 && list[0].summary?.fire_age != null && sum.fire_age != null){
       const delta = Math.round(sum.fire_age - list[0].summary.fire_age);
-      if(delta>0) fireDiff = `<span class="scen-diff-worse"> (+${delta}yr)</span>`;
-      else if(delta<0) fireDiff = `<span class="scen-diff-better"> (${delta}yr)</span>`;
+      if(delta > 0) fireDiff = `<span style="color:#E11D48;font-size:11px;"> +${delta}yr</span>`;
+      else if(delta < 0) fireDiff = `<span style="color:#059669;font-size:11px;"> ${delta}yr</span>`;
     }
-
-    const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color||'#ccc'};margin-right:5px;flex-shrink:0;"></span>`;
-    return `<tr>
-      <td class="scen-col-label" onclick="renameScenario('${s.id}')" title="Click to rename" style="display:flex;align-items:center;">${dot}${escapeHtml(s.label)}${isNewest?'<span style="margin-left:5px;font-size:10px;background:#E8F5F0;color:#059669;padding:1px 5px;border-radius:8px;font-weight:600;">latest</span>':''}</td>
-      <td class="scen-col-meta">${s.date}</td>
-      <td class="scen-col-num">${sum.income?fmtDollar(sum.income):'—'}</td>
-      <td class="scen-col-num">${sum.expenses?fmtDollar(sum.expenses):'—'}</td>
-      <td class="scen-col-num">${sr}</td>
-      <td class="scen-col-fire" style="${isBest?'background:#E8F5F0;border-radius:4px;padding:2px 8px;':''}">${fireAge||'—'}${fireDiff}</td>
-      <td class="scen-col-num">${sum.fire_nw?fmtDollar(sum.fire_nw):'—'}</td>
-      <td class="scen-col-actions">
-        <button class="btn ghost" style="padding:2px 8px;font-size:11px;" onclick="loadScenario('${s.id}')">Load inputs</button>
-        <button class="btn ghost" style="padding:2px 8px;font-size:11px;color:#E11D48;" onclick="deleteScenario('${s.id}')">✕</button>
-      </td>
-    </tr>`;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #F0EDE8;" onmouseenter="this.style.background='#FAFAF8'" onmouseleave="this.style.background=''">
+      <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#1C1C1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(s.label)}">${escapeHtml(s.label)}</div>
+        <div style="font-size:11px;color:#8A8582;">${s.date} · FIRE ${fireAge || '—'}${fireDiff}${isBest?' 🏆':''}</div>
+      </div>
+      <button class="btn ghost" style="padding:3px 10px;font-size:12px;white-space:nowrap;" onclick="loadScenario('${s.id}');toggleScenarioDropdown(false);">Load</button>
+      <button style="background:none;border:none;color:#C4B5B0;cursor:pointer;font-size:14px;padding:0 2px;" onclick="deleteScenario('${s.id}')" title="Delete">✕</button>
+    </div>`;
   }).join('');
 
-  container.innerHTML=`<div class="data-table-wrap"><div class="tablewrap">
-    <table class="scen-table">
-      <thead><tr>
-        <th>Scenario</th><th>Date</th>
-        <th class="scen-th-r">Income</th><th class="scen-th-r">Expenses</th><th class="scen-th-r">Savings rate</th>
-        <th class="scen-th-r">FIRE age</th><th class="scen-th-r">Net worth @ FIRE</th><th></th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div></div>`;
   renderScenCompareBar();
 }
 
