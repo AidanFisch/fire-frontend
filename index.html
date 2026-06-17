@@ -2528,6 +2528,7 @@ select.exp-input { cursor:pointer; }
         <button id="btnPortfolio"   onclick="showPortfolioTab()">Portfolio</button>
         <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
+      <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
       <div class="header-actions">
         <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
         <button class="btn btn-auth" id="btnSignIn" onclick="openAuthModal()">Sign in</button>
@@ -2547,7 +2548,6 @@ select.exp-input { cursor:pointer; }
             <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
           </div>
         </div>
-        <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
       </div>
       <!-- Hidden anchors for showTab() JS compatibility -->
