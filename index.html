@@ -6331,14 +6331,15 @@ let _syncTimer    = null;
 
 // React to Firebase auth state (fired by the module script above)
 window.addEventListener('fbAuthChange', async (e) => {
+  clearTimeout(window._authFallback);
   const user = e.detail.user;
   _currentUser = user;
   _updateAuthHeader(user);
   if (user) {
     await _onFbLogin(user);
   } else {
-    // Show sign-in button only after Firebase has confirmed no session
-    document.getElementById('btnSignIn').style.display = '';
+    // Firebase confirmed no session — show landing page
+    initLanding();
   }
 });
 
@@ -6780,7 +6781,9 @@ window.addEventListener("load", ()=>{
   hydrateUI();
   initIncomeTable();      // build income table once
   initExpenseTable();     // build expense table once
-  initLanding();
+  // Don't call initLanding() here — wait for fbAuthChange so signed-in users
+  // go straight to the app. Fallback after 3s in case Firebase is slow.
+  window._authFallback = setTimeout(() => initLanding(), 3000);
   // Re-lock any fields that were synced before page refresh
   if(state.syncModes){
     SYNC_FIELD_DEFS.forEach(def => {
