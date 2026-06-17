@@ -4025,7 +4025,9 @@ function showTab(name){
   if(btnEl) btnEl.classList.add("active");
 }
 
+let _appEntered = false;
 function enterApp(){
+  _appEntered = true;
   document.body.classList.remove("landing");
   showDashboard();
 }
@@ -5697,7 +5699,7 @@ function renderAnalysisFlags({ rows, cols, fireIndex, cashKey }){
   const cashSeries = rows.map(r => getFirstNumber(r, [cashKey]));
   const minCash = Math.min(...cashSeries);
 
-  if(minCash < 0 && !document.body.classList.contains('landing')){
+  if(minCash < 0 && _appEntered){
     showToast(
       "⚠ Cash goes negative",
       `Minimum cash balance: ${fmtMoney(minCash)}. Consider reducing expenses or increasing income.`,
