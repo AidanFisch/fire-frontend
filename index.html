@@ -2547,6 +2547,7 @@ select.exp-input { cursor:pointer; }
             <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
           </div>
         </div>
+        <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
       </div>
       <!-- Hidden anchors for showTab() JS compatibility -->
@@ -4072,6 +4073,8 @@ function toggleEventMarkers() {
 function enterApp(){
   _appEntered = true;
   document.body.classList.remove("landing");
+  const hdr = document.getElementById('btnRunModelHeader');
+  if (hdr) hdr.style.display = '';
   showDashboard();
 }
 
