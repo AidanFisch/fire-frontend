@@ -3510,7 +3510,7 @@ select.exp-input { cursor:pointer; }
 const LS_KEY = "fire_frontend_state_v3";
 
 // ─── DEV MODE — set false before shipping ───────────────
-const DEV_MODE = true;
+const DEV_MODE = false;
 // ────────────────────────────────────────────────────────
 let state = {
   apiBase: "https://fire-api-wixz.onrender.com",
@@ -6479,12 +6479,12 @@ async function authRegister() {
 async function authSignOut() {
   toggleUserMenu(false);
   await window._fbSignOut?.();
-  // Clear all local data so the next user starts clean
+  // Clear all local data then reload — ensures no stale in-memory state
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem('wm_portfolio');
   localStorage.removeItem('wm_budget');
-  // Return to landing screen
-  initLanding();
+  localStorage.removeItem('wm_scenarios');
+  window.location.reload();
 }
 
 async function authGoogleSignIn() {
