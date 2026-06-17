@@ -6264,14 +6264,16 @@ async function _onFbLogin(user) {
     }
     _loadProStatus(cloud?.subscription);
     _updatePlanBadge();
-    _checkOnboarding(cloud?.userProfile);
     _setSyncStatus('saved');
     // Process Stripe checkout return — must run after user is confirmed logged in
     if (_pendingCheckoutSession) {
       const sid = _pendingCheckoutSession;
       _pendingCheckoutSession = null;
+      // Skip onboarding check on checkout return — user is already set up
+      _userProfile = cloud?.userProfile || _userProfile;
       await _handleCheckoutSuccess(sid);
     } else {
+      _checkOnboarding(cloud?.userProfile);
       const name = cloud?.userProfile?.firstName || user.email.split('@')[0];
       showToast('Signed in', `Welcome back, ${name}`);
     }
@@ -6573,7 +6575,7 @@ async function _handleCheckoutSuccess(sessionId) {
       });
       _proStatus = true;
       _updatePlanBadge();
-      showToast('Welcome to Pro!', 'All features unlocked.', 5000);
+      setTimeout(() => showToast('Welcome to Pro!', 'All features unlocked.', 6000), 800);
     }
   } catch(e) {
     console.error('Checkout verification failed:', e);
