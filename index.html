@@ -119,9 +119,9 @@
     window._fbSaveProfile = async (profileData) => {
       const user = auth.currentUser;
       if (!user) return;
+      // Only save userProfile — merge:true preserves subscription and other fields
       await setDoc(doc(db, 'profiles', user.uid), {
-        userProfile:  profileData,
-        subscription: { tier: 'free' }
+        userProfile: profileData,
       }, { merge: true });
     };
 
@@ -2408,6 +2408,61 @@ select.exp-input { cursor:pointer; }
   .ump-tier.pro{color:#059669;}
   .ump-upgrade{font-size:11px;color:#059669;cursor:pointer;font-weight:600;}
   .ump-upgrade:hover{text-decoration:underline;}
+  .user-menu-profile {
+    display:block; width:100%; text-align:left;
+    padding:8px; border:none; background:none;
+    font-size:13px; color:#1C1C1A; cursor:pointer;
+    border-radius:6px;
+  }
+  .user-menu-profile:hover { background:#F5F2EE; }
+
+  /* ---- Profile modal ---- */
+  .profile-backdrop {
+    position:fixed; inset:0; background:rgba(0,0,0,.5);
+    z-index:10001; display:flex; align-items:center; justify-content:center;
+  }
+  .profile-box {
+    background:#fff; border-radius:16px; padding:32px;
+    width:400px; max-width:calc(100vw - 32px);
+    box-shadow:0 24px 64px rgba(0,0,0,.2); position:relative;
+  }
+  .profile-title { font-size:20px; font-weight:700; color:#1C1C1A; margin-bottom:20px; }
+  .profile-close {
+    position:absolute; top:16px; right:16px;
+    background:none; border:none; font-size:22px; color:#8A8582; cursor:pointer; line-height:1;
+  }
+  .profile-close:hover { color:#1C1C1A; }
+  .profile-field { margin-bottom:14px; }
+  .profile-label { font-size:12px; font-weight:600; color:#5C5955; margin-bottom:4px; display:block; }
+  .profile-input {
+    width:100%; padding:9px 12px; border:1px solid #D8D4CE; border-radius:8px;
+    font-size:14px; color:#1C1C1A; background:#fff; box-sizing:border-box;
+  }
+  .profile-input:focus { outline:none; border-color:#1C1C1A; }
+  .profile-input[readonly] { background:#F5F2EE; color:#8A8582; cursor:default; }
+  .profile-input-note { font-size:11px; color:#8A8582; margin-top:4px; }
+  .profile-plan-row {
+    display:flex; align-items:center; justify-content:space-between;
+    background:#F8F6F3; border-radius:10px; padding:12px 16px; margin:18px 0;
+  }
+  .profile-plan-label { font-size:11px; color:#8A8582; margin-bottom:2px; }
+  .profile-plan-value { font-size:14px; font-weight:700; color:#1C1C1A; }
+  .profile-plan-value.pro { color:#059669; }
+  .profile-save-btn {
+    width:100%; padding:11px; background:#1C1C1A; color:#fff;
+    border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; margin-top:4px;
+  }
+  .profile-save-btn:hover { background:#333; }
+  .profile-manage-btn {
+    font-size:12px; font-weight:600; color:#059669; background:none;
+    border:1px solid #059669; border-radius:6px; padding:5px 10px; cursor:pointer;
+  }
+  .profile-manage-btn:hover { background:#F0FDF4; }
+  .profile-upgrade-btn {
+    font-size:12px; font-weight:600; color:#fff; background:#059669;
+    border:none; border-radius:6px; padding:5px 10px; cursor:pointer;
+  }
+  .profile-upgrade-btn:hover { background:#047857; }
 
   </style>
 </head>
@@ -2456,6 +2511,7 @@ select.exp-input { cursor:pointer; }
               <span class="ump-upgrade" id="umpUpgrade" onclick="toggleUserMenu(false);showUpgradeModal()">Upgrade →</span>
             </div>
             <div class="user-menu-sync" id="userMenuSync">Synced ✓</div>
+            <button class="user-menu-profile" onclick="toggleUserMenu(false);openProfileModal()">View Profile</button>
             <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
           </div>
         </div>
@@ -3304,6 +3360,40 @@ select.exp-input { cursor:pointer; }
       </div>
     </div>
     <div class="upgrade-note">Cancel any time. No lock-in.</div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="profile-backdrop" style="display:none;"
+     onclick="if(event.target===this)closeProfileModal()">
+  <div class="profile-box">
+    <button class="profile-close" onclick="closeProfileModal()">×</button>
+    <div class="profile-title">Your Profile</div>
+
+    <div class="profile-field">
+      <label class="profile-label" for="profFirstName">First Name</label>
+      <input id="profFirstName" type="text" class="profile-input" placeholder="Your name">
+    </div>
+    <div class="profile-field">
+      <label class="profile-label" for="profPhone">Phone</label>
+      <input id="profPhone" type="tel" class="profile-input" placeholder="e.g. 0412 345 678">
+    </div>
+    <div class="profile-field">
+      <label class="profile-label" for="profEmail">Email</label>
+      <input id="profEmail" type="email" class="profile-input" readonly>
+      <p class="profile-input-note">To change your email, sign out and use "Forgot password".</p>
+    </div>
+
+    <div class="profile-plan-row">
+      <div>
+        <div class="profile-plan-label">Current plan</div>
+        <div class="profile-plan-value" id="profPlanValue">Free</div>
+      </div>
+      <button id="profManageBtn" class="profile-manage-btn" onclick="manageSubscription()" style="display:none;">Manage subscription →</button>
+      <button id="profUpgradeBtn" class="profile-upgrade-btn" onclick="closeProfileModal();showUpgradeModal()">Upgrade to Pro →</button>
+    </div>
+
+    <button class="profile-save-btn" onclick="saveProfile()">Save changes</button>
   </div>
 </div>
 
@@ -6424,12 +6514,14 @@ document.addEventListener('click', (e) => {
 
 // ---- Pro status ----
 let _proStatus = false;
-let _userProfile = null;
-let _billingCycle = 'monthly';
+let _userProfile      = null;
+let _billingCycle     = 'monthly';
+let _subscriptionData = null;
 
 function isPro(){ return _proStatus; }
 
 function _loadProStatus(subscription) {
+  _subscriptionData = subscription || null;
   _proStatus = (subscription?.tier === 'pro');
 }
 
@@ -6495,6 +6587,57 @@ function closeUpgradeModal() {
   const el = document.getElementById('upgradeModal');
   if (el) el.style.display = 'none';
 }
+
+// ---- Profile modal ----
+function openProfileModal() {
+  const m = document.getElementById('profileModal');
+  if (!m) return;
+  document.getElementById('profFirstName').value = _userProfile?.firstName || '';
+  document.getElementById('profPhone').value      = _userProfile?.phone     || '';
+  document.getElementById('profEmail').value      = _currentUser?.email     || '';
+  const isPro_ = isPro();
+  document.getElementById('profPlanValue').textContent  = isPro_ ? 'Pro ✓' : 'Free';
+  document.getElementById('profPlanValue').className    = 'profile-plan-value' + (isPro_ ? ' pro' : '');
+  document.getElementById('profManageBtn').style.display  = isPro_ ? '' : 'none';
+  document.getElementById('profUpgradeBtn').style.display = isPro_ ? 'none' : '';
+  m.style.display = 'flex';
+}
+function closeProfileModal() {
+  const m = document.getElementById('profileModal');
+  if (m) m.style.display = 'none';
+}
+async function saveProfile() {
+  const firstName = (document.getElementById('profFirstName').value || '').trim();
+  const phone     = (document.getElementById('profPhone').value     || '').trim();
+  if (!firstName) { document.getElementById('profFirstName').focus(); return; }
+  _userProfile = { ..._userProfile, firstName, phone };
+  await window._fbSaveProfile?.(_userProfile);
+  closeProfileModal();
+  showToast('Profile saved', 'Your details have been updated.');
+}
+async function manageSubscription() {
+  const subId = _subscriptionData?.subscriptionId;
+  if (!subId) { showToast('No subscription found', 'Contact support if this is unexpected.', 4000); return; }
+  const btn = document.getElementById('profManageBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  try {
+    const res  = await fetch(`${API_BASE}/stripe/customer-portal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription_id: subId,
+        return_url: window.location.origin + window.location.pathname
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Could not open portal');
+    window.location.href = data.url;
+  } catch(e) {
+    showToast('Error', e.message || 'Could not open subscription portal.', 4000);
+    if (btn) { btn.disabled = false; btn.textContent = 'Manage subscription →'; }
+  }
+}
+
 function setBilling(cycle) {
   _billingCycle = cycle;
   document.getElementById('billMonthly').classList.toggle('active', cycle === 'monthly');
