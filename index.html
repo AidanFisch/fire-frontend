@@ -2857,7 +2857,7 @@ select.exp-input { cursor:pointer; }
         <div id="panel-properties" class="drawer-panel" style="margin-top:16px;">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
             <h2 style="margin:0;">Properties</h2>
-            <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPortfolioTab();">Open in Portfolio ↗</button>
+            <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPropertiesTab();">Open in Portfolio ↗</button>
           </div>
           <div id="drawerPropSummary" style="font-size:12px; color:#5C5955;"></div>
         </div>
@@ -3151,110 +3151,126 @@ select.exp-input { cursor:pointer; }
 <section id="tab-portfolio" class="tabs" style="margin-top:18px;">
   <div style="display:flex; flex-direction:column; gap:20px;">
 
-    <!-- Asset tracker card -->
-    <div class="card">
-      <!-- Year nav header -->
-      <div class="budget-card-head">
-        <div class="budget-month-nav">
-          <button class="btn ghost" onclick="portYearStep(-1)">◀</button>
-          <span id="portYearLabel" style="min-width:60px; text-align:center; color:#1C1C1A;">—</span>
-          <button class="btn ghost" onclick="portYearStep(1)">▶</button>
-        </div>
-        <span id="portSaveStatus" class="budget-save-status"></span>
-      </div>
-
-      <!-- Net worth summary strip (reflects current month) -->
-      <div class="port-summary-strip">
-        <div class="port-summary-item port-summary-total">
-          <div class="psi-label">Net Worth</div>
-          <div class="psi-val" id="psiTotal">—</div>
-        </div>
-        <div class="port-summary-sep"></div>
-        <div class="port-summary-item">
-          <div class="psi-label">Cash &amp; Savings</div>
-          <div class="psi-val psi-secondary" id="psiCash">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Stocks &amp; ETFs</div>
-          <div class="psi-val psi-secondary" id="psiStocks">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Super</div>
-          <div class="psi-val psi-secondary" id="psiSuper">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Property</div>
-          <div class="psi-val psi-secondary" id="psiProperty">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Other</div>
-          <div class="psi-val psi-secondary" id="psiOther">—</div>
-        </div>
-      </div>
-
-      <!-- Year table -->
-      <p class="budget-section-lbl" style="margin-top:16px;">Asset Values by Month</p>
-      <div class="port-table-scroll">
-        <table class="expense-table port-year-table">
-          <thead id="portYearHead"></thead>
-          <tbody id="portYearBody"></tbody>
-          <tfoot id="portYearFoot"></tfoot>
-        </table>
-      </div>
-      <button class="btn ghost btn-add-row" onclick="addPortfolioAsset()" style="margin-top:8px; font-size:12px;">+ Add asset</button>
+    <!-- Sub-tab pills -->
+    <div class="sync-pills" style="margin-bottom:-8px;">
+      <button class="sync-pill active" id="portSubHoldingsBtn" onclick="switchPortSubTab('holdings')">Holdings</button>
+      <button class="sync-pill" id="portSubPropertiesBtn" onclick="switchPortSubTab('properties')">Properties</button>
     </div>
 
-    <!-- Property model inputs -->
-    <div class="card" style="border-left:4px solid #1D9E75; padding-left:18px;">
-      <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;">
-        <div>
-          <div style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">⚙ Property model inputs</div>
-          <div style="font-size:12px; color:#8A8582; margin-top:3px; line-height:1.5;">These cards tell the FIRE model about mortgages, rental income and growth rates. Edit the monthly table above to track value snapshots separately.</div>
+    <!-- HOLDINGS sub-tab -->
+    <div id="portSubHoldings">
+
+      <!-- Asset tracker card -->
+      <div class="card" style="margin-bottom:20px;">
+        <!-- Year nav header -->
+        <div class="budget-card-head">
+          <div class="budget-month-nav">
+            <button class="btn ghost" onclick="portYearStep(-1)">◀</button>
+            <span id="portYearLabel" style="min-width:60px; text-align:center; color:#1C1C1A;">—</span>
+            <button class="btn ghost" onclick="portYearStep(1)">▶</button>
+          </div>
+          <span id="portSaveStatus" class="budget-save-status"></span>
+        </div>
+
+        <!-- Net worth summary strip (reflects current month) -->
+        <div class="port-summary-strip">
+          <div class="port-summary-item port-summary-total">
+            <div class="psi-label">Net Worth</div>
+            <div class="psi-val" id="psiTotal">—</div>
+          </div>
+          <div class="port-summary-sep"></div>
+          <div class="port-summary-item">
+            <div class="psi-label">Cash &amp; Savings</div>
+            <div class="psi-val psi-secondary" id="psiCash">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Stocks &amp; ETFs</div>
+            <div class="psi-val psi-secondary" id="psiStocks">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Super</div>
+            <div class="psi-val psi-secondary" id="psiSuper">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Property</div>
+            <div class="psi-val psi-secondary" id="psiProperty">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Other</div>
+            <div class="psi-val psi-secondary" id="psiOther">—</div>
+          </div>
+        </div>
+
+        <!-- Year table -->
+        <p class="budget-section-lbl" style="margin-top:16px;">Asset Values by Month</p>
+        <div class="port-table-scroll">
+          <table class="expense-table port-year-table">
+            <thead id="portYearHead"></thead>
+            <tbody id="portYearBody"></tbody>
+            <tfoot id="portYearFoot"></tfoot>
+          </table>
+        </div>
+        <button class="btn ghost btn-add-row" onclick="addPortfolioAsset()" style="margin-top:8px; font-size:12px;">+ Add asset</button>
+      </div>
+
+      <!-- History chart card -->
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+          <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
+          <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Net Worth History</span>
+          <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">all time</span>
+        </div>
+        <div id="portHistoryContent">
+          <div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>
         </div>
       </div>
 
-      <!-- Property summary strip -->
-      <div class="port-summary-strip" id="propSummaryStrip" style="margin-top:4px;">
-        <div class="port-summary-item port-summary-total">
-          <div class="psi-label">Total Value</div>
-          <div class="psi-val" id="propSIValue">—</div>
+    </div><!-- /#portSubHoldings -->
+
+    <!-- PROPERTIES sub-tab -->
+    <div id="portSubProperties" style="display:none;">
+
+      <!-- Property model inputs -->
+      <div class="card">
+        <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;">
+          <div>
+            <div style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Property model inputs</div>
+            <div style="font-size:12px; color:#8A8582; margin-top:3px; line-height:1.5;">These settings drive the FIRE model — mortgages, rental income, and growth rates. Track actual values month-by-month in the Holdings tab.</div>
+          </div>
         </div>
-        <div class="port-summary-sep"></div>
-        <div class="port-summary-item">
-          <div class="psi-label">Total Debt</div>
-          <div class="psi-val psi-secondary" id="propSIDebt">—</div>
+
+        <!-- Property summary strip -->
+        <div class="port-summary-strip" id="propSummaryStrip" style="margin-top:4px;">
+          <div class="port-summary-item port-summary-total">
+            <div class="psi-label">Total Value</div>
+            <div class="psi-val" id="propSIValue">—</div>
+          </div>
+          <div class="port-summary-sep"></div>
+          <div class="port-summary-item">
+            <div class="psi-label">Total Debt</div>
+            <div class="psi-val psi-secondary" id="propSIDebt">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Total Equity</div>
+            <div class="psi-val psi-secondary" id="propSIEquity">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Avg LVR</div>
+            <div class="psi-val psi-secondary" id="propSILvr">—</div>
+          </div>
+          <div class="port-summary-item">
+            <div class="psi-label">Net Monthly</div>
+            <div class="psi-val psi-secondary" id="propSINet">—</div>
+          </div>
         </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Total Equity</div>
-          <div class="psi-val psi-secondary" id="propSIEquity">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Avg LVR</div>
-          <div class="psi-val psi-secondary" id="propSILvr">—</div>
-        </div>
-        <div class="port-summary-item">
-          <div class="psi-label">Net Monthly</div>
-          <div class="psi-val psi-secondary" id="propSINet">—</div>
-        </div>
+
+        <div class="hr" style="margin:12px 0;"></div>
+
+        <div id="propsContainer"></div>
+        <button class="btn ghost btn-add-row" style="margin-top:4px;" onclick="addProperty()">+ Add property</button>
       </div>
 
-      <div class="hr" style="margin:12px 0;"></div>
-
-      <div id="propsContainer"></div>
-      <button class="btn ghost btn-add-row" style="margin-top:4px;" onclick="addProperty()">+ Add property</button>
-    </div>
-
-    <!-- History chart card -->
-    <div class="card">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-        <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
-        <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Net Worth History</span>
-        <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">all time</span>
-      </div>
-      <div id="portHistoryContent">
-        <div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>
-      </div>
-    </div>
+    </div><!-- /#portSubProperties -->
 
   </div>
 </section>
@@ -4804,8 +4820,8 @@ function duplicateProperty(id){
 /* ── Properties Tab ─────────────────────────────────────── */
 
 function showPropertiesTab(){
-  // Properties are now part of the Portfolio tab
-  showPortfolioTab();
+  showTab('portfolio');
+  switchPortSubTab('properties');
 }
 
 function updatePropSummaryStrip(){
@@ -8574,6 +8590,25 @@ function portTotals(assets){
   return t;
 }
 
+let _portSubTab = 'holdings';
+
+function switchPortSubTab(tab){
+  _portSubTab = tab;
+  document.getElementById('portSubHoldings').style.display    = tab === 'holdings'   ? '' : 'none';
+  document.getElementById('portSubProperties').style.display  = tab === 'properties' ? '' : 'none';
+  document.getElementById('portSubHoldingsBtn').classList.toggle('active',   tab === 'holdings');
+  document.getElementById('portSubPropertiesBtn').classList.toggle('active', tab === 'properties');
+  if (tab === 'holdings') {
+    const d = portLoad();
+    renderPortYear(d);
+    updatePortSummary();
+    renderPortHistoryChart(d);
+  } else {
+    renderProperties();
+    updatePropSummaryStrip();
+  }
+}
+
 function showPortfolioTab(){
   showTab('portfolio');
   renderPortfolioTab();
@@ -8581,11 +8616,14 @@ function showPortfolioTab(){
 
 function renderPortfolioTab(){
   const d = portLoad();
-  renderPortYear(d);
-  updatePortSummary();
-  renderPortHistoryChart(d);
-  renderProperties();
-  updatePropSummaryStrip();
+  if (_portSubTab === 'holdings') {
+    renderPortYear(d);
+    updatePortSummary();
+    renderPortHistoryChart(d);
+  } else {
+    renderProperties();
+    updatePropSummaryStrip();
+  }
 }
 
 function portYearStep(delta){
