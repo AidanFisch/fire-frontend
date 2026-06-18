@@ -1753,7 +1753,7 @@ label { color: #5C5955 !important; }
   border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:130px;
   padding:4px 0; z-index:300;
 }
-.nav-port-wrap:hover .nav-port-dropdown { display:block; }
+.nav-port-dropdown.open { display:block; }
 .nav-drop-item {
   display:block !important; width:100% !important; text-align:left !important;
   padding:9px 16px !important; font-size:13px !important; color:#3C3A36 !important;
@@ -2556,10 +2556,10 @@ select.exp-input { cursor:pointer; }
         <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
         <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
         <div class="nav-port-wrap">
-          <button id="btnPortfolio" onclick="showPortfolioTab()">Portfolio ▾</button>
-          <div class="nav-port-dropdown">
-            <button class="nav-drop-item" onclick="showPortfolioTab()">Holdings</button>
-            <button class="nav-drop-item" onclick="showPropertiesTab()">Properties</button>
+          <button id="btnPortfolio" onclick="toggleNavPortDrop(event)">Portfolio ▾</button>
+          <div class="nav-port-dropdown" id="navPortDropdown">
+            <button class="nav-drop-item" onclick="showPortfolioTab(); closeNavPortDrop()">Holdings</button>
+            <button class="nav-drop-item" onclick="showPropertiesTab(); closeNavPortDrop()">Properties</button>
           </div>
         </div>
         <button id="btnResults"     onclick="showTab('results')">Model</button>
@@ -3180,12 +3180,6 @@ select.exp-input { cursor:pointer; }
      ══════════════════════════════════════ -->
 <section id="tab-portfolio" class="tabs" style="margin-top:18px;">
   <div style="display:flex; flex-direction:column; gap:20px;">
-
-    <!-- Sub-tab pills -->
-    <div class="port-sub-pills">
-      <button class="port-sub-pill active" id="portSubHoldingsBtn" onclick="switchPortSubTab('holdings')">Holdings</button>
-      <button class="port-sub-pill" id="portSubPropertiesBtn" onclick="switchPortSubTab('properties')">Properties</button>
-    </div>
 
     <!-- HOLDINGS sub-tab -->
     <div id="portSubHoldings">
@@ -8622,12 +8616,25 @@ function portTotals(assets){
 
 let _portSubTab = 'holdings';
 
+function toggleNavPortDrop(e) {
+  e.stopPropagation();
+  const drop = document.getElementById('navPortDropdown');
+  if (!drop) return;
+  const opening = !drop.classList.contains('open');
+  drop.classList.toggle('open', opening);
+  if (opening) {
+    document.addEventListener('click', closeNavPortDrop, { once: true });
+  }
+}
+function closeNavPortDrop() {
+  const drop = document.getElementById('navPortDropdown');
+  if (drop) drop.classList.remove('open');
+}
+
 function switchPortSubTab(tab){
   _portSubTab = tab;
   document.getElementById('portSubHoldings').style.display    = tab === 'holdings'   ? '' : 'none';
   document.getElementById('portSubProperties').style.display  = tab === 'properties' ? '' : 'none';
-  document.getElementById('portSubHoldingsBtn').classList.toggle('active',    tab === 'holdings');
-  document.getElementById('portSubPropertiesBtn').classList.toggle('active',  tab === 'properties');
   if (tab === 'holdings') {
     const d = portLoad();
     renderPortYear(d);
