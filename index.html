@@ -1738,6 +1738,30 @@ label { color: #5C5955 !important; }
 .sync-pill:hover { border-color:#8A8582; }
 .sync-pill.active { background:#1C1C1A; color:#fff; border-color:#1C1C1A; }
 .sync-pill:disabled { opacity:.4; cursor:default; }
+
+/* Portfolio sub-tab pills */
+.port-sub-pills { display:flex; gap:8px; margin-bottom:4px; }
+.port-sub-pill { font-size:14px; font-weight:600; padding:9px 22px; border-radius:22px; border:1px solid #D8D4CC; background:#fff; color:#5C5955; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.port-sub-pill:hover { border-color:#8A8582; background:#F5F2EE; color:#1C1C1A; }
+.port-sub-pill.active { background:#1C1C1A; color:#fff; border-color:#1C1C1A; }
+
+/* Portfolio nav dropdown */
+.nav-port-wrap { position:relative; }
+.nav-port-dropdown {
+  display:none; position:absolute; top:calc(100% + 6px); left:50%;
+  transform:translateX(-50%); background:#fff; border:1px solid #D8D4CC;
+  border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:130px;
+  padding:4px 0; z-index:300;
+}
+.nav-port-wrap:hover .nav-port-dropdown { display:block; }
+.nav-drop-item {
+  display:block !important; width:100% !important; text-align:left !important;
+  padding:9px 16px !important; font-size:13px !important; color:#3C3A36 !important;
+  background:none !important; border:none !important; cursor:pointer !important;
+  border-radius:0 !important; font-weight:500 !important;
+}
+.nav-drop-item:hover { background:#F5F2EE !important; color:#1C1C1A !important; }
+
 /* Input locked by sync */
 .input-synced { background:#F2F0EA !important; color:#5C5955 !important; pointer-events:none; }
 
@@ -2531,7 +2555,13 @@ select.exp-input { cursor:pointer; }
       <div class="nav">
         <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
         <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
-        <button id="btnPortfolio"   onclick="showPortfolioTab()">Portfolio</button>
+        <div class="nav-port-wrap">
+          <button id="btnPortfolio" onclick="showPortfolioTab()">Portfolio ▾</button>
+          <div class="nav-port-dropdown">
+            <button class="nav-drop-item" onclick="showPortfolioTab()">Holdings</button>
+            <button class="nav-drop-item" onclick="showPropertiesTab()">Properties</button>
+          </div>
+        </div>
         <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
       <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
@@ -3152,9 +3182,9 @@ select.exp-input { cursor:pointer; }
   <div style="display:flex; flex-direction:column; gap:20px;">
 
     <!-- Sub-tab pills -->
-    <div class="sync-pills" style="margin-bottom:-8px;">
-      <button class="sync-pill active" id="portSubHoldingsBtn" onclick="switchPortSubTab('holdings')">Holdings</button>
-      <button class="sync-pill" id="portSubPropertiesBtn" onclick="switchPortSubTab('properties')">Properties</button>
+    <div class="port-sub-pills">
+      <button class="port-sub-pill active" id="portSubHoldingsBtn" onclick="switchPortSubTab('holdings')">Holdings</button>
+      <button class="port-sub-pill" id="portSubPropertiesBtn" onclick="switchPortSubTab('properties')">Properties</button>
     </div>
 
     <!-- HOLDINGS sub-tab -->
@@ -8596,8 +8626,8 @@ function switchPortSubTab(tab){
   _portSubTab = tab;
   document.getElementById('portSubHoldings').style.display    = tab === 'holdings'   ? '' : 'none';
   document.getElementById('portSubProperties').style.display  = tab === 'properties' ? '' : 'none';
-  document.getElementById('portSubHoldingsBtn').classList.toggle('active',   tab === 'holdings');
-  document.getElementById('portSubPropertiesBtn').classList.toggle('active', tab === 'properties');
+  document.getElementById('portSubHoldingsBtn').classList.toggle('active',    tab === 'holdings');
+  document.getElementById('portSubPropertiesBtn').classList.toggle('active',  tab === 'properties');
   if (tab === 'holdings') {
     const d = portLoad();
     renderPortYear(d);
