@@ -8889,8 +8889,24 @@ function updatePortSummary(){
 function renderPortHistoryChart(data){
   const wrap = document.getElementById('portHistoryContent');
   if(!wrap) return;
-  const monthly = data.monthly || {};
-  const assets  = data.assets  || [];
+  const today   = todayMonthStr();
+  const monthly = { ...(data.monthly||{}) };
+  let assets    = data.assets || [];
+
+  // Inject the live Properties-model fallback into the current month
+  // if no property asset has a manually tracked value that month —
+  // keeps the chart consistent with the KPI strip and footer total.
+  const todayVals = { ...(monthly[today]||{}) };
+  const hasManualProperty = assets.some(a => a.type === 'property' && (todayVals[a.id]||0) > 0);
+  if(!hasManualProperty){
+    const modelTotal = propModelTotal();
+    if(modelTotal > 0){
+      todayVals['__prop_fallback__'] = modelTotal;
+      monthly[today] = todayVals;
+      assets = [...assets, { id:'__prop_fallback__', type:'property' }];
+    }
+  }
+
   const months  = Object.keys(monthly)
     .filter(m => assets.some(a => (monthly[m][a.id]||0) > 0))
     .sort();
