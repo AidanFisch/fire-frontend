@@ -1721,6 +1721,7 @@ label { color: #5C5955 !important; }
 .port-totals-row td { background:#F8F7F4 !important; border-top:2px solid #E8E4DE; padding:5px 5px; font-size:11px; font-weight:600; }
 .port-cell-input { width:100%; border:none !important; background:transparent !important; text-align:right; font-size:12px; padding:3px 2px; box-sizing:border-box; }
 .port-cell-input:focus { background:#fff !important; border:1px solid #1D9E75 !important; border-radius:3px; outline:none; box-shadow:0 0 0 2px rgba(29,158,117,.15); }
+.port-cell-hint { font-size:9.5px; color:#8A8582; text-align:right; line-height:1.2; padding:0 2px; white-space:nowrap; }
 /* Name/type inputs inside fixed-width cells */
 .port-year-table td:first-child .exp-input,
 .port-year-table td:nth-child(2) .exp-input { width:100%; box-sizing:border-box; }
@@ -7290,6 +7291,14 @@ function fmtDollar(v){
   const abs = Math.abs(Math.round(v));
   return (v < 0 ? '-$' : '$') + abs.toLocaleString();
 }
+function fmtDollarShort(v){
+  if(v === null || v === undefined) return '—';
+  const abs = Math.abs(Math.round(v));
+  const sign = v < 0 ? '-$' : '$';
+  if(abs >= 1000000) return sign + (abs/1000000).toFixed(abs % 1000000 === 0 ? 0 : 1) + 'm';
+  if(abs >= 1000)    return sign + Math.round(abs/1000) + 'k';
+  return sign + abs;
+}
 
 function isPastMonth(monthStr){
   const n = new Date();
@@ -8565,6 +8574,11 @@ const PORT_TYPES = [
 ];
 const PORT_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+/** Live total of current_value across property model cards (Properties sub-tab). */
+function propModelTotal(){
+  return (state.property_list || []).reduce((s,p) => s + (toNumber(p.current_value) || 0), 0);
+}
+
 let _portYear = new Date().getFullYear();
 let _portChartInstance = null;
 let _portUnlockedMonths = new Set(); // past months user has confirmed to unlock
@@ -8596,12 +8610,20 @@ function portSave(data){
   _queueSync();
 }
 
-/** Returns assets with .value set from current month's stored data */
+/** Returns assets with .value set from current month's stored data.
+ *  If no property-type asset has a manually tracked value this month,
+ *  falls back to the live Properties model total. */
 function portGetCurrentData(){
   const d = portLoad();
   const month = todayMonthStr();
   const mv = (d.monthly||{})[month] || {};
-  return (d.assets||[]).map(a => ({ ...a, value: mv[a.id] || 0 }));
+  const assets = (d.assets||[]).map(a => ({ ...a, value: mv[a.id] || 0 }));
+  const hasManualProperty = assets.some(a => a.type === 'property' && a.value > 0);
+  if (!hasManualProperty) {
+    const modelTotal = propModelTotal();
+    if (modelTotal > 0) assets.push({ id:'__prop_fallback__', type:'property', name:'Property (from model)', value: modelTotal });
+  }
+  return assets;
 }
 
 function portTotals(assets){
@@ -8728,17 +8750,25 @@ function _appendPortAssetRow(asset, data, months, today){
   tr.className = 'port-asset-row';
   tr.dataset.portId = asset.id;
   const cells = months.map(m => {
-    const isPast   = m < today;
-    const isFuture = m > today;
-    const locked   = isPast && !_portUnlockedMonths.has(m);
-    const val      = ((data.monthly||{})[m]||{})[asset.id] || '';
+    const isPast    = m < today;
+    const isFuture  = m > today;
+    const isCurrent = m === today;
+    const locked    = isPast && !_portUnlockedMonths.has(m);
+    const val       = ((data.monthly||{})[m]||{})[asset.id] || '';
     if(isFuture) return `<td class="port-cell-future"></td>`;
     const lockedClass = locked ? 'port-cell-locked' : '';
-    const readOnly    = locked ? 'readonly' : '';
-    const onClick     = locked ? `onclick="portUnlockMonth('${m}')"` : '';
+    const readOnly     = locked ? 'readonly' : '';
+    const onClick      = locked ? `onclick="portUnlockMonth('${m}')"` : '';
+    let hint = '';
+    if(isCurrent && asset.type === 'property'){
+      const modelTotal = propModelTotal();
+      if(modelTotal > 0){
+        hint = `<div class="port-cell-hint" style="display:${val?'none':''}" title="Live total from Properties tab — used automatically when this cell is blank">~${fmtDollarShort(modelTotal)}</div>`;
+      }
+    }
     return `<td><input class="port-cell-input ${lockedClass}" type="number" min="0" step="1000"
       value="${val}" ${readOnly} ${onClick}
-      data-aid="${asset.id}" data-month="${m}" oninput="portCellChanged(this)"></td>`;
+      data-aid="${asset.id}" data-month="${m}" oninput="portCellChanged(this); portToggleHint(this)">${hint}</td>`;
   });
   tr.innerHTML = `
     <td><input class="exp-input port-name" type="text" placeholder="Asset name"
@@ -8753,15 +8783,26 @@ function _renderPortFoot(data, months){
   const foot = document.getElementById('portYearFoot');
   if(!foot) return;
   const assets = data.assets || [];
+  const today  = todayMonthStr();
   const tots = months.map(m => {
     const mv = (data.monthly||{})[m] || {};
-    return assets.reduce((s,a) => s+(mv[a.id]||0), 0);
+    let total = assets.reduce((s,a) => s+(mv[a.id]||0), 0);
+    if(m === today){
+      const hasManualProperty = assets.some(a => a.type === 'property' && (mv[a.id]||0) > 0);
+      if(!hasManualProperty) total += propModelTotal();
+    }
+    return total;
   });
   foot.innerHTML = `<tr class="port-totals-row">
     <td colspan="2" style="text-align:left; color:#1C1C1A;">Net Worth</td>
     ${tots.map(t => `<td style="color:${t>0?'#059669':'#A8A4A0'};">${t>0?'$'+Math.round(t/1000)+'k':'—'}</td>`).join('')}
     <td></td>
   </tr>`;
+}
+
+function portToggleHint(input){
+  const hint = input.parentElement.querySelector('.port-cell-hint');
+  if(hint) hint.style.display = input.value ? 'none' : '';
 }
 
 function portUnlockMonth(month){
