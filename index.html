@@ -141,13 +141,12 @@
       };
     };
 
-    window._fbSaveSubscription = async (subData) => {
-      const user = auth.currentUser;
-      if (!user) return;
-      await setDoc(doc(db, 'profiles', user.uid), {
-        subscription: subData
-      }, { merge: true });
-    };
+    // NOTE: there is intentionally no window._fbSaveSubscription. The
+    // subscription field is written exclusively by the Stripe webhook via
+    // the Firebase Admin SDK (fire-api), which bypasses Firestore rules.
+    // A client-writable path here would let any signed-in user grant
+    // themselves Pro by calling it from devtools — see firestore.rules,
+    // which also denies client writes to this field as defense in depth.
 
     // Broadcast auth state changes as DOM events so main script can react
     onAuthStateChanged(auth, user => {
@@ -6981,10 +6980,11 @@ async function authStartCheckout() {
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
-        price_id:    STRIPE_PRICES[_billingCycle],
-        email:       _currentUser.email,
-        success_url: window.location.origin + window.location.pathname,
-        cancel_url:  window.location.origin + window.location.pathname
+        price_id:     STRIPE_PRICES[_billingCycle],
+        email:        _currentUser.email,
+        firebase_uid: _currentUser.uid,
+        success_url:  window.location.origin + window.location.pathname,
+        cancel_url:   window.location.origin + window.location.pathname
       })
     });
     clearTimeout(hintTimer);
@@ -7012,14 +7012,15 @@ async function _handleCheckoutSuccess(sessionId) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Server error ${res.status}`);
     if (data.paid) {
-      await window._fbSaveSubscription?.({
+      // Optimistic local-only UI update — the Stripe webhook is the source
+      // of truth and writes the real subscription doc server-side via the
+      // Firebase Admin SDK. We never write subscription from the client.
+      _loadProStatus({
         tier:              'pro',
-        stripeSessionId:   sessionId,
         subscriptionId:    data.subscription_id,
         status:            data.subscription_status,
         currentPeriodEnd:  data.current_period_end
       });
-      _proStatus = true;
       _updatePlanBadge();
       setTimeout(() => showToast('Welcome to Pro!', 'All features unlocked.', 6000), 800);
     }
