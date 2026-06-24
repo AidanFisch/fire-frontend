@@ -2257,6 +2257,43 @@ select.exp-input { cursor:pointer; }
 .scen-diff-better { color:#059669; font-size:10px; }
 .scen-diff-worse  { color:#E11D48; font-size:10px; }
 
+  /* ---- Site footer (always visible — landing + app) ---- */
+  .site-footer {
+    max-width: 1180px; margin: 8px auto 0; padding: 18px 18px 30px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 10px; font-size: 12px; color: #8A8582; border-top: 1px solid #E8E4DE;
+  }
+  .site-footer-links { display: flex; gap: 14px; flex-wrap: wrap; }
+  .site-footer a { color: #5C5955; text-decoration: none; cursor: pointer; }
+  .site-footer a:hover { text-decoration: underline; color: #1C1C1A; }
+
+  /* ---- Legal modal (Privacy / Terms / Contact) ---- */
+  .legal-box {
+    background: #fff; border-radius: 16px;
+    padding: 32px; width: 640px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 64px); overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,.2);
+    position: relative;
+  }
+  .legal-close {
+    position: absolute; top: 16px; right: 18px; background: none; border: none;
+    font-size: 22px; color: #8A8582; cursor: pointer; line-height: 1;
+  }
+  .legal-close:hover { color: #1C1C1A; }
+  .legal-tabs { display: flex; gap: 4px; border-bottom: 2px solid #F0EDE8; margin-bottom: 18px; flex-wrap: wrap; }
+  .legal-tab {
+    border: none; background: none; padding: 8px 4px; margin-right: 18px;
+    font-size: 13px; font-weight: 600; color: #8A8582; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+  }
+  .legal-tab.active { color: #1C1C1A; border-color: #1C1C1A; }
+  .legal-panel h3 { font-size: 17px; margin: 0 0 4px; color: #1C1C1A; }
+  .legal-panel .legal-updated { font-size: 12px; color: #8A8582; margin-bottom: 16px; }
+  .legal-panel h4 { font-size: 13.5px; margin: 20px 0 6px; color: #1C1C1A; }
+  .legal-panel p, .legal-panel li { font-size: 13px; line-height: 1.6; color: #3C3A36; }
+  .legal-panel ul { margin: 4px 0 4px 18px; padding: 0; }
+  .legal-panel a { color: #059669; }
+
   /* ---- Auth modal ---- */
   .auth-backdrop {
     position: fixed; inset: 0;
@@ -3301,6 +3338,114 @@ select.exp-input { cursor:pointer; }
 
 </div><!-- /.wrap -->
 
+<!-- Site footer — always visible, landing + app -->
+<footer class="site-footer">
+  <div>© 2026 WealthModel · General information only — not financial advice. Educational purposes only.</div>
+  <div class="site-footer-links">
+    <a onclick="openLegalModal('privacy')">Privacy Policy</a>
+    <a onclick="openLegalModal('terms')">Terms of Service</a>
+    <a onclick="openLegalModal('contact')">Contact</a>
+  </div>
+</footer>
+
+<!-- Legal modal: Privacy Policy / Terms of Service / Contact -->
+<div id="legalModal" class="auth-backdrop" style="display:none;"
+     onclick="if(event.target===this)closeLegalModal()">
+  <div class="legal-box">
+    <button class="legal-close" onclick="closeLegalModal()">×</button>
+    <div class="legal-tabs">
+      <button class="legal-tab" id="legalTabPrivacy" onclick="showLegalPanel('privacy')">Privacy Policy</button>
+      <button class="legal-tab" id="legalTabTerms"   onclick="showLegalPanel('terms')">Terms of Service</button>
+      <button class="legal-tab" id="legalTabContact" onclick="showLegalPanel('contact')">Contact</button>
+    </div>
+
+    <div id="legalPanelPrivacy" class="legal-panel">
+      <h3>Privacy Policy</h3>
+      <div class="legal-updated">Last updated: June 2026</div>
+      <p>WealthModel ("we", "us") is operated by an individual based in Australia. This policy explains what information we collect when you use WealthModel and how it's used.</p>
+
+      <h4>Information we collect</h4>
+      <ul>
+        <li><strong>Account information</strong> — your email address and, if you sign in with Google, your name and profile photo. Handled by Firebase Authentication (Google).</li>
+        <li><strong>Financial planning data you enter</strong> — income, expenses, property details, superannuation balances, budget entries, and similar figures you type into the calculator. This is used solely to run your calculations and to save your plan so it's there next time you sign in.</li>
+        <li><strong>Payment information</strong> — handled entirely by Stripe. We never see or store your card details ourselves.</li>
+        <li><strong>Basic usage/technical data</strong> — standard logs (e.g. IP address, browser type) collected automatically by our hosting providers.</li>
+      </ul>
+
+      <h4>How we use your information</h4>
+      <p>To operate the service (run your calculations, sync your plan across devices), process subscription payments, and respond to support requests. We do not sell your data, and we do not use your financial figures for advertising.</p>
+
+      <h4>Third-party services</h4>
+      <ul>
+        <li><strong>Firebase / Google Cloud</strong> — authentication and data storage (Firestore)</li>
+        <li><strong>Stripe</strong> — subscription billing</li>
+        <li><strong>Render</strong> — backend hosting for the calculation engine</li>
+        <li><strong>GitHub Pages</strong> — frontend hosting</li>
+      </ul>
+      <p>Each of these providers has its own privacy policy governing how they handle data on our behalf.</p>
+
+      <h4>Data storage &amp; security</h4>
+      <p>Your data is stored using Google Cloud infrastructure (Firestore). We take reasonable steps to protect it, but no method of storage or transmission is ever 100% secure.</p>
+
+      <h4>Cookies &amp; local storage</h4>
+      <p>We use your browser's local storage to keep you signed in and remember your preferences. We don't use third-party advertising trackers.</p>
+
+      <h4>Your rights</h4>
+      <p>You can access, correct, or delete your data at any time. To request deletion of your account and all associated data, email us using the Contact tab.</p>
+
+      <h4>Children's privacy</h4>
+      <p>WealthModel is not directed at, and we do not knowingly collect data from, anyone under 16.</p>
+
+      <h4>Changes to this policy</h4>
+      <p>We may update this policy from time to time. Continuing to use WealthModel after a change means you accept the updated policy.</p>
+    </div>
+
+    <div id="legalPanelTerms" class="legal-panel" style="display:none;">
+      <h3>Terms of Service</h3>
+      <div class="legal-updated">Last updated: June 2026</div>
+
+      <h4>1. Acceptance of terms</h4>
+      <p>By using WealthModel, you agree to these terms. If you don't agree, please don't use the service.</p>
+
+      <h4>2. What WealthModel is</h4>
+      <p><strong>WealthModel provides general information only and is not financial, legal, taxation, or investment advice, and is for educational purposes only.</strong> The calculations and projections are estimates based on the figures and assumptions you enter — they are not guarantees of any future outcome. You should not rely on WealthModel to make financial decisions, and should consult a licensed financial adviser, accountant, or other qualified professional before acting on anything you see here.</p>
+
+      <h4>3. Your account</h4>
+      <p>You're responsible for keeping your login details secure and for the accuracy of the information you enter. You must be at least 16 years old to create an account.</p>
+
+      <h4>4. Subscriptions &amp; billing</h4>
+      <p>WealthModel offers a free tier with limited features and a paid "Pro" tier billed monthly or annually via Stripe. Subscriptions renew automatically until cancelled. You can cancel anytime — your Pro access continues until the end of the period you've already paid for, and we don't provide partial refunds for unused time.</p>
+
+      <h4>5. Acceptable use</h4>
+      <p>You agree not to use WealthModel for any unlawful purpose, attempt to breach its security, or reverse-engineer the underlying software.</p>
+
+      <h4>6. Your data, our software</h4>
+      <p>The financial data you enter is yours. The WealthModel software, branding, and calculation methodology belong to us.</p>
+
+      <h4>7. No warranty</h4>
+      <p>WealthModel is provided "as is". While we aim for accuracy, calculations may contain errors or rely on assumptions that don't match your real circumstances. We make no warranty that the service will be uninterrupted or error-free.</p>
+
+      <h4>8. Limitation of liability</h4>
+      <p>To the maximum extent permitted by law, we are not liable for any financial loss or other damages arising from decisions made based on WealthModel's output.</p>
+
+      <h4>9. Termination</h4>
+      <p>We may suspend or terminate accounts that violate these terms.</p>
+
+      <h4>10. Governing law</h4>
+      <p>These terms are governed by the laws of Australia.</p>
+
+      <h4>11. Changes to these terms</h4>
+      <p>We may update these terms from time to time. Continuing to use WealthModel after a change means you accept the updated terms.</p>
+    </div>
+
+    <div id="legalPanelContact" class="legal-panel" style="display:none;">
+      <h3>Contact</h3>
+      <p>For support, billing questions, bug reports, or general feedback, email us at:</p>
+      <p style="font-size:16px; font-weight:700;"><a href="mailto:aidan.fisch@gmail.com">aidan.fisch@gmail.com</a></p>
+      <p>We aim to respond within a few business days.</p>
+    </div>
+  </div>
+</div>
 
 <!-- Info tooltip (shared, positioned by JS) -->
 <div id="infoTooltip" role="tooltip">
@@ -6716,6 +6861,24 @@ function _queueSync() {
 }
 
 // ---- Auth modal UI ----
+// ---- Legal modal (Privacy / Terms / Contact) ----
+function openLegalModal(which) {
+  document.getElementById('legalModal').style.display = 'flex';
+  showLegalPanel(which || 'privacy');
+}
+function closeLegalModal() {
+  const m = document.getElementById('legalModal');
+  if (m) m.style.display = 'none';
+}
+function showLegalPanel(which) {
+  const panels = { privacy: 'legalPanelPrivacy', terms: 'legalPanelTerms', contact: 'legalPanelContact' };
+  const tabs   = { privacy: 'legalTabPrivacy',   terms: 'legalTabTerms',   contact: 'legalTabContact' };
+  Object.keys(panels).forEach(k => {
+    document.getElementById(panels[k]).style.display = (k === which) ? '' : 'none';
+    document.getElementById(tabs[k]).classList.toggle('active', k === which);
+  });
+}
+
 function openAuthModal() {
   document.getElementById('authModal').style.display = 'flex';
   setTimeout(() => document.getElementById('authEmail')?.focus(), 60);
