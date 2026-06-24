@@ -81,6 +81,7 @@
              GoogleAuthProvider, signInWithPopup }          from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc,
              serverTimestamp }                            from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getAnalytics, logEvent }                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
 
     const app  = initializeApp({
       apiKey:            "AIzaSyCRpRygCMyE3qnTzTBLiZbdjIwc8PqYJ5c",
@@ -88,10 +89,17 @@
       projectId:         "wealthmodel-976c6",
       storageBucket:     "wealthmodel-976c6.firebasestorage.app",
       messagingSenderId: "1003822457530",
-      appId:             "1:1003822457530:web:08d1bb85d959f3ee1f5883"
+      appId:             "1:1003822457530:web:08d1bb85d959f3ee1f5883",
+      measurementId:     "G-E7HERQWGFJ"
     });
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const auth      = getAuth(app);
+    const db        = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    // Expose a simple logger so non-module code can fire analytics events
+    window._logEvent = (name, params) => {
+      try { logEvent(analytics, name, params || {}); } catch(_) {}
+    };
 
     // Expose auth actions so non-module code can call them
     window._fbSignIn   = (e, p) => signInWithEmailAndPassword(auth, e, p);
@@ -4241,6 +4249,8 @@ function showTab(name){
   if(tabEl) tabEl.classList.add("active");
   const btnEl = document.getElementById(`btn${name.charAt(0).toUpperCase()+name.slice(1)}`);
   if(btnEl) btnEl.classList.add("active");
+  // SPA has no real page navigation — log a page_view manually per tab switch
+  window._logEvent?.('page_view', { page_title: name, page_location: window.location.href + '#' + name });
 }
 
 let _appEntered = false;
@@ -6905,6 +6915,7 @@ async function authSignIn() {
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     await window._fbSignIn(email, pass);
+    window._logEvent?.('login', { method: 'password' });
   } catch(e) {
     errEl.textContent = _fbErrMsg(e);
   } finally {
@@ -6923,6 +6934,7 @@ async function authRegister() {
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     await window._fbSignUp(email, pass);
+    window._logEvent?.('sign_up', { method: 'password' });
   } catch(e) {
     errEl.textContent = _fbErrMsg(e);
   } finally {
@@ -6944,6 +6956,7 @@ async function authSignOut() {
 async function authGoogleSignIn() {
   try {
     await window._fbGoogleIn();
+    window._logEvent?.('login', { method: 'google' });
   } catch(e) {
     if (e.code !== 'auth/popup-closed-by-user') {
       showToast('Sign-in error', _fbErrMsg(e));
@@ -7129,6 +7142,12 @@ async function authStartCheckout() {
   const btn = document.getElementById('upgradeCheckoutBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Redirecting…'; }
 
+  window._logEvent?.('begin_checkout', {
+    currency: 'AUD',
+    value:    _billingCycle === 'annual' ? 50 : 5,
+    items:    [{ item_id: STRIPE_PRICES[_billingCycle], item_name: `Pro (${_billingCycle})` }]
+  });
+
   // After 6s without a response, hint that the server is waking up (Render free tier)
   const hintTimer = setTimeout(() => {
     if (btn && btn.textContent === 'Redirecting…') btn.textContent = 'Waking server… (~30s)';
@@ -7185,6 +7204,11 @@ async function _handleCheckoutSuccess(sessionId) {
         currentPeriodEnd:  data.current_period_end
       });
       _updatePlanBadge();
+      window._logEvent?.('purchase', {
+        currency:      'AUD',
+        value:         _billingCycle === 'annual' ? 50 : 5,
+        transaction_id: sessionId
+      });
       setTimeout(() => showToast('Welcome to Pro!', 'All features unlocked.', 6000), 800);
     }
   } catch(e) {
