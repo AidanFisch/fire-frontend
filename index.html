@@ -1276,12 +1276,22 @@ th{
 @media (max-width: 980px){ .hero-chart-card{ margin-top: 8px; } }
 .hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8A8582; }
 .hero-chart-caption { font-size: 11.5px; color: #8A8582; margin-top: 2px; line-height: 1.4; max-width: 300px; }
+.hero-chart-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 10.5px; color: #5C5955; }
+.hero-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.hcl-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 .hero-chart-svg { width: 100%; height: auto; display: block; margin-top: 10px; position: relative; z-index: 1; }
 .hero-chart-dynamic {
   opacity: 1; animation: heroDynamicFade 4.5s ease infinite;
 }
 .hero-chart-line {
   fill: none; stroke: #059669; stroke-width: 3; stroke-linecap: round;
+}
+.hero-chart-savings {
+  fill: none; stroke: #C8C4BC; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 5 4;
+}
+.hero-milestone-badge { opacity: 0; }
+.hero-milestone-badge.pop {
+  animation: heroMilestonePop 1.1s ease forwards;
 }
 .hero-chart-line2 {
   fill: none; stroke: #6EE7B7; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 4 5;
@@ -1330,6 +1340,13 @@ th{
 @keyframes heroDynamicFade {
   0%, 92% { opacity: 1; }
   100%    { opacity: 0; }
+}
+@keyframes heroMilestonePop {
+  0%   { opacity: 0; transform: scale(.5) translateY(6px); }
+  18%  { opacity: 1; transform: scale(1.15) translateY(0); }
+  32%  { opacity: 1; transform: scale(1) translateY(0); }
+  75%  { opacity: 1; transform: scale(1) translateY(-10px); }
+  100% { opacity: 0; transform: scale(.9) translateY(-16px); }
 }
 @keyframes heroLine2Draw {
   0%, 66%  { stroke-dashoffset: 220; opacity: 0; }
@@ -2853,6 +2870,10 @@ select.exp-input { cursor:pointer; }
         <div class="hero-chart-card">
           <div class="hero-chart-label">Net worth projection</div>
           <div class="hero-chart-caption">Your path to FIRE — Financial Independence, Retire Early</div>
+          <div class="hero-chart-legend">
+            <span><i class="hcl-dot" style="background:#059669;"></i>Investing</span>
+            <span><i class="hcl-dot" style="background:#C8C4BC;"></i>Just saving cash</span>
+          </div>
           <div class="hero-stat-chip">
             <div class="hsc-label">Net worth</div>
             <div class="hsc-val" id="heroStatVal">$0</div>
@@ -2879,9 +2900,25 @@ select.exp-input { cursor:pointer; }
               <text x="390" y="222" text-anchor="end"    font-size="9.5" fill="#B0ABA6">2046</text>
             </g>
             <g class="hero-chart-dynamic">
+              <path class="hero-chart-savings" id="heroSavingsPath" d="" />
               <path class="hero-chart-fill" id="heroFillPath" fill="url(#heroGrad)" stroke="none" d="" />
               <path class="hero-chart-line" id="heroLinePath" d="" />
+              <circle id="heroSaveTipDot" cx="10" cy="205" r="3.5" fill="#8A8582" />
               <circle id="heroTipDot" cx="10" cy="205" r="4.5" fill="#059669" />
+              <g id="heroInvestLabelAnchor" class="hero-tip-label">
+                <rect x="6" y="-21" width="68" height="16" rx="8" fill="#059669" />
+                <text x="40" y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Investing</text>
+              </g>
+              <g id="heroSaveLabelAnchor" class="hero-tip-label">
+                <rect x="6" y="6" width="82" height="16" rx="8" fill="#8A8582" />
+                <text x="47" y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Just saving</text>
+              </g>
+              <g id="heroMilestoneAnchor">
+                <g class="hero-milestone-badge" id="heroMilestoneBadge">
+                  <rect x="-32" y="-10" width="64" height="20" rx="10" fill="#1C1C1A" />
+                  <text x="0" y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" id="heroMilestoneText">$250K</text>
+                </g>
+              </g>
             </g>
             <path class="hero-chart-line2" d="M220 69 C 260 56, 310 44, 390 38" />
             <line class="hero-chart-drop" x1="220" y1="69" x2="220" y2="205" />
@@ -2903,18 +2940,26 @@ select.exp-input { cursor:pointer; }
         </div>
         <script>
           (function(){
-            var statEl   = document.getElementById('heroStatVal');
-            var linePath = document.getElementById('heroLinePath');
-            var fillPath = document.getElementById('heroFillPath');
-            var tipDot   = document.getElementById('heroTipDot');
-            var axisLbl  = document.getElementById('heroAxisLabel');
-            var axisLbl2 = document.getElementById('heroAxisLabel2');
-            var axisLbl3 = document.getElementById('heroAxisLabel3');
+            var statEl    = document.getElementById('heroStatVal');
+            var linePath  = document.getElementById('heroLinePath');
+            var fillPath  = document.getElementById('heroFillPath');
+            var savePath  = document.getElementById('heroSavingsPath');
+            var tipDot    = document.getElementById('heroTipDot');
+            var saveTipDot = document.getElementById('heroSaveTipDot');
+            var investLbl = document.getElementById('heroInvestLabelAnchor');
+            var saveLbl   = document.getElementById('heroSaveLabelAnchor');
+            var axisLbl   = document.getElementById('heroAxisLabel');
+            var axisLbl2  = document.getElementById('heroAxisLabel2');
+            var axisLbl3  = document.getElementById('heroAxisLabel3');
+            var msAnchor  = document.getElementById('heroMilestoneAnchor');
+            var msBadge   = document.getElementById('heroMilestoneBadge');
+            var msText    = document.getElementById('heroMilestoneText');
             if (!statEl || !linePath) return;
 
             var CYCLE        = 4500;     // ms — one full loop
             var DRAW_END     = 0.55;     // fraction of cycle spent actually drawing
             var TARGET       = 1240000;  // dollar value at "FIRE achieved"
+            var SAVE_TARGET  = 380000;   // "just saving cash" final value — no compounding
             var VALUE_POWER  = 1.8;      // >1 = accelerating compound-growth shape for the money
             var FLOOR_AXIS   = 500000;   // y-axis starts scaled to $500K
             var PEAK_AXIS    = TARGET * 1.18; // final axis max (~18% headroom above TARGET)
@@ -2924,43 +2969,95 @@ select.exp-input { cursor:pointer; }
                                           // up to a purely-proportional axis
             var X0 = 10, X1 = 220, BASELINE_Y = 205, TOP_Y = 45;
             var SAMPLES = 48;
+            var MILESTONES = [250000, 500000, 750000, 1000000];
             var start = null;
+            var lastElapsed = 0;
+            var hitMilestones = {};
 
             // Single source of truth for "how much money at time t" (t: 0→1), and for
             // the axis scale at time t. The line, the counter, and the axis label all
             // read from these same two functions — they can't drift apart from each other.
             function valueAt(t){ return TARGET * Math.pow(t, VALUE_POWER); }
+            function savingsValueAt(t){ return SAVE_TARGET * t; }
             function axisMaxAt(t){ return FLOOR_AXIS + (PEAK_AXIS - FLOOR_AXIS) * Math.pow(t, AXIS_POWER); }
             function yFor(v, axisMax){ return BASELINE_Y - (v / axisMax) * (BASELINE_Y - TOP_Y); }
+            // Deterministic small wiggle (function of t, not random per-frame) so the
+            // curve has market-chart texture without jittering differently each frame.
+            function noiseAt(t, seedMul){
+              return Math.sin(t * 41.3 * seedMul) * 2.0 + Math.sin(t * 97.1 * seedMul + 1.7) * 1.1;
+            }
             function fmtDollar(v){ return '$' + Math.round(v).toLocaleString(); }
             function fmtAxis(v){
               var rounded = Math.round(v / 100000) * 100000; // nearest $100K
               if (rounded >= 1000000) return '$' + (rounded/1000000).toFixed(1) + 'M';
               return '$' + (rounded/1000) + 'K';
             }
+            // Milestone values are already clean round numbers — format exactly,
+            // don't run them through fmtAxis's $100K rounding (250K was showing as "$300K").
+            function fmtMilestone(v){
+              if (v >= 1000000) return '$' + (v/1000000) + 'M';
+              return '$' + (v/1000) + 'K';
+            }
+            // Milestones can be crossed faster than the pop animation takes to play
+            // (every ~350-450ms vs a ~0.7s animation), so queue them instead of
+            // restarting mid-flight — otherwise earlier ones never become visible.
+            var msQueue = [];
+            var msPlaying = false;
+            function popMilestone(value, x, y){
+              msQueue.push({ value: value, x: x, y: y });
+              playNextMilestone();
+            }
+            function playNextMilestone(){
+              if (msPlaying || msQueue.length === 0) return;
+              msPlaying = true;
+              var item = msQueue.shift();
+              msText.textContent = fmtMilestone(item.value);
+              msAnchor.setAttribute('transform', 'translate(' + item.x.toFixed(1) + ',' + (item.y - 16).toFixed(1) + ')');
+              msBadge.classList.remove('pop');
+              void msBadge.offsetWidth; // force reflow so the animation can re-trigger
+              msBadge.classList.add('pop');
+              setTimeout(function(){ msPlaying = false; playNextMilestone(); }, 700);
+            }
 
             function tick(ts){
               if (start === null) start = ts;
               var elapsed = (ts - start) % CYCLE;
+              if (elapsed < lastElapsed) hitMilestones = {}; // new cycle — reset milestone tracking
+              lastElapsed = elapsed;
               var drawT   = Math.min(elapsed / (CYCLE * DRAW_END), 1);
               var curValue   = valueAt(drawT);
               var curAxisMax = axisMaxAt(drawT);
 
               var n = Math.max(2, Math.round(SAMPLES * drawT));
-              var d = '';
+              var d = '', d2 = '';
               for (var i = 0; i <= n; i++){
                 var t = drawT * (i / n);
-                var v = valueAt(t);
                 var x = X0 + (X1 - X0) * t;
-                var y = yFor(v, curAxisMax);
-                d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+                var y  = yFor(valueAt(t), curAxisMax) + noiseAt(t, 1);
+                var y2 = yFor(savingsValueAt(t), curAxisMax) + noiseAt(t, 1.6);
+                d  += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+                d2 += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y2.toFixed(1) + ' ';
               }
               linePath.setAttribute('d', d.trim());
+              savePath.setAttribute('d', d2.trim());
               var tipX = X0 + (X1 - X0) * drawT;
-              var tipY = yFor(curValue, curAxisMax);
+              var tipY = yFor(curValue, curAxisMax) + noiseAt(drawT, 1);
+              var saveTipY = yFor(savingsValueAt(drawT), curAxisMax) + noiseAt(drawT, 1.6);
               fillPath.setAttribute('d', d.trim() + ' L ' + tipX.toFixed(1) + ' ' + BASELINE_Y + ' L ' + X0 + ' ' + BASELINE_Y + ' Z');
               tipDot.setAttribute('cx', tipX.toFixed(1));
               tipDot.setAttribute('cy', tipY.toFixed(1));
+              saveTipDot.setAttribute('cx', tipX.toFixed(1));
+              saveTipDot.setAttribute('cy', saveTipY.toFixed(1));
+              investLbl.setAttribute('transform', 'translate(' + tipX.toFixed(1) + ',' + tipY.toFixed(1) + ')');
+              saveLbl.setAttribute('transform', 'translate(' + tipX.toFixed(1) + ',' + saveTipY.toFixed(1) + ')');
+
+              for (var m = 0; m < MILESTONES.length; m++){
+                var mv = MILESTONES[m];
+                if (curValue >= mv && !hitMilestones[mv]){
+                  hitMilestones[mv] = true;
+                  popMilestone(mv, tipX, tipY);
+                }
+              }
 
               statEl.textContent = fmtDollar(curValue);
               if (axisLbl)  axisLbl.textContent  = fmtAxis(curAxisMax);
