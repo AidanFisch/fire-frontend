@@ -3806,13 +3806,8 @@ select.exp-input { cursor:pointer; }
           <span id="portSaveStatus" class="budget-save-status"></span>
         </div>
 
-        <!-- Net worth summary strip (reflects current month) -->
+        <!-- Asset summary strip (reflects current month) -->
         <div class="port-summary-strip">
-          <div class="port-summary-item port-summary-total">
-            <div class="psi-label">Net Worth</div>
-            <div class="psi-val" id="psiTotal">—</div>
-          </div>
-          <div class="port-summary-sep"></div>
           <div class="port-summary-item">
             <div class="psi-label">Cash &amp; Savings</div>
             <div class="psi-val psi-secondary" id="psiCash">—</div>
@@ -3824,10 +3819,6 @@ select.exp-input { cursor:pointer; }
           <div class="port-summary-item">
             <div class="psi-label">Super</div>
             <div class="psi-val psi-secondary" id="psiSuper">—</div>
-          </div>
-          <div class="port-summary-item">
-            <div class="psi-label">Property</div>
-            <div class="psi-val psi-secondary" id="psiProperty">—</div>
           </div>
           <div class="port-summary-item">
             <div class="psi-label">Other</div>
@@ -9799,12 +9790,10 @@ function updatePortSummary(){
   const t   = portTotals(portGetCurrentData());
   const fmt = v => v > 0 ? fmtDollar(v) : '—';
   const s   = id => document.getElementById(id);
-  if(s('psiTotal'))    s('psiTotal').textContent    = t.total > 0 ? fmtDollar(t.total) : '—';
-  if(s('psiCash'))     s('psiCash').textContent     = fmt(t.cash);
-  if(s('psiStocks'))   s('psiStocks').textContent   = fmt(t.stocks);
-  if(s('psiSuper'))    s('psiSuper').textContent    = fmt(t.super);
-  if(s('psiProperty')) s('psiProperty').textContent = fmt(t.property);
-  if(s('psiOther'))    s('psiOther').textContent    = fmt(t.other);
+  if(s('psiCash'))   s('psiCash').textContent   = fmt(t.cash);
+  if(s('psiStocks')) s('psiStocks').textContent = fmt(t.stocks);
+  if(s('psiSuper'))  s('psiSuper').textContent  = fmt(t.super);
+  if(s('psiOther'))  s('psiOther').textContent  = fmt(t.other);
 }
 
 function renderPortHistoryChart(data){
