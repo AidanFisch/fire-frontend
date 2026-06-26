@@ -2847,7 +2847,7 @@ select.exp-input { cursor:pointer; }
             <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75"> Model</tspan>
           </text>
         </svg>
-        <span class="api-dot" id="apiStatusDot"></span>
+        <span class="api-dot" id="apiStatusDot" onclick="pingAPI()" style="cursor:pointer;"></span>
       </div>
       <div class="nav">
         <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
@@ -5973,12 +5973,16 @@ function setApiStatus(ok, text){
     dot.style.boxShadow  = ok
       ? "0 0 0 3px rgba(34,197,94,.20)"
       : "0 0 0 3px rgba(239,68,68,.20)";
-    dot.title = ok ? `API reachable (${text})` : `API issue: ${text} — click ⚙ Settings → "Re-check API"`;
+    dot.title = ok ? `API reachable (${text}) — click to re-check` : `API issue: ${text} — click to re-check`;
   }
   const badge = document.getElementById("apiBadge");
   if(badge) badge.innerHTML = ok
     ? `<span class="ok"></span><span>API reachable (${escapeHtml(text)})</span>`
     : `<span class="no"></span><span>API issue (${escapeHtml(text)})</span>`;
+  const sDot = document.getElementById("settingsApiDot");
+  if(sDot) sDot.textContent = ok ? "🟢" : "🔴";
+  const sText = document.getElementById("settingsApiStatusText");
+  if(sText) sText.textContent = ok ? `Reachable (${text})` : `Issue: ${text}`;
 }
 
 function normalizeInputs(obj){
