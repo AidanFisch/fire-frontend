@@ -801,6 +801,8 @@ th{
 		padding: 3px 10px;
 		flex-shrink: 0;
 	  }
+	  .propTypeBadge-ppor { background: #E6F7F2; color: #059669; }
+	  .propTypeBadge-sixyear { background: #FEF3C7; color: #92400E; text-transform: none; letter-spacing: 0; }
 	  .propYearBadge {
 		font-size: 11px;
 		letter-spacing: 0.02em;
@@ -3464,9 +3466,9 @@ select.exp-input { cursor:pointer; }
                 <div><label>Stock Growth</label><input id="stock_growth" type="number" step="0.001"/></div>
                 <div><label>Stock Yearly Contribution</label><input id="stock_yearly_contribution" type="number" step="1"/></div>
                 <div><label>Starting Stock Value</label><input id="starting_stock_value" type="number" step="1"/></div>
-                <div><label>Stock Drawdown Per Year</label><input id="stock_swr" type="number" step="0.001"/></div>
-                <div><label>Super Drawdown Per Year</label><input id="super_swr" type="number" step="0.001"/></div>
-                <div><label>Super Access Age</label><input id="super_access_age" type="number" step="1"/></div>
+                <div><label>Stock Drawdown Per Year <span class="info-tip" data-tip="swr">?</span></label><input id="stock_swr" type="number" step="0.001"/></div>
+                <div><label>Super Drawdown Per Year <span class="info-tip" data-tip="swr">?</span></label><input id="super_swr" type="number" step="0.001"/></div>
+                <div><label>Super Access Age <span class="info-tip" data-tip="super_access">?</span></label><input id="super_access_age" type="number" step="1"/></div>
                 <div><label>Super Starting Balance</label><input id="super_starting_balance" type="number" step="1"/></div>
                 <div><label>Super Employee Contribution Rate</label><input id="super_sg_rate" type="number" step="0.001"/></div>
                 <div><label>Super Growth</label><input id="super_growth" type="number" step="0.001"/></div>
@@ -3630,7 +3632,7 @@ select.exp-input { cursor:pointer; }
 
     <!-- FIRE Progress card -->
     <div class="card">
-      <p class="budget-section-lbl" style="margin:0 0 10px;">FIRE Progress</p>
+      <p class="budget-section-lbl" style="margin:0 0 10px;">FIRE Progress <span class="info-tip" data-tip="fire_number">?</span></p>
       <div id="dashFireCard">
         <div class="dash-progress-track"><div class="dash-progress-fill" style="width:0%;"></div></div>
       </div>
@@ -3644,7 +3646,7 @@ select.exp-input { cursor:pointer; }
         <div class="dash-stat-sub" id="dashNWDelta"></div>
       </div>
       <div class="card dash-stat-card">
-        <div class="psi-label">Savings Rate</div>
+        <div class="psi-label">Savings Rate <span class="info-tip" data-tip="savings_rate">?</span></div>
         <div class="psi-val" id="dashSR">—</div>
         <div class="dash-stat-sub" id="dashSRSub"></div>
       </div>
@@ -5028,6 +5030,7 @@ function renderProperties(){
 
   state.property_list.forEach((p, idx)=>{
     const isPPOR = _isPporNow(p);
+    const statusInfo = _propertyStatusLabel(p);
 
     const card = document.createElement("div");
     card.className = "card propCard";
@@ -5053,7 +5056,7 @@ function renderProperties(){
       <div class="propCardHeaderLeft">
         <div class="propCardNameRow">
           <span class="propCardName">${escapeHtml(p.name || ("Property "+(idx+1)))}</span>
-          <span class="propTypeBadge">${isPPOR ? "PPOR" : "Investment"}</span>
+          <span class="propTypeBadge propTypeBadge-${statusInfo.cls}">${escapeHtml(statusInfo.text)}</span>
           ${yearLabel ? `<span class="propYearBadge">${yearLabel}</span>` : ''}
         </div>
         <div class="propStatsRow">
@@ -5121,7 +5124,10 @@ function renderProperties(){
 	fieldGroups.forEach(grp => {
 	  const sep = document.createElement("div");
 	  sep.className = "prop-section-label";
-	  sep.textContent = grp.label;
+	  sep.style.display = "flex"; sep.style.alignItems = "center"; sep.style.gap = "6px";
+	  sep.innerHTML = grp.label === "Rental Income"
+	    ? `${grp.label}<span class="info-tip" data-tip="negative_gearing">?</span>`
+	    : grp.label;
 	  g.appendChild(sep);
 
 	  grp.fields.forEach(([key, type, label]) => {
@@ -5156,7 +5162,7 @@ function renderProperties(){
 	  if (grp.label === "Financing") {
 	    const t = document.createElement("div");
 	    t.className = "prop-toggle-row";
-	    t.innerHTML = `<label class="prop-toggle"><input type="checkbox" id="p_${p.id}_use_offset" /><span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span><span class="prop-toggle-label">Use offset account</span></label>`;
+	    t.innerHTML = `<label class="prop-toggle"><input type="checkbox" id="p_${p.id}_use_offset" /><span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span><span class="prop-toggle-label">Use offset account</span></label><span class="info-tip" data-tip="offset">?</span>`;
 	    g.appendChild(t);
 	  }
 	  if (grp.label === "General") {
@@ -5209,7 +5215,10 @@ function renderProperties(){
         <div class="prop-section-label" style="display:flex; align-items:center; gap:6px;">
           Sale details
           <span class="info-tip" data-tip="sale_price">?</span>
-          <span style="font-size:10px; color:#8A8582;">(CGT calculated automatically)</span>
+          <span style="font-size:10px; color:#8A8582;">(CGT calculated automatically —
+            <span class="info-tip" data-tip="cost_base" style="text-decoration:underline; cursor:pointer;">cost base</span>,
+            <span class="info-tip" data-tip="cgt_pre2027" style="text-decoration:underline; cursor:pointer;">pre-2027 rules</span>,
+            <span class="info-tip" data-tip="cgt_post2027" style="text-decoration:underline; cursor:pointer;">post-2027 rules</span>)</span>
         </div>
         <div class="fieldgrid" style="margin-top:6px;">
           <div>
@@ -5652,6 +5661,32 @@ function _isPporNow(p){
   return false;
 }
 
+/** Human-readable current status — flags the 6-year-rule window specifically,
+ *  since "Investment" alone doesn't make clear the CGT exemption is still active. */
+function _propertyStatusLabel(p){
+  if (_isPporNow(p)) return { text: 'Owner-occupied', cls: 'ppor' };
+  const periods = p.ppor_periods || [];
+  if (!periods.length) return { text: 'Investment', cls: 'investment' };
+  const now = new Date();
+  const nowAbs = now.getFullYear() * 12 + now.getMonth() + 1;
+  // Most recent ended period with an explicit "to" date
+  let lastEnded = null;
+  for (const pr of periods){
+    if (!pr.to) continue;
+    const [ty, tm] = pr.to.split('-').map(Number);
+    const tAbs = ty * 12 + tm;
+    if (tAbs < nowAbs && (!lastEnded || tAbs > lastEnded.tAbs)) lastEnded = { ...pr, tAbs };
+  }
+  if (lastEnded && lastEnded.six_year_rule){
+    const monthsSince = nowAbs - lastEnded.tAbs;
+    if (monthsSince <= 72){
+      const yearsLeft = ((72 - monthsSince) / 12).toFixed(1);
+      return { text: `Rented — 6-yr CGT exemption (${yearsLeft} yrs left)`, cls: 'sixyear' };
+    }
+  }
+  return { text: 'Investment', cls: 'investment' };
+}
+
 // Derive is_owner_occupied from ppor_periods for the API payload
 function _derivedIsOwnerOccupied(p){
   return _isPporNow(p);
@@ -5793,7 +5828,7 @@ const INFO_TIPS = {
   },
   six_year_rule: {
     title: '6-Year Absence Rule',
-    body: 'If you move out of your PPOR and rent it out, you can keep the CGT exemption for up to 6 years — as long as you don\'t nominate another property as your PPOR during that time. If you move back in, the 6-year clock resets.'
+    body: 'If you move out and rent the property out, this only protects your CGT exemption when you eventually sell — it does NOT keep treating the property as your home. The moment your PPOR period ends, the model automatically switches to investment treatment: rent counts as income, mortgage interest becomes tax-deductible, exactly like any other rental. The 6-year rule just caps how much of that rental period still counts as CGT-exempt at sale time. Set an end date on this period, tick this box, and make sure Monthly Rent is set to what you\'ll actually charge.'
   },
   cgt_pre2027: {
     title: 'CGT Discount (pre-July 2027)',
