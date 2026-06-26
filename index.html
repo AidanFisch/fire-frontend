@@ -3841,7 +3841,6 @@ select.exp-input { cursor:pointer; }
           <table class="expense-table port-year-table">
             <thead id="portYearHead"></thead>
             <tbody id="portYearBody"></tbody>
-            <tfoot id="portYearFoot"></tfoot>
           </table>
         </div>
         <button class="btn ghost btn-add-row" onclick="addPortfolioAsset()" style="margin-top:8px; font-size:12px;">+ Add asset</button>
@@ -9659,8 +9658,6 @@ function renderPortYear(data){
     }
   }
 
-  // ── Footer totals ──
-  _renderPortFoot(data, months);
 }
 
 function _appendPortAssetRow(asset, data, months, today){
@@ -9702,27 +9699,6 @@ function _appendPortAssetRow(asset, data, months, today){
   body.appendChild(tr);
 }
 
-function _renderPortFoot(data, months){
-  const foot = document.getElementById('portYearFoot');
-  if(!foot) return;
-  const assets = data.assets || [];
-  const today  = todayMonthStr();
-  const tots = months.map(m => {
-    const mv = (data.monthly||{})[m] || {};
-    let total = assets.reduce((s,a) => s+(mv[a.id]||0), 0);
-    if(m === today){
-      const hasManualProperty = assets.some(a => a.type === 'property' && (mv[a.id]||0) > 0);
-      if(!hasManualProperty) total += propModelTotal();
-    }
-    return total;
-  });
-  foot.innerHTML = `<tr class="port-totals-row">
-    <td colspan="2" style="text-align:left; color:#1C1C1A;">Net Worth</td>
-    ${tots.map(t => `<td style="color:${t>0?'#059669':'#A8A4A0'};">${t>0?'$'+Math.round(t/1000)+'k':'—'}</td>`).join('')}
-    <td></td>
-  </tr>`;
-}
-
 function portToggleHint(input){
   const hint = input.parentElement.querySelector('.port-cell-hint');
   if(hint) hint.style.display = input.value ? 'none' : '';
@@ -9753,7 +9729,6 @@ function portCellChanged(input){
     if(val > 0) d.monthly[mon][aid] = val; else delete d.monthly[mon][aid];
     if(!Object.keys(d.monthly[mon]).length) delete d.monthly[mon];
     portSave(d);
-    _renderPortFoot(d, _portMonthsForYear(_portYear));
     updatePortSummary();
     reapplySyncedFields();
     renderSyncPanel();
@@ -9764,6 +9739,20 @@ function portCellChanged(input){
 }
 
 function portAssetMetaChanged(id, field, value){
+  if (field === 'type') {
+    // A <select> change is already a complete, deliberate action — debouncing
+    // (meant for keystroke-driven text fields) just adds a delay with zero
+    // visual feedback, which looks like the totals aren't updating at all.
+    const d = portLoad();
+    const a = (d.assets||[]).find(x => x.id === id);
+    if(a) a[field] = value;
+    portSave(d);
+    renderPortYear(d);  // full re-render so e.g. the property auto-fill hint follows the new type
+    updatePortSummary();
+    const st = document.getElementById('portSaveStatus');
+    if(st){ st.textContent='Saved ✓'; st.className='budget-save-status saved'; }
+    return;
+  }
   clearTimeout(window._portMetaTimer);
   window._portMetaTimer = setTimeout(()=>{
     const d = portLoad();
@@ -9784,7 +9773,6 @@ function addPortfolioAsset(){
   portSave(d);
   const months = _portMonthsForYear(_portYear);
   _appendPortAssetRow(newAsset, d, months, todayMonthStr());
-  _renderPortFoot(d, months);
 }
 
 function deletePortAsset(id){
@@ -9793,7 +9781,6 @@ function deletePortAsset(id){
   Object.keys(d.monthly||{}).forEach(m => { if(d.monthly[m]) delete d.monthly[m][id]; });
   portSave(d);
   document.querySelector(`#portYearBody [data-port-id="${id}"]`)?.remove();
-  _renderPortFoot(d, _portMonthsForYear(_portYear));
   updatePortSummary();
 }
 
