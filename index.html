@@ -1277,30 +1277,29 @@ th{
 .hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8A8582; }
 .hero-chart-caption { font-size: 11.5px; color: #8A8582; margin-top: 2px; line-height: 1.4; max-width: 300px; }
 .hero-chart-svg { width: 100%; height: auto; display: block; margin-top: 10px; position: relative; z-index: 1; }
+.hero-chart-dynamic {
+  opacity: 1; animation: heroDynamicFade 4.5s ease infinite;
+}
 .hero-chart-line {
   fill: none; stroke: #059669; stroke-width: 3; stroke-linecap: round;
-  stroke-dasharray: 480; stroke-dashoffset: 480;
-  animation: heroLineDraw 4.5s cubic-bezier(.45,0,.3,1) infinite;
 }
 .hero-chart-line2 {
   fill: none; stroke: #6EE7B7; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 4 5;
   stroke-dashoffset: 220; opacity: 0;
   animation: heroLine2Draw 4.5s ease infinite;
 }
-.hero-chart-fill {
-  opacity: 0; animation: heroFillIn 4.5s ease infinite;
-}
+.hero-chart-fill { fill: url(#heroGrad); }
 .hero-chart-grid line { stroke: #F0EDE8; stroke-width: 1; }
 .hero-chart-glow {
-  opacity: 0; transform-origin: 220px 52px;
+  opacity: 0; transform-origin: 220px 69px;
   animation: heroGlowBurst 4.5s ease infinite;
 }
 .hero-chart-pulse {
-  opacity: 0; transform-origin: 220px 52px;
+  opacity: 0; transform-origin: 220px 69px;
   animation: heroPulseRing 4.5s ease infinite;
 }
 .hero-chart-marker {
-  opacity: 0; transform-origin: 220px 52px;
+  opacity: 0; transform-origin: 220px 69px;
   animation: heroMarkerPop 4.5s ease infinite;
 }
 .hero-chart-drop {
@@ -1308,7 +1307,7 @@ th{
   animation: heroFillIn 4.5s ease infinite;
 }
 .hero-chart-tag {
-  opacity: 0; transform-origin: 220px 24px;
+  opacity: 0; transform-origin: 220px 41px;
   animation: heroTagPop 4.5s ease infinite;
 }
 .hero-chart-axislabel, .hero-chart-years text { font-family: var(--sans); }
@@ -1328,10 +1327,9 @@ th{
 .hp2 { left: 48%; bottom: 62%; font-size: 5px; animation-delay: 1.6s; }
 .hp3 { left: 72%; bottom: 30%; font-size: 7px; animation-delay: 3.2s; }
 
-@keyframes heroLineDraw {
-  0%   { stroke-dashoffset: 480; }
-  55%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 0; }
+@keyframes heroDynamicFade {
+  0%, 92% { opacity: 1; }
+  100%    { opacity: 0; }
 }
 @keyframes heroLine2Draw {
   0%, 66%  { stroke-dashoffset: 220; opacity: 0; }
@@ -2869,7 +2867,7 @@ select.exp-input { cursor:pointer; }
               <line x1="10" y1="152" x2="390" y2="152" />
               <line x1="10" y1="205" x2="390" y2="205" />
             </g>
-            <text class="hero-chart-axislabel" x="14" y="38" font-size="9.5" fill="#B0ABA6">$1.3M</text>
+            <text class="hero-chart-axislabel" id="heroAxisLabel" x="14" y="38" font-size="9.5" fill="#B0ABA6">$500K</text>
             <g class="hero-chart-years">
               <text x="10"  y="222" text-anchor="start"  font-size="9.5" fill="#B0ABA6">2026</text>
               <text x="105" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2031</text>
@@ -2877,20 +2875,20 @@ select.exp-input { cursor:pointer; }
               <text x="295" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2041</text>
               <text x="390" y="222" text-anchor="end"    font-size="9.5" fill="#B0ABA6">2046</text>
             </g>
-            <path class="hero-chart-fill" fill="url(#heroGrad)" stroke="none"
-                  d="M10 205 C 70 201, 130 178, 170 110 S 200 65, 220 52 L 220 205 L 10 205 Z" />
-            <path class="hero-chart-line"
-                  d="M10 205 C 70 201, 130 178, 170 110 S 200 65, 220 52" />
-            <path class="hero-chart-line2"
-                  d="M220 52 C 260 38, 310 25, 390 18" />
-            <line class="hero-chart-drop" x1="220" y1="52" x2="220" y2="205" />
-            <circle class="hero-chart-glow" cx="220" cy="52" r="22" fill="#059669" opacity=".18" />
-            <circle class="hero-chart-pulse" cx="220" cy="52" r="7" fill="none" stroke="#059669" stroke-width="2" />
-            <circle class="hero-chart-marker" cx="220" cy="52" r="7" fill="#059669" />
-            <circle class="hero-chart-marker" cx="220" cy="52" r="3" fill="#fff" />
+            <g class="hero-chart-dynamic">
+              <path class="hero-chart-fill" id="heroFillPath" fill="url(#heroGrad)" stroke="none" d="" />
+              <path class="hero-chart-line" id="heroLinePath" d="" />
+              <circle id="heroTipDot" cx="10" cy="205" r="4.5" fill="#059669" />
+            </g>
+            <path class="hero-chart-line2" d="M220 69 C 260 56, 310 44, 390 38" />
+            <line class="hero-chart-drop" x1="220" y1="69" x2="220" y2="205" />
+            <circle class="hero-chart-glow" cx="220" cy="69" r="22" fill="#059669" opacity=".18" />
+            <circle class="hero-chart-pulse" cx="220" cy="69" r="7" fill="none" stroke="#059669" stroke-width="2" />
+            <circle class="hero-chart-marker" cx="220" cy="69" r="7" fill="#059669" />
+            <circle class="hero-chart-marker" cx="220" cy="69" r="3" fill="#fff" />
             <g class="hero-chart-tag">
-              <rect x="128" y="12" width="184" height="24" rx="12" fill="#1C1C1A" />
-              <text x="220" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">🔥 Financially independent — 47</text>
+              <rect x="128" y="29" width="184" height="24" rx="12" fill="#1C1C1A" />
+              <text x="220" y="45" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">🔥 Financially independent — 47</text>
             </g>
             <defs>
               <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
@@ -2902,19 +2900,65 @@ select.exp-input { cursor:pointer; }
         </div>
         <script>
           (function(){
-            var el = document.getElementById('heroStatVal');
-            if (!el) return;
-            var CYCLE = 4500;     // ms — matches .hero-chart-line animation-duration
-            var DRAW_END = 0.55;  // matches the 55% keyframe where the line finishes drawing
-            var TARGET = 1240000;
+            var statEl  = document.getElementById('heroStatVal');
+            var linePath = document.getElementById('heroLinePath');
+            var fillPath = document.getElementById('heroFillPath');
+            var tipDot   = document.getElementById('heroTipDot');
+            var axisLbl  = document.getElementById('heroAxisLabel');
+            if (!statEl || !linePath) return;
+
+            var CYCLE        = 4500;     // ms — one full loop
+            var DRAW_END     = 0.55;     // fraction of cycle spent actually drawing
+            var TARGET       = 1240000;  // dollar value at "FIRE achieved"
+            var VALUE_POWER  = 1.8;      // >1 = accelerating compound-growth shape for the money
+            var FLOOR_AXIS   = 500000;   // y-axis starts scaled to $500K
+            var PEAK_AXIS    = TARGET * 1.18; // final axis max (~18% headroom above TARGET)
+            var AXIS_POWER   = 0.7;      // <1 = axis grows fast early, value grows fast late —
+                                          // this gap is what makes the line visibly climb the
+                                          // whole way instead of flatlining once value catches
+                                          // up to a purely-proportional axis
+            var X0 = 10, X1 = 220, BASELINE_Y = 205, TOP_Y = 45;
+            var SAMPLES = 48;
             var start = null;
-            function fmt(v){ return '$' + Math.round(v).toLocaleString(); }
+
+            // Single source of truth for "how much money at time t" (t: 0→1), and for
+            // the axis scale at time t. The line, the counter, and the axis label all
+            // read from these same two functions — they can't drift apart from each other.
+            function valueAt(t){ return TARGET * Math.pow(t, VALUE_POWER); }
+            function axisMaxAt(t){ return FLOOR_AXIS + (PEAK_AXIS - FLOOR_AXIS) * Math.pow(t, AXIS_POWER); }
+            function yFor(v, axisMax){ return BASELINE_Y - (v / axisMax) * (BASELINE_Y - TOP_Y); }
+            function fmtDollar(v){ return '$' + Math.round(v).toLocaleString(); }
+            function fmtAxis(v){
+              if (v >= 1000000) return '$' + (v/1000000).toFixed(v % 1000000 < 50000 ? 0 : 1) + 'M';
+              return '$' + Math.round(v/1000) + 'K';
+            }
+
             function tick(ts){
               if (start === null) start = ts;
-              var elapsed  = (ts - start) % CYCLE;
-              var progress = Math.min(elapsed / (CYCLE * DRAW_END), 1);
-              var eased    = 1 - Math.pow(1 - progress, 2);
-              el.textContent = fmt(TARGET * eased);
+              var elapsed = (ts - start) % CYCLE;
+              var drawT   = Math.min(elapsed / (CYCLE * DRAW_END), 1);
+              var curValue   = valueAt(drawT);
+              var curAxisMax = axisMaxAt(drawT);
+
+              var n = Math.max(2, Math.round(SAMPLES * drawT));
+              var d = '';
+              for (var i = 0; i <= n; i++){
+                var t = drawT * (i / n);
+                var v = valueAt(t);
+                var x = X0 + (X1 - X0) * t;
+                var y = yFor(v, curAxisMax);
+                d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+              }
+              linePath.setAttribute('d', d.trim());
+              var tipX = X0 + (X1 - X0) * drawT;
+              var tipY = yFor(curValue, curAxisMax);
+              fillPath.setAttribute('d', d.trim() + ' L ' + tipX.toFixed(1) + ' ' + BASELINE_Y + ' L ' + X0 + ' ' + BASELINE_Y + ' Z');
+              tipDot.setAttribute('cx', tipX.toFixed(1));
+              tipDot.setAttribute('cy', tipY.toFixed(1));
+
+              statEl.textContent = fmtDollar(curValue);
+              if (axisLbl) axisLbl.textContent = fmtAxis(curAxisMax);
+
               requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);
