@@ -9690,9 +9690,11 @@ function _appendPortAssetRow(asset, data, months, today){
         hint = `<div class="port-cell-hint" style="display:${val?'none':''}" title="Live total from Properties tab — used automatically when this cell is blank">~${fmtDollarShort(modelTotal)}</div>`;
       }
     }
-    return `<td><input class="port-cell-input ${lockedClass}" type="number" min="0" step="1000"
-      value="${val}" ${readOnly} ${onClick}
-      data-aid="${asset.id}" data-month="${m}" oninput="portCellChanged(this); portToggleHint(this)">${hint}</td>`;
+    const displayVal = val ? '$' + Number(val).toLocaleString('en-AU', {maximumFractionDigits:0}) : '';
+    return `<td><input class="port-cell-input ${lockedClass}" type="text" inputmode="decimal"
+      value="${displayVal}" ${readOnly} ${onClick}
+      data-aid="${asset.id}" data-month="${m}" oninput="portCellChanged(this); portToggleHint(this)"
+      onblur="portCellBlur(this)">${hint}</td>`;
   });
   tr.innerHTML = `
     <td><input class="exp-input port-name" type="text" placeholder="Asset name"
@@ -9727,7 +9729,7 @@ function portCellChanged(input){
     const d    = portLoad();
     const aid  = Number(input.dataset.aid);
     const mon  = input.dataset.month;
-    const val  = parseFloat(input.value) || 0;
+    const val  = parseFloat(String(input.value).replace(/[,$]/g,'')) || 0;
     if(!d.monthly) d.monthly = {};
     if(!d.monthly[mon]) d.monthly[mon] = {};
     if(val > 0) d.monthly[mon][aid] = val; else delete d.monthly[mon][aid];
@@ -9740,6 +9742,11 @@ function portCellChanged(input){
     const st = document.getElementById('portSaveStatus');
     if(st){ st.textContent='Saved ✓'; st.className='budget-save-status saved'; }
   }, 600);
+}
+
+function portCellBlur(input){
+  const v = parseFloat(String(input.value).replace(/[,$]/g,''));
+  input.value = (!isNaN(v) && v > 0) ? '$' + v.toLocaleString('en-AU', {maximumFractionDigits:0}) : '';
 }
 
 function portAssetMetaChanged(id, field, value){
