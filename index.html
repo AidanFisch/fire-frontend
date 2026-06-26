@@ -2934,8 +2934,9 @@ select.exp-input { cursor:pointer; }
             function yFor(v, axisMax){ return BASELINE_Y - (v / axisMax) * (BASELINE_Y - TOP_Y); }
             function fmtDollar(v){ return '$' + Math.round(v).toLocaleString(); }
             function fmtAxis(v){
-              if (v >= 1000000) return '$' + (v/1000000).toFixed(v % 1000000 < 50000 ? 0 : 1) + 'M';
-              return '$' + Math.round(v/1000) + 'K';
+              var rounded = Math.round(v / 100000) * 100000; // nearest $100K
+              if (rounded >= 1000000) return '$' + (rounded/1000000).toFixed(1) + 'M';
+              return '$' + (rounded/1000) + 'K';
             }
 
             function tick(ts){
