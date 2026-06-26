@@ -1282,6 +1282,10 @@ th{
   0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,.45); }
   50%      { box-shadow: 0 0 0 6px rgba(5,150,105,0); }
 }
+.hero-title-word{
+  display: inline-block; transition: opacity .22s ease, transform .22s ease;
+}
+.hero-title-word.swap{ opacity: 0; transform: translateY(6px); }
 .hero-pills{ display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
 .hero-pill{
   font-size: 11.5px; font-weight: 600; color: #059669;
@@ -1509,15 +1513,22 @@ th{
 .fs-warn { color: #D97706; font-weight: 700; }
 
 /* Property scene */
-.fs-property-card { border: 1px solid #E8E4DE; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
-.fs-prop-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 6px; }
-.fs-tag { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #E6F7F2; color: #059669; }
-.fs-tag-muted { background: #F0EDE8; color: #8A8582; }
+.fs-property-card { border: 1px solid #E8E4DE; border-left: 3px solid #D8D4CC; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #FAFAF8; }
+.fs-prop-investment { border-left-color: #059669; }
+.fs-prop-home { border-left-color: #0891B2; }
+.fs-prop-icon { font-size: 13px; }
+.fs-prop-head { display: flex; align-items: center; gap: 7px; font-size: 12.5px; margin-bottom: 6px; }
+.fs-tag { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #E6F7F2; color: #059669; margin-left: auto; }
+.fs-tag-muted { background: #E0F2FE; color: #0891B2; }
 .fs-prop-stats { display: flex; gap: 18px; }
 .fs-prop-stats label { display: block; font-size: 9.5px; color: #B0ABA6; }
 .fs-prop-stats strong { font-size: 12.5px; }
-.fs-prop-total { display: flex; align-items: center; justify-content: space-between; padding-top: 6px; font-size: 11.5px; color: #5C5955; }
-.fs-prop-total strong { font-size: 13px; color: #1C1C1A; }
+.fs-prop-total {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 4px; padding: 9px 12px; border-radius: 10px;
+  background: #F0FDF4; font-size: 11.5px; color: #5C5955;
+}
+.fs-prop-total strong { font-size: 14px; color: #059669; }
 
 /* Holdings scene */
 .fs-holdings { font-size: 12.5px; }
@@ -1527,8 +1538,12 @@ th{
 .fs-hold-row.fs-total span:first-child { flex: 1; }
 .fs-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .fs-hold-spark-row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
-.fs-mini-chart { flex: 1; display: flex; align-items: flex-end; gap: 4px; height: 36px; }
-.fs-bar { flex: 1; background: linear-gradient(180deg, #6EE7B7, #059669); border-radius: 3px 3px 0 0; }
+.fs-mini-chart-wrap { flex: 1; }
+.fs-mini-chart { display: flex; align-items: flex-end; gap: 5px; height: 56px; border-bottom: 1.5px solid #E8E4DE; padding-bottom: 1px; }
+.fs-bar { flex: 1; min-height: 4px; background: linear-gradient(180deg, #6EE7B7, #059669); border-radius: 3px 3px 0 0; }
+.fs-bar:last-child { background: linear-gradient(180deg, #34D399, #047857); box-shadow: 0 2px 8px rgba(5,150,105,.35); }
+.fs-mini-chart-labels { display: flex; gap: 5px; margin-top: 4px; }
+.fs-mini-chart-labels span { flex: 1; text-align: center; font-size: 9px; color: #B0ABA6; }
 .fs-hold-spark { font-size: 12px; font-weight: 700; color: #059669; line-height: 1.3; white-space: nowrap; }
 .fs-hold-spark span { font-size: 10px; font-weight: 600; color: #8A8582; }
 
@@ -2897,8 +2912,24 @@ select.exp-input { cursor:pointer; }
         </div>
 
         <h1 class="hero-title" style="margin-top:0;">
-          Know your path to financial freedom — <span style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+          Know your path to financial freedom — <span id="heroTitleWord" class="hero-title-word" style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
         </h1>
+        <script>
+          (function(){
+            var el = document.getElementById('heroTitleWord');
+            if (!el) return;
+            var words = ['clearly', 'accurately', 'reliably', 'confidently', 'instantly'];
+            var i = 0;
+            setInterval(function(){
+              i = (i + 1) % words.length;
+              el.classList.add('swap');
+              setTimeout(function(){
+                el.textContent = words[i];
+                el.classList.remove('swap');
+              }, 220);
+            }, 2600);
+          })();
+        </script>
 
         <p class="hero-lede" style="margin-bottom:18px;">
           Model your path with income, expenses, property, and super. Compare scenarios and see
@@ -2907,8 +2938,6 @@ select.exp-input { cursor:pointer; }
 
         <div class="hero-pills">
           <span class="hero-pill">✓ No signup required</span>
-          <span class="hero-pill">✓ Export to CSV</span>
-          <span class="hero-pill">✓ General information only</span>
         </div>
       </div>
 
@@ -2937,16 +2966,16 @@ select.exp-input { cursor:pointer; }
               </div>
 
               <div class="feat-scene" id="featScene1">
-                <div class="fs-property-card">
-                  <div class="fs-prop-head"><strong>Investment 1</strong><span class="fs-tag">Apartment</span></div>
+                <div class="fs-property-card fs-prop-investment">
+                  <div class="fs-prop-head"><span class="fs-prop-icon">🏢</span><strong>Investment 1</strong><span class="fs-tag">Apartment</span></div>
                   <div class="fs-prop-stats">
                     <div><label>Value</label><strong>$640K</strong></div>
                     <div><label>Equity</label><strong>$425K</strong></div>
                     <div><label>Net/mo</label><strong class="fs-pos">+$515</strong></div>
                   </div>
                 </div>
-                <div class="fs-property-card">
-                  <div class="fs-prop-head"><strong>PPOR</strong><span class="fs-tag fs-tag-muted">Owner-occupied</span></div>
+                <div class="fs-property-card fs-prop-home">
+                  <div class="fs-prop-head"><span class="fs-prop-icon">🏡</span><strong>Home</strong><span class="fs-tag fs-tag-muted">Owner-occupied</span></div>
                   <div class="fs-prop-stats">
                     <div><label>Value</label><strong>$1.2M</strong></div>
                     <div><label>Equity</label><strong>$1.2M</strong></div>
@@ -2964,13 +2993,16 @@ select.exp-input { cursor:pointer; }
                   <div class="fs-hold-row"><span class="fs-dot" style="background:#F59E0B"></span><span>BHP Shares</span><strong>$18,600</strong></div>
                   <div class="fs-hold-row fs-total"><span>Total holdings</span><strong>$188,000</strong></div>
                   <div class="fs-hold-spark-row">
-                    <div class="fs-mini-chart">
-                      <div class="fs-bar" style="height:30%"></div>
-                      <div class="fs-bar" style="height:38%"></div>
-                      <div class="fs-bar" style="height:34%"></div>
-                      <div class="fs-bar" style="height:52%"></div>
-                      <div class="fs-bar" style="height:64%"></div>
-                      <div class="fs-bar" style="height:100%"></div>
+                    <div class="fs-mini-chart-wrap">
+                      <div class="fs-mini-chart">
+                        <div class="fs-bar" style="height:22%"></div>
+                        <div class="fs-bar" style="height:32%"></div>
+                        <div class="fs-bar" style="height:27%"></div>
+                        <div class="fs-bar" style="height:48%"></div>
+                        <div class="fs-bar" style="height:64%"></div>
+                        <div class="fs-bar" style="height:100%"></div>
+                      </div>
+                      <div class="fs-mini-chart-labels"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span></div>
                     </div>
                     <div class="fs-hold-spark">📈 +12.4%<br><span>this year</span></div>
                   </div>
@@ -2979,10 +3011,12 @@ select.exp-input { cursor:pointer; }
 
               <div class="feat-scene" id="featScene3">
                 <div class="fs-scen-caption">Same income, different paths — same calculator.</div>
-                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#7C3AED; color:#7C3AED;">Rent &amp; Invest</span><span>FIRE: Age 49</span></div>
-                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#059669; color:#059669;">Buy PPOR</span><span>FIRE: Age 52</span></div>
-                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#D97706; color:#D97706;">Investment Property</span><span class="fs-pos">FIRE: Age 47 🏆</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#8A8582; color:#8A8582;">Stay Renting</span><span>FIRE: Age 58</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#059669; color:#059669;">Buy a Home</span><span>FIRE: Age 52</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#0891B2; color:#0891B2;">Investment + Home</span><span>FIRE: Age 50</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#7C3AED; color:#7C3AED;">Rent &amp; Invest</span><span>FIRE: Age 49</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#D97706; color:#D97706;">Investment Property</span><span>FIRE: Age 47</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#059669; color:#059669;">2× Investment Properties</span><span class="fs-pos">FIRE: Age 44 🏆</span></div>
               </div>
 
             </div>
@@ -3000,7 +3034,7 @@ select.exp-input { cursor:pointer; }
                 'Plan vs actual, every month — automatically.',
                 'Mortgages, equity, and net cashflow per property.',
                 'Track every holding in one place, growth included.',
-                'Rent vs buy, offset, PPOR vs investment — side by side.'
+                'Rent vs buy, offset, home vs investment — side by side.'
               ];
               var idx = 0, timer = null;
               window.featGoTo = function(i){
