@@ -1266,11 +1266,33 @@ th{
 }
 .hero-head-centered .hero-lede{ margin-left: auto; margin-right: auto; }
 
+.hero-brand-badge{
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #F0FDF4; border: 1px solid #A7DFD0; border-radius: 20px;
+  padding: 6px 16px 6px 12px; margin-bottom: 18px;
+  font-size: 13.5px; font-weight: 700; color: #1C1C1A; letter-spacing: -.01em;
+}
+.hero-brand-dot{
+  width: 9px; height: 9px; border-radius: 50%;
+  background: linear-gradient(135deg, #059669, #34D399);
+  box-shadow: 0 0 0 0 rgba(5,150,105,.55);
+  animation: heroBrandPulse 2.4s ease-in-out infinite;
+}
+@keyframes heroBrandPulse{
+  0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(5,150,105,0); }
+}
+.hero-pills{ display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+.hero-pill{
+  font-size: 11.5px; font-weight: 600; color: #059669;
+  background: #fff; border: 1px solid #D8D4CC; border-radius: 14px; padding: 5px 12px;
+}
+
 .hero-grid{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 980px){ .hero-grid{ grid-template-columns:1fr; } }
 
@@ -1458,10 +1480,12 @@ th{
 .feat-showcase {
   background: #fff; border: 1px solid #D8D4CC; border-radius: 16px;
   padding: 20px 22px 16px; box-shadow: 0 8px 28px rgba(0,0,0,.06);
+  display: flex; flex-direction: column; height: 100%;
 }
 .feat-showcase-title { font-size: 15px; font-weight: 800; color: #1C1C1A; letter-spacing: -.01em; }
 .feat-showcase-sub { font-size: 12px; color: #8A8582; margin-top: 2px; }
-.feat-showcase-stage { position: relative; min-height: 152px; margin-top: 14px; }
+.feat-showcase-stage { position: relative; min-height: 152px; margin-top: 14px; flex: 1; display: flex; align-items: center; }
+.feat-showcase-stage .feat-scene { display: flex; flex-direction: column; justify-content: center; }
 .feat-scene {
   position: absolute; inset: 0; opacity: 0; pointer-events: none;
   transform: translateY(8px);
@@ -2858,9 +2882,9 @@ select.exp-input { cursor:pointer; }
     <div class="card landing-hero" style="padding:34px;">
 
       <div class="hero-head-centered">
-        <div class="brand" style="margin-bottom:14px; justify-content:center;">
-          <span class="dot"></span>
-          <span style="font-size:18px;">Wealth Model</span>
+        <div class="hero-brand-badge">
+          <span class="hero-brand-dot"></span>
+          <span>Wealth Model</span>
         </div>
 
         <h1 class="hero-title" style="margin-top:0;">
@@ -2872,8 +2896,10 @@ select.exp-input { cursor:pointer; }
           exactly when you become financially independent — what's known as your FIRE age.
         </p>
 
-        <div class="hero-actions" style="margin-top:0; justify-content:center;">
-          <span class="small">No signup · Export CSV · General information only</span>
+        <div class="hero-pills">
+          <span class="hero-pill">✓ No signup required</span>
+          <span class="hero-pill">✓ Export to CSV</span>
+          <span class="hero-pill">✓ General information only</span>
         </div>
       </div>
 
