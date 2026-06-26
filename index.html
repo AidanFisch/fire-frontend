@@ -78,8 +78,8 @@
     import { getAuth, createUserWithEmailAndPassword,
              signInWithEmailAndPassword, signOut,
              onAuthStateChanged, sendPasswordResetEmail,
-             GoogleAuthProvider, signInWithPopup }          from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc,
+             GoogleAuthProvider, signInWithPopup, deleteUser }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc,
              serverTimestamp }                            from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import { getAnalytics, logEvent }                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
 
@@ -147,6 +147,19 @@
         userProfile:  data.userProfile  || null,
         subscription: data.subscription || { tier: 'free' }
       };
+    };
+
+    // Account deletion — delete the Firestore profile first (needs auth.currentUser
+    // to still exist for the security rule to match), then the Auth user itself.
+    window._fbDeleteProfile = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      await deleteDoc(doc(db, 'profiles', user.uid));
+    };
+    window._fbDeleteUser = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      await deleteUser(user);
     };
 
     // NOTE: there is intentionally no window._fbSaveSubscription. The
@@ -2570,6 +2583,11 @@ select.exp-input { cursor:pointer; }
     border:none; border-radius:6px; padding:5px 10px; cursor:pointer;
   }
   .profile-upgrade-btn:hover { background:#047857; }
+  .profile-delete-link {
+    display:block; width:100%; text-align:center; margin-top:14px;
+    background:none; border:none; font-size:12px; color:#B0ABA6; cursor:pointer;
+  }
+  .profile-delete-link:hover { color:#E11D48; text-decoration:underline; }
 
   </style>
 </head>
@@ -3627,6 +3645,7 @@ select.exp-input { cursor:pointer; }
     </div>
 
     <button class="profile-save-btn" onclick="saveProfile()">Save changes</button>
+    <button class="profile-delete-link" id="profDeleteBtn" onclick="deleteAccount()">Delete my account</button>
   </div>
 </div>
 
@@ -7113,6 +7132,50 @@ async function manageSubscription() {
   } catch(e) {
     showToast('Error', e.message || 'Could not open subscription portal.', 4000);
     if (btn) { btn.disabled = false; btn.textContent = 'Manage subscription →'; }
+  }
+}
+
+async function deleteAccount() {
+  if (!_currentUser) return;
+  if (!confirm('Delete your account and all WealthModel data permanently?\n\nThis cannot be undone.')) return;
+
+  const btn = document.getElementById('profDeleteBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+
+  try {
+    // Best-effort subscription cancellation — a Stripe-side failure here
+    // shouldn't block deleting the account itself.
+    const subId = _subscriptionData?.subscriptionId;
+    if (subId) {
+      try {
+        await fetch(`${API_BASE}/stripe/cancel-subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription_id: subId })
+        });
+      } catch(_) { /* best effort, proceed regardless */ }
+    }
+
+    // Delete the Firestore profile while still authenticated, then the
+    // Auth user itself — order matters, since deleting the Auth user
+    // first would invalidate the session before the Firestore delete
+    // could satisfy its security rule.
+    await window._fbDeleteProfile?.();
+    await window._fbDeleteUser?.();
+
+    localStorage.removeItem(LS_KEY);
+    localStorage.removeItem('wm_portfolio');
+    localStorage.removeItem('wm_budget');
+    localStorage.removeItem('wm_scenarios');
+
+    window.location.reload();
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      showToast('Please sign in again', 'For security, sign out and back in, then retry deleting your account.', 6000);
+    } else {
+      showToast('Error', e.message || 'Could not delete account. Contact support.', 5000);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete my account'; }
   }
 }
 

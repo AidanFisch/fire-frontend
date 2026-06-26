@@ -18,6 +18,9 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == userId
                     && request.resource.data.get('subscription', null)
                        == resource.data.get('subscription', null);
+
+      // A user may delete their own profile doc (account deletion).
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
