@@ -2881,6 +2881,7 @@ select.exp-input { cursor:pointer; }
             <button class="user-menu-signout" onclick="authSignOut()">Sign out</button>
           </div>
         </div>
+        <button class="btn-settings-icon" onclick="openHelpModal()" title="How it works">?</button>
         <button class="btn-settings-icon" onclick="openSettings()" title="Settings">&#9881;</button>
       </div>
       <!-- Hidden anchors for showTab() JS compatibility -->
@@ -3919,6 +3920,17 @@ select.exp-input { cursor:pointer; }
     <a onclick="openLegalModal('contact')">Contact</a>
   </div>
 </footer>
+
+<!-- Help modal: "How it works" reference, pulled from INFO_TIPS -->
+<div id="helpModal" class="auth-backdrop" style="display:none;"
+     onclick="if(event.target===this)closeHelpModal()">
+  <div class="legal-box" style="width:680px;">
+    <button class="legal-close" onclick="closeHelpModal()">×</button>
+    <h3 style="margin:0 0 4px; font-size:19px; color:#1C1C1A;">How WealthModel Works</h3>
+    <div class="legal-updated">A quick reference for every concept in the calculator</div>
+    <div id="helpModalBody" class="legal-panel"></div>
+  </div>
+</div>
 
 <!-- Legal modal: Privacy Policy / Terms of Service / Contact -->
 <div id="legalModal" class="auth-backdrop" style="display:none;"
@@ -7466,6 +7478,78 @@ function _queueSync() {
       _setSyncStatus('error');
     }
   }, 2000);
+}
+
+// ---- Help modal ("How it works") ----
+function openHelpModal() {
+  renderHelpModalContent();
+  document.getElementById('helpModal').style.display = 'flex';
+}
+function closeHelpModal() {
+  const m = document.getElementById('helpModal');
+  if (m) m.style.display = 'none';
+}
+function renderHelpModalContent() {
+  const body = document.getElementById('helpModalBody');
+  if (!body || body.dataset.rendered) return;
+  body.dataset.rendered = '1';
+
+  const tipBlock = (key) => {
+    const t = INFO_TIPS[key];
+    if (!t) return '';
+    return `<p><strong>${escapeHtml(t.title)}</strong><br>${escapeHtml(t.body)}</p>`;
+  };
+
+  const sections = [
+    {
+      title: 'Getting Started',
+      html: `<p>WealthModel projects your net worth month-by-month using your income, expenses,
+             super, and any properties you add, to estimate the age you become financially
+             independent — your <strong>FIRE age</strong>. Everything updates live as you edit
+             inputs; click <strong>Run Model</strong> to refresh projections and charts.</p>`
+    },
+    {
+      title: 'FIRE Basics',
+      tips: ['fire_number', 'savings_rate', 'swr', 'super_access']
+    },
+    {
+      title: 'Budget Tracking',
+      html: `<p>Log planned vs actual income and expenses per month in the Budget tab. Your
+             savings rate and monthly trend feed straight into the Overview dashboard and the
+             FIRE projection — no manual syncing needed.</p>`
+    },
+    {
+      title: 'Portfolio Holdings',
+      html: `<p>Track your real asset values month-by-month in Portfolio → Holdings. If you leave
+             the Property row blank for the current month, it automatically fills in from the
+             live total of your property cards in Portfolio → Properties — no double entry.</p>`
+    },
+    {
+      title: 'Properties & Tax',
+      tips: ['ppor', 'six_year_rule', 'negative_gearing', 'offset', 'cost_base', 'cgt_pre2027', 'cgt_post2027']
+    },
+    {
+      title: 'Scenarios',
+      html: `<p>Save your current inputs as a named scenario (e.g. "Rent & Invest" vs "Buy a
+             Home"), then load or compare scenarios side-by-side on the results chart to see
+             which path gets you to FIRE soonest. Free accounts can save 1 scenario; Pro is
+             unlimited.</p>`
+    },
+    {
+      title: 'Free vs Pro',
+      html: `<p>Free includes 1 property, 1 saved scenario, and full projections. Pro unlocks
+             unlimited properties and scenarios plus CSV export. Manage your plan anytime from
+             the profile menu (top right).</p>`
+    },
+  ];
+
+  let html = '';
+  sections.forEach(sec => {
+    html += `<h4>${escapeHtml(sec.title)}</h4>`;
+    if (sec.html) html += sec.html;
+    if (sec.tips) sec.tips.forEach(k => { html += tipBlock(k); });
+  });
+  body.innerHTML = html;
 }
 
 // ---- Auth modal UI ----
