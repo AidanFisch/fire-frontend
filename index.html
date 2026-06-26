@@ -1051,6 +1051,19 @@ th{
 
 	  /* ---- Sale section ---- */
 	  .prop-sale-section { margin-top: 8px; }
+	  .prop-history-section { margin-top: 14px; }
+	  .prop-history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+	  .prop-history-list { display: flex; flex-direction: column; gap: 6px; }
+	  .prop-history-empty { font-size: 11.5px; color: #8A8582; line-height: 1.5; padding: 8px 0; }
+	  .prop-history-row {
+		display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+		border: 1px solid #E8E4DE; border-radius: 8px; padding: 7px 10px; font-size: 11.5px;
+	  }
+	  .prop-history-date { font-weight: 700; color: #1C1C1A; min-width: 88px; }
+	  .prop-history-stat { color: #5C5955; }
+	  .prop-history-stat strong { color: #1C1C1A; }
+	  .prop-history-del { background: none; border: none; color: #C4B5B0; cursor: pointer; font-size: 12px; margin-left: auto; padding: 0 2px; }
+	  .prop-history-del:hover { color: #E11D48; }
 	  .cgt-preview {
 		background: #F0F9F5;
 		border: 1px solid #A7F3D0;
@@ -5025,6 +5038,61 @@ function removeProperty(id){
   renderProperties();
   updatePropSummaryStrip();
 }
+
+/** Value/rent/loan history — a lightweight annual-ish snapshot log per
+ *  property, separate from the monthly Holdings tracker. Lets you compare
+ *  assumed vs actual over time without re-entering data every month. */
+function renderPropertyHistoryList(p){
+  const hist = p.value_history || [];
+  if (!hist.length) {
+    return `<div class="prop-history-empty">No updates logged yet — click "+ Log update" whenever you get a new valuation, rent review, or loan statement.</div>`;
+  }
+  const sorted = [...hist].sort((a,b) => a.date.localeCompare(b.date)); // oldest first, for deltas
+  return sorted.map((entry, i) => {
+    const prev = i > 0 ? sorted[i-1] : null;
+    const delta = prev ? entry.current_value - prev.current_value : null;
+    const dateLabel = new Date(entry.date).toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'});
+    const deltaHtml = (delta !== null && delta !== 0)
+      ? `<span class="${delta > 0 ? 'fs-pos' : 'fs-warn'}" style="font-size:10px; margin-left:4px;">${delta > 0 ? '+' : ''}${fmtDollar(delta)}</span>`
+      : '';
+    return `
+      <div class="prop-history-row">
+        <span class="prop-history-date">${dateLabel}</span>
+        <span class="prop-history-stat">Value <strong>${fmtDollar(entry.current_value)}</strong>${deltaHtml}</span>
+        <span class="prop-history-stat">Loan <strong>${fmtDollar(entry.loan_balance_current)}</strong></span>
+        <span class="prop-history-stat">Rent <strong>${fmtDollar(entry.monthly_rent)}/mo</strong></span>
+        <button class="prop-history-del" onclick="event.stopPropagation(); deletePropertyHistoryEntry(${p.id},'${entry.date}')" title="Remove">✕</button>
+      </div>`;
+  }).reverse().join(''); // most recent first for display
+}
+
+function logPropertyHistory(id){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const entry = {
+    date: dateStr,
+    current_value: toNumber(prop.current_value),
+    loan_balance_current: toNumber(prop.loan_balance_current),
+    monthly_rent: toNumber(prop.monthly_rent)
+  };
+  if (!prop.value_history) prop.value_history = [];
+  prop.value_history = prop.value_history.filter(e => e.date !== dateStr); // replace, don't duplicate same-day
+  prop.value_history.push(entry);
+  saveState();
+  renderProperties();
+  showToast('Logged', `Snapshot saved for ${prop.name || 'this property'}.`);
+}
+
+function deletePropertyHistoryEntry(id, dateStr){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop || !prop.value_history) return;
+  prop.value_history = prop.value_history.filter(e => e.date !== dateStr);
+  saveState();
+  renderProperties();
+}
+
 function renderProperties(){
   const wrap = document.getElementById("propsContainer");
   if(!wrap) return;
@@ -5252,6 +5320,19 @@ function renderProperties(){
       </div>
     `;
     body.appendChild(saleDiv);
+
+    // ---- Value history (annual-ish snapshots, not the monthly Holdings tracker) ----
+    const histDiv = document.createElement('div');
+    histDiv.className = 'prop-history-section';
+    histDiv.innerHTML = `
+      <div class="prop-history-head">
+        <span class="prop-section-label" style="margin:0;">Value History</span>
+        <button class="btn ghost" style="font-size:11px; padding:4px 10px;"
+                onclick="event.stopPropagation(); logPropertyHistory(${Number(p.id)})">+ Log update</button>
+      </div>
+      <div class="prop-history-list" id="p_${p.id}_history_list">${renderPropertyHistoryList(p)}</div>
+    `;
+    body.appendChild(histDiv);
 
     const saleToggle = saleDiv.querySelector(`#p_${p.id}_sale_toggle`);
     saleToggle.onchange = () => {
