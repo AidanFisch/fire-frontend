@@ -1259,9 +1259,16 @@ th{
   100% { transform: translate3d(10px, -10px, 0) scale(1.02); }
 }
 
+.hero-head-centered{
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.hero-head-centered .hero-lede{ margin-left: auto; margin-right: auto; }
+
 .hero-grid{
   display:grid;
-  grid-template-columns: 1.05fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 28px;
   align-items: start;
 }
@@ -2850,29 +2857,29 @@ select.exp-input { cursor:pointer; }
   <div class="grid cols1">
     <div class="card landing-hero" style="padding:34px;">
 
+      <div class="hero-head-centered">
+        <div class="brand" style="margin-bottom:14px; justify-content:center;">
+          <span class="dot"></span>
+          <span style="font-size:18px;">Wealth Model</span>
+        </div>
+
+        <h1 class="hero-title" style="margin-top:0;">
+          Know your path to financial freedom — <span style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+        </h1>
+
+        <p class="hero-lede" style="margin-bottom:18px;">
+          Model your path with income, expenses, property, and super. Compare scenarios and see
+          exactly when you become financially independent — what's known as your FIRE age.
+        </p>
+
+        <div class="hero-actions" style="margin-top:0; justify-content:center;">
+          <span class="small">No signup · Export CSV · General information only</span>
+        </div>
+      </div>
+
+      <div class="hr" style="margin:24px 0;"></div>
+
       <div class="hero-grid">
-
-        <!-- LEFT -->
-        <div>
-          <div class="brand" style="margin-bottom:14px;">
-            <span class="dot"></span>
-            <span style="font-size:18px;">Wealth Model</span>
-          </div>
-
-          <h1 class="hero-title" style="margin-top:0;">
-            Know your path to financial freedom — <span style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
-          </h1>
-
-          <p class="hero-lede" style="margin-bottom:18px;">
-            Model your path with income, expenses, property, and super. Compare scenarios and see
-            exactly when you become financially independent — what's known as your FIRE age.
-          </p>
-
-          <div class="hero-actions" style="margin-top:0;">
-            <span class="small">No signup · Export CSV · General information only</span>
-          </div>
-
-          <div class="hr" style="margin:18px 0;"></div>
 
           <div class="feat-showcase">
             <div class="feat-showcase-header">
@@ -2957,33 +2964,6 @@ select.exp-input { cursor:pointer; }
               timer = setInterval(function(){ featGoTo((idx + 1) % 4); }, 4000);
             })();
           </script>
-
-          <div class="small" style="margin-top:14px; color:rgba(255,255,255,.52); line-height:1.35;">
-            General information only. Not financial advice.
-          </div>
-		  
-		  
-		  <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:26px;">
-		    <button class="btn primary big"
-				    style="font-size:18px; padding:18px 36px; min-width:260px;"
-				    onclick="enterApp()">
-			  Get Started Free
-		    </button>
-		    <div id="landingSignInRow" style="display:flex; align-items:center; gap:8px;">
-		      <span style="color:#5C5955; font-size:13px;">Already have an account?</span>
-		      <button onclick="openAuthModal()"
-		              style="background:none; border:none; color:#1C1C1A; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0;">
-		        Sign in
-		      </button>
-		    </div>
-		  </div>
-
-		<div class="small"
-			 style="text-align:center; margin-top:10px; color:rgba(255,255,255,.55);">
-		  No signup required · General information only
-		</div>
-
-        </div>
 
 <!-- RIGHT: Animated preview chart -->
         <div class="hero-chart-card">
@@ -3196,7 +3176,31 @@ select.exp-input { cursor:pointer; }
           })();
         </script>
 
+      </div><!-- /.hero-grid -->
+
+      <div class="small" style="margin-top:18px; text-align:center; color:rgba(255,255,255,.52); line-height:1.35;">
+        General information only. Not financial advice.
       </div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:22px;">
+        <button class="btn primary big"
+                style="font-size:18px; padding:18px 36px; min-width:260px;"
+                onclick="enterApp()">
+          Get Started Free
+        </button>
+        <div id="landingSignInRow" style="display:flex; align-items:center; gap:8px;">
+          <span style="color:#5C5955; font-size:13px;">Already have an account?</span>
+          <button onclick="openAuthModal()"
+                  style="background:none; border:none; color:#1C1C1A; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0;">
+            Sign in
+          </button>
+        </div>
+      </div>
+
+      <div class="small" style="text-align:center; margin-top:10px; color:rgba(255,255,255,.55);">
+        No signup required · General information only
+      </div>
+
     </div>
 
     <!-- === SEO footer / About text (inside #tab-landing) === -->
