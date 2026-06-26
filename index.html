@@ -5974,6 +5974,7 @@ function setApiStatus(ok, text){
     dot.style.boxShadow  = ok
       ? "0 0 0 3px rgba(34,197,94,.20)"
       : "0 0 0 3px rgba(239,68,68,.20)";
+    dot.title = ok ? `API reachable (${text})` : `API issue: ${text} — click ⚙ Settings → "Re-check API"`;
   }
   const badge = document.getElementById("apiBadge");
   if(badge) badge.innerHTML = ok
@@ -6124,12 +6125,20 @@ async function runModel(){
   }
 
   if(!result){
+    // A failed model run doesn't necessarily mean the API is down (could be a
+    // bad payload), so leave the dot alone here — only the ping or a success
+    // should move it. But a successful run below is hard proof of health.
     document.getElementById("rawOut").textContent = String(lastErr || "Unknown error");
     document.getElementById("resultsMeta").textContent = "Run failed. See raw output.";
     if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
     showTab("results");
     return;
   }
+
+  // A successful /fire response is direct proof the API is healthy — the
+  // dot can otherwise get stuck red forever from a one-shot cold-start ping
+  // at page load that nothing ever re-checks.
+  setApiStatus(true, "ok");
 
   // If FIRE not achieved within end_age, extend simulation until it is (up to age 90)
   const fireNotFound = (r) => !r || !r.rows || !r.rows.some(row => (row["FIRE_Eligible"] || 0) === 1);
