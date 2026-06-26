@@ -9592,7 +9592,7 @@ function switchPortSubTab(tab){
 
 function showPortfolioTab(){
   showTab('portfolio');
-  renderPortfolioTab();
+  switchPortSubTab('holdings');
 }
 
 function renderPortfolioTab(){
@@ -11052,6 +11052,14 @@ function refreshExpenseDropdowns(){
           <span>Brackets, super rate, HECS &amp; health insurance</span>
         </div>
         <span class="settings-nav-arrow">›</span>
+      </div>
+      <div class="settings-nav-card" style="cursor:default;">
+        <span class="settings-nav-icon" id="settingsApiDot">⚪</span>
+        <div class="settings-nav-label">
+          <strong>API Status</strong>
+          <span id="settingsApiStatusText">Not checked yet</span>
+        </div>
+        <button class="btn ghost" style="font-size:12px;" onclick="pingAPI()">Re-check</button>
       </div>
     </div>
 
