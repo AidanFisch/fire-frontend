@@ -2071,10 +2071,18 @@ body.landing #modelActionsBar { display: none !important; }
   margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #E8E4DE;
 }
 .budget-month-nav {
-  display:flex; align-items:center; gap:6px; font-size:15px; font-weight:700;
+  display:flex; align-items:center; gap:10px; font-size:15px; font-weight:700;
 }
-.budget-month-nav .btn { padding:5px 10px !important; font-size:12px !important; }
-#budgetMonthLabel { min-width:130px; text-align:center; color:#1C1C1A; }
+.budget-month-nav .btn {
+  width:30px; height:30px; padding:0 !important;
+  border-radius:50% !important; display:inline-flex; align-items:center; justify-content:center;
+  font-size:18px !important; font-weight:700 !important; line-height:1; flex-shrink:0;
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+.budget-month-nav .btn.ghost { border-color:#D8D4CC !important; color:#5C5955 !important; }
+.budget-month-nav .btn.ghost:hover { background:#F0FDF4 !important; border-color:#059669 !important; color:#059669 !important; }
+.budget-month-nav .btn.ghost:active { transform:scale(.92); }
+#budgetMonthLabel { min-width:130px; text-align:center; color:#1C1C1A; letter-spacing:-.01em; }
 
 .budget-save-status { font-size:11px; color:#8A8582; margin-left:auto; transition:color .3s; }
 .budget-save-status.saved { color:#059669; }
@@ -2082,12 +2090,13 @@ body.landing #modelActionsBar { display: none !important; }
 
 /* Copy-from button in card head */
 .budget-copy-btn {
-  font-size:11px; font-weight:600; padding:4px 11px;
-  background:#F8F7F4; border:1px solid #D8D4CC; border-radius:6px;
+  font-size:11.5px; font-weight:600; padding:6px 14px;
+  background:#fff; border:1px solid #D8D4CC; border-radius:20px;
   color:#5C5955; cursor:pointer; white-space:nowrap;
-  transition:background .15s, border-color .15s;
+  display:inline-flex; align-items:center; gap:5px;
+  transition:background .15s, border-color .15s, color .15s;
 }
-.budget-copy-btn:hover  { background:#F0EDE8; border-color:#C8C4BC; }
+.budget-copy-btn:hover  { background:#F0FDF4; border-color:#059669; color:#059669; }
 .budget-copy-btn:disabled { opacity:.5; cursor:default; }
 
 /* Budget year nav arrows */
@@ -3705,9 +3714,9 @@ select.exp-input { cursor:pointer; }
     <div class="card">
       <div class="budget-card-head">
         <div class="budget-month-nav">
-          <button class="btn ghost" onclick="budgetMonthStep(-1)">◀</button>
+          <button class="btn ghost" onclick="budgetMonthStep(-1)" aria-label="Previous month">‹</button>
           <span id="budgetMonthLabel">—</span>
-          <button class="btn ghost" onclick="budgetMonthStep(1)">▶</button>
+          <button class="btn ghost" onclick="budgetMonthStep(1)" aria-label="Next month">›</button>
         </div>
         <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy from —</button>
         <span id="budgetSaveStatus" class="budget-save-status"></span>
@@ -8319,7 +8328,7 @@ function updateCopyBtn(){
   const prev = prevMonthStr(budgetMonthStr);
   const [py, pm] = prev.split('-').map(Number);
   const lbl = new Date(py, pm-1, 1).toLocaleDateString('en-AU', {month:'short', year:'numeric'});
-  btn.textContent = `Copy from ${lbl}`;
+  btn.innerHTML = `<span aria-hidden="true">⧉</span> Copy from ${lbl}`;
 }
 function setLockState(locked){
   _budgetLocked = locked;
