@@ -5104,6 +5104,41 @@ function deletePropertyHistoryEntry(id, dateStr){
   renderProperties();
 }
 
+let _propHistoryCharts = {}; // keyed by property id — one Chart.js instance per expanded card
+
+function renderPropertyHistoryChart(p){
+  const canvas = document.getElementById(`p_${p.id}_history_chart`);
+  if (!canvas) return;
+  if (_propHistoryCharts[p.id]) { _propHistoryCharts[p.id].destroy(); delete _propHistoryCharts[p.id]; }
+
+  const hist = (p.value_history || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  if (hist.length < 2) { canvas.style.display = 'none'; return; }
+  canvas.style.display = '';
+
+  const labels = hist.map(e => new Date(e.date).toLocaleDateString('en-AU', {month:'short', year:'2-digit'}));
+  const values = hist.map(e => e.current_value);
+  const ctx = canvas.getContext('2d');
+  _propHistoryCharts[p.id] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Value', data: values,
+      borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.1)',
+      fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#059669', borderWidth: 2.5
+    }] },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => 'Value: ' + fmtDollar(c.parsed.y) } }
+      },
+      scales: {
+        y: { ticks: { callback: v => '$' + Math.round(v/1000) + 'k' }, grid: { color: '#F0EDE8' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
 function renderProperties(){
   const wrap = document.getElementById("propsContainer");
   if(!wrap) return;
@@ -5342,6 +5377,7 @@ function renderProperties(){
                 onclick="event.stopPropagation(); logPropertyHistory(${Number(p.id)})">+ Log update</button>
       </div>
       <div class="prop-history-list" id="p_${p.id}_history_list">${renderPropertyHistoryList(p)}</div>
+      <canvas id="p_${p.id}_history_chart" style="max-height:160px; margin-top:12px; display:none;"></canvas>
     `;
     body.appendChild(histDiv);
 
@@ -5371,6 +5407,7 @@ function renderProperties(){
 
     card.appendChild(body);
     wrap.appendChild(card);
+    if (expanded) renderPropertyHistoryChart(p);
 
 
     fields.forEach(([key, type])=>{
@@ -9922,29 +9959,29 @@ function renderPortHistoryChart(data){
   }
   const ctx    = document.getElementById('portHistoryCanvas').getContext('2d');
   const labels = months.map(m => { const [y,mo]=m.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short',year:'2-digit'}); });
-  const totals = months.map(m => assets.reduce((s,a) => s+(monthly[m][a.id]||0), 0));
   const TYPE_COLORS = { cash:'#3B82F6', stocks:'#F59E0B', super:'#8B5CF6', property:'#EC4899', other:'#6B7280' };
   const typeDs = PORT_TYPES.map(pt => {
     const vals = months.map(m => assets.filter(a=>a.type===pt.key).reduce((s,a)=>s+(monthly[m][a.id]||0),0));
     if(!vals.some(v=>v>0)) return null;
-    return { label:pt.label, data:vals, borderColor:TYPE_COLORS[pt.key], backgroundColor:'transparent', borderDash:[4,3], borderWidth:1.5, tension:.3, pointRadius:2, fill:false };
+    return { label:pt.label, data:vals, backgroundColor:TYPE_COLORS[pt.key], borderRadius:3, maxBarThickness:42 };
   }).filter(Boolean);
-  const datasets = [
-    { label:'Net Worth', data:totals, borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,.1)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#1D9E75', borderWidth:2.5 },
-    ...typeDs
-  ];
   if(_portChartInstance){ _portChartInstance.destroy(); _portChartInstance=null; }
   _portChartInstance = new Chart(ctx, {
-    type:'line', data:{ labels, datasets },
+    type:'bar', data:{ labels, datasets: typeDs },
     options:{
       responsive:true,
       plugins:{
         legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
-        tooltip:{ callbacks:{ label: c => c.dataset.label+': '+fmtDollar(c.parsed.y) } }
+        tooltip:{
+          callbacks:{
+            label: c => c.dataset.label+': '+fmtDollar(c.parsed.y),
+            footer: items => 'Net worth: '+fmtDollar(items.reduce((s,i)=>s+i.parsed.y,0))
+          }
+        }
       },
       scales:{
-        y:{ ticks:{ callback: v => '$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
-        x:{ grid:{ display:false } }
+        y:{ stacked:true, ticks:{ callback: v => '$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
+        x:{ stacked:true, grid:{ display:false } }
       }
     }
   });
