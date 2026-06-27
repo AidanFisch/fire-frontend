@@ -3782,9 +3782,9 @@ select.exp-input { cursor:pointer; }
           <div class="small">Click any month to jump to it</div>
         </div>
         <div class="budget-yr-nav">
-          <button class="btn ghost" onclick="budgetYearStep(-1)">◀</button>
+          <button class="btn ghost" onclick="budgetYearStep(-1)" aria-label="Previous year">‹</button>
           <span id="budgetYearLabel">—</span>
-          <button class="btn ghost" onclick="budgetYearStep(1)">▶</button>
+          <button class="btn ghost" onclick="budgetYearStep(1)" aria-label="Next year">›</button>
         </div>
       </div>
       <div id="budgetYearTableWrap">
@@ -3823,9 +3823,9 @@ select.exp-input { cursor:pointer; }
         <!-- Year nav header -->
         <div class="budget-card-head">
           <div class="budget-month-nav">
-            <button class="btn ghost" onclick="portYearStep(-1)">◀</button>
+            <button class="btn ghost" onclick="portYearStep(-1)" aria-label="Previous year">‹</button>
             <span id="portYearLabel" style="min-width:60px; text-align:center; color:#1C1C1A;">—</span>
-            <button class="btn ghost" onclick="portYearStep(1)">▶</button>
+            <button class="btn ghost" onclick="portYearStep(1)" aria-label="Next year">›</button>
           </div>
           <span id="portSaveStatus" class="budget-save-status"></span>
         </div>
