@@ -802,7 +802,7 @@ th{
 		flex-shrink: 0;
 	  }
 	  .propTypeBadge-investment { background: #E6F7F2; color: #059669; }
-	  .propTypeBadge-ppor { background: #FDF6E3; color: #8A6D1D; }
+	  .propTypeBadge-ppor { background: #E6F7F2; color: #059669; }
 	  .propTypeBadge-sixyear { background: #FEF3C7; color: #92400E; text-transform: none; letter-spacing: 0; }
 	  .propYearBadge {
 		font-size: 11px;
@@ -884,7 +884,7 @@ th{
 		padding: 5px 10px;
 		border-radius: 6px;
 		border-left: 3px solid var(--accent);
-		background: linear-gradient(90deg, rgba(5,150,105,0.10), rgba(212,160,23,0.07) 75%, transparent);
+		background: rgba(5,150,105,0.07);
 	  }
 	  .prop-section-label:first-child {
 		margin-top: 0;
@@ -1151,12 +1151,14 @@ th{
 
 	  /* ---- State selector ---- */
 	  .prop-state-row { display:flex; align-items:center; gap:8px; grid-column:1/-1; flex-wrap:wrap; margin-top:2px; }
+	  .prop-state-row > label { width:auto; margin-bottom:0; font-size:12px; color:#5C5955; white-space:nowrap; }
 	  .prop-state-select {
-		font-size:12px; padding:4px 8px; border:1px solid #D8D4CC; border-radius:6px;
+		width:auto !important; flex:0 0 84px;
+		font-size:12.5px !important; padding:6px 8px !important; border:1px solid #D8D4CC; border-radius:7px;
 		background:white; color:#1C1C1A; cursor:pointer;
 	  }
 	  .btn-estimate {
-		font-size:12px; padding:4px 10px; border:1px solid #D8D4CC; border-radius:6px;
+		font-size:12px; padding:5px 10px; border:1px solid #D8D4CC; border-radius:7px;
 		background:white; color:#5C5955; cursor:pointer; white-space:nowrap;
 	  }
 	  .btn-estimate:hover { background:#F5F2EE; }
@@ -5405,7 +5407,7 @@ function renderProperties(){
 	    const states = ['NSW','VIC','QLD','WA','SA','TAS','ACT','NT'];
 	    const selVal = p.state || 'NSW';
 	    stateRow.innerHTML = `
-	      <label style="font-size:12px;color:#5C5955;white-space:nowrap;">State / Territory</label>
+	      <label>State</label>
 	      <select class="prop-state-select" id="p_${p.id}_state"
 	              onchange="updatePropState(${p.id},this.value)">
 	        ${states.map(s => `<option value="${s}"${s===selVal?' selected':''}>${s}</option>`).join('')}
