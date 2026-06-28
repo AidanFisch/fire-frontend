@@ -2076,6 +2076,22 @@ label { color: #5C5955 !important; }
 .psi-val   { font-size: 18px; font-weight: 700; color: #1C1C1A; margin-top: 3px; }
 .psi-secondary { font-size: 14px; color: #3C3C3A; }
 
+/* Holdings year picker — a quiet, low-emphasis control (year switching is
+   rare) rather than the heavier pill-button stepper used for Budget months. */
+.port-year-picker {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13px; font-weight: 600; color: #5C5955;
+  margin-top: 2px; flex-shrink: 0;
+}
+.port-year-step {
+  background: none; border: none; padding: 2px 5px; cursor: pointer;
+  font-size: 15px; color: #C8C4BC; line-height: 1; border-radius: 5px;
+  transition: color .15s, background .15s;
+}
+.port-year-step:hover { color: #059669; background: #F0F7F3; }
+.port-year-step:active { transform: scale(.9); }
+#portYearLabel { min-width: 34px; text-align: center; color: #1C1C1A; }
+
 /* Portfolio year table */
 .port-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .port-year-table {
@@ -3929,18 +3945,31 @@ select.exp-input { cursor:pointer; }
 
       <!-- Asset tracker card -->
       <div class="card" style="margin-bottom:20px;">
-        <!-- Year nav header -->
-        <div class="budget-card-head">
-          <div class="budget-month-nav">
-            <button class="btn ghost" onclick="portYearStep(-1)" aria-label="Previous year">‹</button>
-            <span id="portYearLabel" style="min-width:60px; text-align:center; color:#1C1C1A;">—</span>
-            <button class="btn ghost" onclick="portYearStep(1)" aria-label="Next year">›</button>
+        <div class="panel-head panel-head-stack" style="margin-bottom:14px;">
+          <span class="panel-accent"></span>
+          <div style="flex:1; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div class="panel-title">Holdings tracker</div>
+              <div class="panel-desc">Cash, stocks, super, and other assets — logged month-by-month. Feeds your net worth trend and the FIRE model.</div>
+            </div>
+            <div class="port-year-picker">
+              <button class="port-year-step" onclick="portYearStep(-1)" aria-label="Previous year">‹</button>
+              <span id="portYearLabel">—</span>
+              <button class="port-year-step" onclick="portYearStep(1)" aria-label="Next year">›</button>
+            </div>
           </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
           <span id="portSaveStatus" class="budget-save-status"></span>
         </div>
 
         <!-- Asset summary strip (reflects current month) -->
         <div class="port-summary-strip">
+          <div class="port-summary-item port-summary-total">
+            <div class="psi-label">Total Assets</div>
+            <div class="psi-val" id="psiTotal">—</div>
+          </div>
+          <div class="port-summary-sep"></div>
           <div class="port-summary-item">
             <div class="psi-label">Cash &amp; Savings</div>
             <div class="psi-val psi-secondary" id="psiCash">—</div>
@@ -10151,6 +10180,7 @@ function updatePortSummary(){
   const t   = portTotals(portGetCurrentData());
   const fmt = v => v > 0 ? fmtDollar(v) : '—';
   const s   = id => document.getElementById(id);
+  if(s('psiTotal'))  s('psiTotal').textContent  = fmt(t.cash + t.stocks + t.super + t.other);
   if(s('psiCash'))   s('psiCash').textContent   = fmt(t.cash);
   if(s('psiStocks')) s('psiStocks').textContent = fmt(t.stocks);
   if(s('psiSuper'))  s('psiSuper').textContent  = fmt(t.super);
