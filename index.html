@@ -1060,6 +1060,46 @@ th{
 		padding: 4px 8px;
 	  }
 
+	  /* ---- Shared panel/card heading (title + accent bar + optional meta or
+	     description) — was previously copy-pasted inline on each card, with
+	     "Property model inputs" missing the accent bar that the others had. ---- */
+	  .panel-head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 16px;
+	  }
+	  .panel-head.panel-head-stack {
+		align-items: stretch;
+		margin-bottom: 8px;
+	  }
+	  .panel-accent {
+		display: inline-block;
+		width: 4px;
+		border-radius: 2px;
+		background: #1D9E75;
+		flex-shrink: 0;
+	  }
+	  .panel-head:not(.panel-head-stack) .panel-accent { height: 22px; }
+	  .panel-title {
+		font-size: 15px;
+		font-weight: 700;
+		color: #1C1C1A;
+		letter-spacing: -0.01em;
+	  }
+	  .panel-meta {
+		font-size: 11px;
+		color: #8A8582;
+		font-weight: 500;
+		margin-left: 2px;
+	  }
+	  .panel-desc {
+		font-size: 12px;
+		color: #8A8582;
+		margin-top: 3px;
+		line-height: 1.5;
+	  }
+
 	  /* ---- Sale section ---- */
 	  .prop-sale-section {
 		margin-top: 14px;
@@ -3863,10 +3903,10 @@ select.exp-input { cursor:pointer; }
 
     <!-- FIRE progress card -->
     <div class="card">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-        <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
-        <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Savings vs FIRE Target</span>
-        <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">last 12 months</span>
+      <div class="panel-head">
+        <span class="panel-accent"></span>
+        <span class="panel-title">Savings vs FIRE Target</span>
+        <span class="panel-meta">last 12 months</span>
       </div>
       <div id="fireProgressContent">
         <div class="small muted">Log at least one month to see your savings rate vs target.</div>
@@ -3932,10 +3972,10 @@ select.exp-input { cursor:pointer; }
 
       <!-- History chart card -->
       <div class="card">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-          <span style="display:inline-block; width:4px; height:22px; border-radius:2px; background:#1D9E75; flex-shrink:0;"></span>
-          <span style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Net Worth History</span>
-          <span style="font-size:11px; color:#8A8582; font-weight:500; margin-left:2px;">all time</span>
+        <div class="panel-head">
+          <span class="panel-accent"></span>
+          <span class="panel-title">Net Worth History</span>
+          <span class="panel-meta">all time</span>
         </div>
         <div id="portHistoryContent">
           <div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>
@@ -3949,10 +3989,11 @@ select.exp-input { cursor:pointer; }
 
       <!-- Property model inputs -->
       <div class="card">
-        <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;">
+        <div class="panel-head panel-head-stack">
+          <span class="panel-accent"></span>
           <div>
-            <div style="font-size:15px; font-weight:700; color:#1C1C1A; letter-spacing:-.01em;">Property model inputs</div>
-            <div style="font-size:12px; color:#8A8582; margin-top:3px; line-height:1.5;">These settings drive the FIRE model — mortgages, rental income, and growth rates. Track actual values month-by-month in the Holdings tab.</div>
+            <div class="panel-title">Property model inputs</div>
+            <div class="panel-desc">These settings drive the FIRE model — mortgages, rental income, and growth rates. Track actual values month-by-month in the Holdings tab.</div>
           </div>
         </div>
 
