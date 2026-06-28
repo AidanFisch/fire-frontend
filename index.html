@@ -6174,8 +6174,9 @@ const INFO_TIPS = {
 let _tipTimeout = null;
 
 let _activeTipEl = null;
+let _tipPinned = false;   // true once opened by click — stays open until dismissed explicitly
 
-function showInfoTip(key, el){
+function showInfoTip(key, el, pin){
   const tip = INFO_TIPS[key];
   if (!tip) return;
   let tooltip = document.getElementById('infoTooltip');
@@ -6185,10 +6186,13 @@ function showInfoTip(key, el){
   if (_activeTipEl && _activeTipEl !== el) _activeTipEl.classList.remove('tip-open');
   _activeTipEl = el;
   el.classList.add('tip-open');
+  if (pin) _tipPinned = true;
 
   tooltip.querySelector('.tip-title').textContent = tip.title;
   tooltip.querySelector('.tip-body').textContent  = tip.body;
-  tooltip.style.display = '';
+  // The base CSS sets display:none — clearing the inline style here just
+  // falls back to that, so the tip never actually appeared. Set it explicitly.
+  tooltip.style.display = 'block';
 
   // Position near the icon
   const rect = el.getBoundingClientRect();
@@ -6207,28 +6211,51 @@ function showInfoTip(key, el){
   clearTimeout(_tipTimeout);
 }
 
-function hideInfoTip(){
-  _tipTimeout = setTimeout(() => {
-    const tooltip = document.getElementById('infoTooltip');
-    if (tooltip) tooltip.style.display = 'none';
-    if (_activeTipEl) { _activeTipEl.classList.remove('tip-open'); _activeTipEl = null; }
-  }, 150);
+function closeInfoTipNow(){
+  clearTimeout(_tipTimeout);
+  const tooltip = document.getElementById('infoTooltip');
+  if (tooltip) tooltip.style.display = 'none';
+  if (_activeTipEl) { _activeTipEl.classList.remove('tip-open'); _activeTipEl = null; }
+  _tipPinned = false;
 }
+
+function hideInfoTip(){
+  if (_tipPinned) return;   // pinned (click-opened) tips only close via explicit dismiss
+  _tipTimeout = setTimeout(closeInfoTipNow, 150);
+}
+
+let _tipOutsideClickBound = false;
 
 function initInfoTips(){
   // Avoid double-binding: mark each element once
   document.querySelectorAll('.info-tip:not([data-tip-bound])').forEach(el => {
     el.setAttribute('data-tip-bound', '1');
     const key = el.dataset.tip;
-    el.addEventListener('mouseenter', () => showInfoTip(key, el));
+    el.addEventListener('mouseenter', () => { if (!_tipPinned) showInfoTip(key, el); });
     el.addEventListener('mouseleave', hideInfoTip);
-    el.addEventListener('click', (e) => { e.stopPropagation(); showInfoTip(key, el); });
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Clicking the already-open icon again closes it; otherwise open + pin.
+      if (_tipPinned && _activeTipEl === el) { closeInfoTipNow(); return; }
+      showInfoTip(key, el, true);
+    });
   });
   const tooltip = document.getElementById('infoTooltip');
   if (tooltip && !tooltip._tipBound){
     tooltip._tipBound = true;
     tooltip.addEventListener('mouseenter', () => clearTimeout(_tipTimeout));
     tooltip.addEventListener('mouseleave', hideInfoTip);
+  }
+  // Clicking anywhere outside a pinned tooltip dismisses it.
+  if (!_tipOutsideClickBound){
+    _tipOutsideClickBound = true;
+    document.addEventListener('click', (e) => {
+      if (!_tipPinned) return;
+      const tooltipEl = document.getElementById('infoTooltip');
+      if (tooltipEl && tooltipEl.contains(e.target)) return;
+      if (e.target.closest && e.target.closest('.info-tip')) return; // its own handler manages this
+      closeInfoTipNow();
+    });
   }
 }
 
