@@ -9169,7 +9169,7 @@ async function renderFireProgress(){
         <div class="fp-stat-box">
           <div class="fp-stat-label">Avg Monthly Saved</div>
           <div class="fp-stat-val" style="color:${col(avgMo,avgTarget)}">${fmtDollar(avgMo)}</div>
-          <div class="fp-stat-sub">target ${fmtDollar(avgTarget)}/mo</div>
+          <div class="fp-stat-sub">FIRE target ${fmtDollar(avgTarget)}/mo</div>
         </div>
         <div class="fp-stat-box">
           <div class="fp-stat-label">This Month</div>
@@ -9179,7 +9179,7 @@ async function renderFireProgress(){
         <div class="fp-stat-box">
           <div class="fp-stat-label">YTD Total Saved</div>
           <div class="fp-stat-val" style="color:${colV(ytdActual)}">${fmtDollar(ytdActual)}</div>
-          <div class="fp-stat-sub">target ${fmtDollar(ytdTarget)}${ytdLogged.length?' ('+ytdLogged.length+' mo)':''}</div>
+          <div class="fp-stat-sub">FIRE target ${fmtDollar(ytdTarget)}${ytdLogged.length?' ('+ytdLogged.length+' mo)':''}</div>
         </div>
         <div class="fp-stat-box">
           <div class="fp-stat-label">Months On Target</div>
@@ -9212,7 +9212,7 @@ async function renderFireProgress(){
               <span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;"></span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;margin-left:1px;"></span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;margin-left:1px;"></span>Actual
             </span>
             <span style="display:flex;align-items:center;gap:3px;">
-              <span style="display:inline-block;width:16px;height:0;border-top:2px dashed #059669;"></span>Target
+              <span style="display:inline-block;width:16px;height:0;border-top:2px dashed #059669;"></span>FIRE Target
             </span>
           </span>
         </div>
@@ -9253,11 +9253,10 @@ function _renderFireChart(series, targets){
            v >= 0     ? '#F59E0B' : '#EF4444';
   });
 
-  // Target label: show range if it changes across the period
-  const uniqueTargets = [...new Set(targets.map(t => Math.round(t)))];
-  const targetLabel = uniqueTargets.length === 1
-    ? `Target (${fmtDollar(uniqueTargets[0])}/mo)`
-    : `Target (${fmtDollar(Math.min(...uniqueTargets))}–${fmtDollar(Math.max(...uniqueTargets))}/mo)`;
+  // FIRE Target label — no embedded $ range here; the exact monthly figure
+  // already shows per-point in the tooltip, so a min–max suffix just reads
+  // as a confusing "two numbers in brackets" on hover.
+  const targetLabel = 'FIRE Target';
 
   _fireChartInstance = new Chart(canvas, {
     type: 'bar',
