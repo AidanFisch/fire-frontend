@@ -7039,6 +7039,22 @@ propPrefixes.forEach((prefix, i) => {
     if (idx >= 0) propEventMarkers.push({ index: idx, label: lbl, color: lineC, boxBg: boxC });
   });
 
+  // Life event markers (income/expense changes, windfalls)
+  const LIFE_EVENT_COLORS = {
+    income_change:  ['#059669AA', '#059669'],
+    expense_change: ['#C0285AAA', '#C0285A'],
+    windfall:       ['#8A6D1DAA', '#8A6D1D'],
+  };
+  (state.life_events || []).forEach(ev => {
+    if (!ev.start) return;
+    const idx = mode === 'yearly'
+      ? rows.findIndex(r => toNumber(r[yearKey]) >= parseInt(ev.start.split('-')[0]))
+      : rows.findIndex(r => r['Date'] && r['Date'].startsWith(ev.start));
+    if (idx < 0) return;
+    const [lineC, boxC] = LIFE_EVENT_COLORS[ev.type] || LIFE_EVENT_COLORS.windfall;
+    propEventMarkers.push({ index: idx, label: ev.name || _lifeEventTypeLabel(ev.type), color: lineC, boxBg: boxC });
+  });
+
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
 
