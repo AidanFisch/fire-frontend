@@ -804,6 +804,19 @@ th{
 	  .propTypeBadge-investment { background: #E6F7F2; color: #059669; }
 	  .propTypeBadge-ppor { background: #E6F7F2; color: #059669; }
 	  .propTypeBadge-sixyear { background: #FEF3C7; color: #92400E; text-transform: none; letter-spacing: 0; }
+	  .propTypeBadge-income { background: #E6F7F2; color: #059669; }
+	  .propTypeBadge-expense { background: #FCE8EC; color: #C0285A; }
+	  .propTypeBadge-windfall { background: #FDF6E3; color: #8A6D1D; }
+
+	  /* ---- Life events ---- */
+	  .life-event-card {
+		border: 1px solid #E8E4DE; border-radius: 8px;
+		padding: 10px 12px; margin-bottom: 8px; background: white;
+	  }
+	  .life-event-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+	  .life-event-name { font-weight: 700; font-size: 13px; color: #1C1C1A; }
+	  .life-event-actions { margin-left: auto; display: flex; gap: 4px; }
+	  .life-event-meta { font-size: 11.5px; color: #5C5955; margin-top: 4px; }
 	  .propYearBadge {
 		font-size: 11px;
 		letter-spacing: 0.02em;
@@ -3651,6 +3664,20 @@ select.exp-input { cursor:pointer; }
           <div id="drawerPropSummary" style="font-size:12px; color:#5C5955;"></div>
         </div>
 
+        <!-- Life Events -->
+        <div id="panel-events" class="drawer-panel hidden" style="margin-top:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <h2 style="margin:0;">Life Events</h2>
+          </div>
+          <div class="sub" style="margin-bottom:12px;">
+            Temporary pay cuts, one-off windfalls or big expenses — modelled as adjustments
+            to the projection below, not your logged Budget history.
+          </div>
+          <div id="lifeEventsList"></div>
+          <button class="btn ghost btn-add-row" style="margin-top:10px; font-size:12px;"
+                  onclick="openAddLifeEvent()">+ Add life event</button>
+        </div>
+
       </div><!-- /grid -->
     </div><!-- /#inputsPanel -->
   </div><!-- /#inputsHomeMount -->
@@ -4445,6 +4472,7 @@ select.exp-input { cursor:pointer; }
         <button id="btnDrawerCore" class="active" onclick="showInputsPanel('core')">Core</button>
         <button id="btnDrawerStocks" onclick="showInputsPanel('stocks')">Stocks & Super</button>
         <button id="btnDrawerProps" onclick="showInputsPanel('properties')">Properties</button>
+        <button id="btnDrawerEvents" onclick="showInputsPanel('events')">Life Events</button>
       </div>
     </div>
     <div class="row" style="gap:8px;">
@@ -4538,6 +4566,7 @@ let state = {
       is_owner_occupied: true
     }
   ],
+  life_events: [],
   chartTogglesVersion: 2,
   chartToggles: {
     netWorth: true,
@@ -4941,6 +4970,10 @@ function loadState(){
 
       if (Array.isArray(parsed.property_list)) {
         state.property_list = parsed.property_list.map(_migrateProperty);
+      }
+
+      if (Array.isArray(parsed.life_events)) {
+        state.life_events = parsed.life_events;
       }
 
       if (isPlainObject(parsed.chartToggles) && parsed.chartTogglesVersion === state.chartTogglesVersion) {
@@ -6381,6 +6414,7 @@ function buildPayload(){
   return {
     inputs: normalizeInputs(state.inputs),  // ✅ normalize ALL inputs, no key list
     property_list: state.property_list,
+    life_events: state.life_events || [],
     display_month: (state.mode === "monthly")
   };
 }
@@ -8993,6 +9027,7 @@ async function fetchFireModelTargets(){
     const payload = {
       inputs: normalizeInputs(state.inputs),
       property_list: state.property_list || [],
+      life_events: state.life_events || [],
       display_month: false   // yearly rollup
     };
     const r = await fetch(`${base}/fire`, {
@@ -9856,6 +9891,7 @@ function showInputsPanel(which){
     { id:"core", el: document.getElementById("panel-core"),  btn: document.getElementById("btnDrawerCore") },
     { id:"stocks", el: document.getElementById("panel-stocks"), btn: document.getElementById("btnDrawerStocks") },
     { id:"properties", el: document.getElementById("panel-properties"), btn: document.getElementById("btnDrawerProps") },
+    { id:"events", el: document.getElementById("panel-events"), btn: document.getElementById("btnDrawerEvents") },
   ];
   groups.forEach(g=>{
     const isActive = (g.id === which);
@@ -9865,6 +9901,164 @@ function showInputsPanel(which){
       g.btn.setAttribute("aria-selected", String(isActive));
     }
   });
+  if (which === "events") renderLifeEvents();
+}
+
+/* ====== Life Events ====== */
+
+function _lifeEventTypeLabel(t){
+  return ({ income_change:'Income change', expense_change:'Expense change', windfall:'Windfall / one-off' })[t] || t;
+}
+function _lifeEventBadgeClass(t){
+  return ({ income_change:'income', expense_change:'expense', windfall:'windfall' })[t] || '';
+}
+function _fmtLifeEventMonth(ym){
+  if(!ym) return '—';
+  const parts = ym.split('-').map(Number);
+  return new Date(parts[0], parts[1]-1, 1).toLocaleDateString('en-AU', {month:'short', year:'numeric'});
+}
+function _fmtLifeEventDateRange(ev){
+  const startLabel = _fmtLifeEventMonth(ev.start);
+  if (ev.type === 'windfall') return startLabel;
+  return ev.end ? `${startLabel} – ${_fmtLifeEventMonth(ev.end)}` : `${startLabel} – ongoing`;
+}
+function _fmtLifeEventAmount(ev){
+  const amt = Number(ev.amount) || 0;
+  const sign = amt >= 0 ? '+' : '';
+  if (ev.type === 'windfall') return sign + fmtMoney(amt);
+  if (ev.mode === 'percent') return `${sign}${amt}%`;
+  return `${sign}${fmtMoney(amt)}/mo`;
+}
+
+let _lifeEventFormOpen = null; // { id, name, type, start, end, mode, amount } while add/edit form is showing
+
+function renderLifeEvents(){
+  const wrap = document.getElementById('lifeEventsList');
+  if (!wrap) return;
+  const events = (state.life_events || []).slice().sort((a,b) => (a.start||'').localeCompare(b.start||''));
+
+  let html = _lifeEventFormOpen ? _renderLifeEventForm(_lifeEventFormOpen) : '';
+  if (!events.length) {
+    html += `<div class="prop-history-empty">No life events yet — add a temporary pay cut, a big one-off expense, or a windfall to see how it shifts your FIRE date.</div>`;
+  } else {
+    events.forEach(ev => {
+      html += `
+        <div class="life-event-card">
+          <div class="life-event-row">
+            <span class="propTypeBadge propTypeBadge-${_lifeEventBadgeClass(ev.type)}">${escapeHtml(_lifeEventTypeLabel(ev.type))}</span>
+            <span class="life-event-name">${escapeHtml(ev.name || 'Untitled event')}</span>
+            <span class="life-event-actions">
+              <button class="prop-history-edit" onclick="event.stopPropagation(); editLifeEvent(${Number(ev.id)})" title="Edit">✎</button>
+              <button class="prop-history-del" onclick="event.stopPropagation(); deleteLifeEvent(${Number(ev.id)})" title="Remove">✕</button>
+            </span>
+          </div>
+          <div class="life-event-meta">${_fmtLifeEventDateRange(ev)} &nbsp;·&nbsp; ${_fmtLifeEventAmount(ev)}</div>
+        </div>`;
+    });
+  }
+  wrap.innerHTML = html;
+}
+
+function openAddLifeEvent(){
+  _lifeEventFormOpen = { id:null, name:'', type:'income_change', start: todayMonthStr(), end:'', mode:'percent', amount:'' };
+  renderLifeEvents();
+}
+function editLifeEvent(id){
+  const ev = (state.life_events || []).find(e => Number(e.id) === Number(id));
+  if (!ev) return;
+  _lifeEventFormOpen = { ...ev, amount: ev.amount ?? '' };
+  renderLifeEvents();
+}
+function cancelLifeEventForm(){
+  _lifeEventFormOpen = null;
+  renderLifeEvents();
+}
+function deleteLifeEvent(id){
+  state.life_events = (state.life_events || []).filter(e => Number(e.id) !== Number(id));
+  saveState();
+  renderLifeEvents();
+}
+function _onLifeEventTypeChange(val){
+  if (!_lifeEventFormOpen) return;
+  _lifeEventFormOpen.type = val;
+  renderLifeEvents();
+}
+function saveLifeEventForm(){
+  if (!_lifeEventFormOpen) return;
+  const name  = document.getElementById('lev_name').value.trim();
+  const type  = document.getElementById('lev_type').value;
+  const start = document.getElementById('lev_start').value;
+  const endEl = document.getElementById('lev_end');
+  const modeEl = document.getElementById('lev_mode');
+  const amount = toNumber(document.getElementById('lev_amount').value);
+
+  if (!start) { showToast('Missing date', 'Pick a date for this event.'); return; }
+
+  const id = _lifeEventFormOpen.id ?? Date.now();
+  const entry = {
+    id, name, type, start,
+    end: (type !== 'windfall' && endEl && endEl.value) ? endEl.value : null,
+    mode: type === 'windfall' ? 'lump' : (modeEl ? modeEl.value : 'percent'),
+    amount
+  };
+
+  const list = state.life_events || [];
+  const idx = list.findIndex(e => Number(e.id) === Number(id));
+  if (idx >= 0) list[idx] = entry; else list.push(entry);
+  state.life_events = list;
+
+  _lifeEventFormOpen = null;
+  saveState();
+  renderLifeEvents();
+  showToast('Saved', `"${name || 'Life event'}" saved.`);
+}
+function _renderLifeEventForm(form){
+  const isEdit = form.id != null;
+  const isWindfall = form.type === 'windfall';
+  return `
+    <div class="prop-history-form">
+      <div class="prop-history-form-title">${isEdit ? 'Edit life event' : 'New life event'}</div>
+      <div class="prop-history-form-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div style="grid-column:1/3;">
+          <label>Name</label>
+          <input type="text" id="lev_name" value="${escapeHtml(form.name||'')}" placeholder="e.g. Parental leave" />
+        </div>
+        <div>
+          <label>Type</label>
+          <select id="lev_type" onchange="_onLifeEventTypeChange(this.value)">
+            <option value="income_change" ${form.type==='income_change'?'selected':''}>Income change</option>
+            <option value="expense_change" ${form.type==='expense_change'?'selected':''}>Expense change</option>
+            <option value="windfall" ${form.type==='windfall'?'selected':''}>Windfall / one-off</option>
+          </select>
+        </div>
+        <div>
+          <label>${isWindfall ? 'Date' : 'Start'}</label>
+          <input type="month" id="lev_start" value="${form.start||''}" />
+        </div>
+        ${!isWindfall ? `
+        <div>
+          <label>End <span style="font-size:10px;color:#8A8582;">(blank = ongoing)</span></label>
+          <input type="month" id="lev_end" value="${form.end||''}" />
+        </div>
+        <div>
+          <label>Amount type</label>
+          <select id="lev_mode">
+            <option value="percent" ${form.mode==='percent'?'selected':''}>% change</option>
+            <option value="dollar" ${form.mode==='dollar'?'selected':''}>$ per month</option>
+          </select>
+        </div>` : ''}
+        <div>
+          <label>${isWindfall ? 'Amount ($, negative = expense)' : (form.mode==='percent' ? 'Amount (%)' : 'Amount ($/mo)')}</label>
+          <input type="text" inputmode="decimal" id="lev_amount" value="${form.amount===''?'':form.amount}"
+                 placeholder="${isWindfall ? 'e.g. 50000 or -15000' : 'e.g. -30'}" />
+        </div>
+      </div>
+      <div class="prop-history-form-actions">
+        <button class="btn ghost" onclick="cancelLifeEventForm()">Cancel</button>
+        <button class="btn primary" onclick="saveLifeEventForm()">Save event</button>
+      </div>
+    </div>
+  `;
 }
 
 
@@ -10744,6 +10938,7 @@ function saveScenario(){
     color,
     inputs: {...state.inputs},
     property_list: JSON.parse(JSON.stringify(state.property_list||[])),
+    life_events: JSON.parse(JSON.stringify(state.life_events||[])),
     summary,
     chartData: _extractScenarioChartData()
   });
@@ -10762,6 +10957,7 @@ function loadScenario(id){
   if(!confirm(`Load "${s.label}"?\n\nThis replaces your current inputs.`)) return;
   state.inputs = {...s.inputs};
   state.property_list = JSON.parse(JSON.stringify(s.property_list||[]));
+  state.life_events = JSON.parse(JSON.stringify(s.life_events||[]));
   saveState();
   bindCoreInputs();
   showTab('results');
