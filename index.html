@@ -4663,6 +4663,7 @@ let state = {
     }
   ],
   life_events: [],
+  modelRunUsage: null, // { date: 'YYYY-MM-DD', count: N } — free-plan daily run cap
   chartTogglesVersion: 2,
   chartToggles: {
     netWorth: true,
@@ -5070,6 +5071,10 @@ function loadState(){
 
       if (Array.isArray(parsed.life_events)) {
         state.life_events = parsed.life_events;
+      }
+
+      if (isPlainObject(parsed.modelRunUsage)) {
+        state.modelRunUsage = parsed.modelRunUsage;
       }
 
       if (isPlainObject(parsed.chartToggles) && parsed.chartTogglesVersion === state.chartTogglesVersion) {
@@ -6590,7 +6595,29 @@ async function callPath(base, path, payload){
 
 
 
+const FREE_DAILY_RUN_LIMIT = 5;
+
+/** Free plan: enough runs/day to explore and tweak inputs, not enough to
+ *  exhaustively drill down. Returns false (and shows the upgrade modal)
+ *  without incrementing if the day's quota is already used. */
+function _checkModelRunLimit(){
+  if (isPro()) return true;
+  const today = todayMonthStr() + '-' + String(new Date().getDate()).padStart(2, '0');
+  if (!state.modelRunUsage || state.modelRunUsage.date !== today) {
+    state.modelRunUsage = { date: today, count: 0 };
+  }
+  if (state.modelRunUsage.count >= FREE_DAILY_RUN_LIMIT) {
+    showUpgradeModal(`Free plan is limited to ${FREE_DAILY_RUN_LIMIT} model runs per day. Upgrade for unlimited runs.`);
+    return false;
+  }
+  state.modelRunUsage.count++;
+  saveState();
+  return true;
+}
+
 async function runModel(){
+  if (!_checkModelRunLimit()) return;
+
   const runBtn = document.getElementById("btnRunModelHeader");
   if(runBtn){ runBtn.textContent = "Running…"; runBtn.disabled = true; }
 
