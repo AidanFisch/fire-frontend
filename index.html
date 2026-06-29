@@ -1489,8 +1489,15 @@ th{
   .hero-logo-icon{ width:38px; height:38px; }
   .hero-logo-word{ font-size: 24px; }
 }
+/* Wrapper auto-sizes to the widest of all stacked words (every word
+   occupies the same grid cell), so "freedom —" before it never shifts
+   no matter which word is currently showing — no JS measuring needed. */
+.hero-title-word-wrap{
+  display: inline-grid; vertical-align: bottom; text-align: left;
+}
+.hero-title-word-ghost{ grid-area: 1/1; visibility: hidden; }
 .hero-title-word{
-  display: inline-block; transition: opacity .22s ease, transform .22s ease;
+  grid-area: 1/1; display: inline-block; transition: opacity .22s ease, transform .22s ease;
 }
 .hero-title-word.swap{ opacity: 0; transform: translateY(6px); }
 .hero-pills{ display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
@@ -3161,7 +3168,15 @@ select.exp-input { cursor:pointer; }
         </div>
 
         <h1 class="hero-title" style="margin-top:0;">
-          Know your path to financial freedom — <span id="heroTitleWord" class="hero-title-word" style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+          Know your path to financial freedom —
+          <span class="hero-title-word-wrap">
+            <span class="hero-title-word-ghost" aria-hidden="true">clearly</span>
+            <span class="hero-title-word-ghost" aria-hidden="true">accurately</span>
+            <span class="hero-title-word-ghost" aria-hidden="true">reliably</span>
+            <span class="hero-title-word-ghost" aria-hidden="true">confidently</span>
+            <span class="hero-title-word-ghost" aria-hidden="true">instantly</span>
+            <span id="heroTitleWord" class="hero-title-word" style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+          </span>
         </h1>
         <script>
           (function(){
