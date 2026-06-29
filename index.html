@@ -2226,13 +2226,18 @@ label { color: #5C5955 !important; }
 }
 body.landing #modelActionsBar { display: none !important; }
 
-/* Budget section labels & summary strip */
+/* Budget section labels & summary strip — same green-accent-bar treatment
+   as the Properties tab's section headers (.prop-section-label), rolled
+   out here for visual consistency. Shared class, so this also covers the
+   Overview tab's "FIRE Progress"/"Net Worth Trend" labels and Holdings'
+   "Asset Values by Month". */
 .budget-section-lbl {
-  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
-  color:#8A8582; margin:16px 0 6px; padding:0;
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+  color:#3E4A3F; margin:16px 0 8px; padding:5px 10px;
+  border-radius:6px; border-left:3px solid var(--accent);
+  background: rgba(5,150,105,0.07);
   display:flex; align-items:center; gap:8px;
 }
-.budget-section-lbl::after { content:''; flex:1; height:1px; background:#E8E4DE; }
 .budget-summary-strip {
   display:flex; align-items:center; gap:0; margin:14px 0;
   padding:12px 16px; background:#F8F7F4; border-radius:8px; border:1px solid #E8E4DE;
@@ -2254,6 +2259,7 @@ body.landing #modelActionsBar { display: none !important; }
 .budget-month-nav {
   display:flex; align-items:center; gap:2px; font-size:14px; font-weight:700;
   background:#F8F7F4; border:1px solid #E8E4DE; border-radius:999px; padding:4px 6px;
+  position:relative; /* anchors the month-picker-pop for the clickable label below */
 }
 .budget-month-nav .btn {
   width:28px; height:28px; padding:0 !important;
@@ -2264,22 +2270,26 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .budget-month-nav .btn.ghost:hover { background:#fff !important; color:#059669 !important; box-shadow:0 1px 3px rgba(0,0,0,.10); }
 .budget-month-nav .btn.ghost:active { transform:scale(.92); }
-#budgetMonthLabel { min-width:108px; text-align:center; color:#1C1C1A; letter-spacing:-.01em; padding:0 2px; }
+#budgetMonthLabel {
+  min-width:108px; text-align:center; color:#1C1C1A; letter-spacing:-.01em; padding:2px 6px;
+  border-radius:999px; cursor:pointer; transition: background .15s, color .15s;
+}
+#budgetMonthLabel:hover { background:#fff; color:#059669; box-shadow:0 1px 3px rgba(0,0,0,.10); }
 
 .budget-save-status { font-size:11px; color:#8A8582; transition:color .3s; }
 .budget-save-status.saved { color:#059669; }
 .budget-save-status.error { color:#dc2626; }
 
-/* Copy-from button in card head — secondary utility action, kept quiet */
+/* Copy-from button in card head */
 .budget-copy-btn {
   margin-left:auto;
-  font-size:11.5px; font-weight:600; padding:6px 12px;
-  background:transparent; border:1px solid transparent; border-radius:20px;
-  color:#8A8582; cursor:pointer; white-space:nowrap;
+  font-size:11.5px; font-weight:700; padding:6px 12px;
+  background:#E6F7F2; border:1px solid transparent; border-radius:20px;
+  color:#059669; cursor:pointer; white-space:nowrap;
   display:inline-flex; align-items:center; gap:5px;
   transition:background .15s, border-color .15s, color .15s;
 }
-.budget-copy-btn:hover  { background:#F0FDF4; border-color:#D8F0E4; color:#059669; }
+.budget-copy-btn:hover  { background:#D8F0E4; }
 .budget-copy-btn:disabled { opacity:.5; cursor:default; }
 
 /* Budget year nav arrows */
@@ -3910,12 +3920,13 @@ select.exp-input { cursor:pointer; }
     <!-- Month editor card -->
     <div class="card">
       <div class="budget-card-head">
-        <div class="budget-month-nav">
+        <div class="budget-month-nav month-picker">
           <button class="btn ghost" onclick="budgetMonthStep(-1)" aria-label="Previous month">‹</button>
-          <span id="budgetMonthLabel">—</span>
+          <span id="budgetMonthLabel" onclick="event.stopPropagation(); toggleBudgetMonthPicker()">—</span>
           <button class="btn ghost" onclick="budgetMonthStep(1)" aria-label="Next month">›</button>
+          <div class="month-picker-pop" id="budgetMonthPop"></div>
         </div>
-        <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy from —</button>
+        <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy Previous Month</button>
         <span id="budgetSaveStatus" class="budget-save-status"></span>
       </div>
 
@@ -8717,10 +8728,7 @@ function parseCategoryDescription(str){
 function updateCopyBtn(){
   const btn = document.getElementById('budgetCopyBtn');
   if(!btn || !budgetMonthStr) return;
-  const prev = prevMonthStr(budgetMonthStr);
-  const [py, pm] = prev.split('-').map(Number);
-  const lbl = new Date(py, pm-1, 1).toLocaleDateString('en-AU', {month:'short', year:'numeric'});
-  btn.innerHTML = `<span aria-hidden="true">⧉</span> Copy from ${lbl}`;
+  btn.innerHTML = `<span aria-hidden="true">⧉</span> Copy Previous Month`;
 }
 function setLockState(locked){
   _budgetLocked = locked;
@@ -8888,6 +8896,55 @@ function budgetMonthStep(delta){
   if(m > 12){ m = 1;  y++; }
   if(m < 1) { m = 12; y--; }
   loadBudgetMonth(`${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}`);
+}
+
+/** Clicking the month label itself opens the same picker popover used
+ *  elsewhere, so you can jump straight to a month instead of stepping
+ *  one at a time with the arrows (which keep working exactly as before). */
+function toggleBudgetMonthPicker(){
+  const pop = document.getElementById('budgetMonthPop');
+  if (!pop) return;
+  const wasOpen = pop.classList.contains('open');
+  document.querySelectorAll('.month-picker-pop.open').forEach(p => p.classList.remove('open'));
+  if (wasOpen) return;
+
+  const viewYear = budgetMonthStr ? Number(budgetMonthStr.split('-')[0]) : new Date().getFullYear();
+  _renderBudgetMonthPop(viewYear);
+  pop.classList.add('open');
+
+  if (!_mpOutsideBound) {
+    _mpOutsideBound = true;
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.month-picker')) return;
+      document.querySelectorAll('.month-picker-pop.open').forEach(p => p.classList.remove('open'));
+    });
+  }
+}
+
+function _renderBudgetMonthPop(year){
+  const pop = document.getElementById('budgetMonthPop');
+  if (!pop) return;
+  const [selY, selM] = (budgetMonthStr || '').split('-').map(Number);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  pop.innerHTML = `
+    <div class="month-picker-yearnav">
+      <button type="button" onclick="event.stopPropagation(); _renderBudgetMonthPop(${year - 1})">‹</button>
+      <span>${year}</span>
+      <button type="button" onclick="event.stopPropagation(); _renderBudgetMonthPop(${year + 1})">›</button>
+    </div>
+    <div class="month-picker-grid">
+      ${months.map((m, i) => `
+        <button type="button" class="month-picker-cell${selY===year && selM===i+1 ? ' selected' : ''}"
+                onclick="event.stopPropagation(); _budgetMonthPick(${year}, ${i+1})">${m}</button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function _budgetMonthPick(year, month){
+  document.getElementById('budgetMonthPop').classList.remove('open');
+  loadBudgetMonth(`${year}-${String(month).padStart(2,'0')}`);
 }
 
 /** Update the month label in the editor card header */
