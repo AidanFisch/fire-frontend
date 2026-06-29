@@ -1465,6 +1465,30 @@ th{
   0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,.45); }
   50%      { box-shadow: 0 0 0 6px rgba(5,150,105,0); }
 }
+
+/* Real logo lockup for the landing hero — the main nav (with this same
+   icon) is hidden on the landing page, so first-time visitors otherwise
+   never see the brand mark at all. */
+.hero-logo-lockup{
+  display: inline-flex; align-items: center; gap: 14px;
+  margin-bottom: 22px;
+  animation: heroLogoIn .6s cubic-bezier(.2,.8,.2,1);
+}
+.hero-logo-icon{
+  flex-shrink: 0; border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15,61,46,.28);
+}
+.hero-logo-word{ font-size: 30px; font-weight: 800; letter-spacing: -0.025em; }
+.hero-logo-word-a{ color: #1C1C1A; }
+.hero-logo-word-b{ color: #059669; }
+@keyframes heroLogoIn{
+  0%   { opacity: 0; transform: translateY(6px) scale(.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 520px){
+  .hero-logo-icon{ width:38px; height:38px; }
+  .hero-logo-word{ font-size: 24px; }
+}
 .hero-title-word{
   display: inline-block; transition: opacity .22s ease, transform .22s ease;
 }
@@ -3125,9 +3149,15 @@ select.exp-input { cursor:pointer; }
     <div class="card landing-hero" style="padding:34px;">
 
       <div class="hero-head-centered">
-        <div class="hero-brand-badge">
-          <span class="hero-brand-dot"></span>
-          <span>Wealth Model</span>
+        <div class="hero-logo-lockup">
+          <svg class="hero-logo-icon" width="44" height="44" viewBox="0 0 72 72" aria-hidden="true">
+            <rect width="72" height="72" rx="16" fill="#0F3D2E"/>
+            <polyline points="12,40 24,54 36,28 48,54 60,14"
+                      fill="none" stroke="#3FE0A5" stroke-width="6.5"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="60" cy="14" r="4.8" fill="#FFFFFF"/>
+          </svg>
+          <span class="hero-logo-word"><span class="hero-logo-word-a">Wealth</span><span class="hero-logo-word-b"> Model</span></span>
         </div>
 
         <h1 class="hero-title" style="margin-top:0;">
