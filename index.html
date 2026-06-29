@@ -1478,9 +1478,14 @@ th{
   flex-shrink: 0; border-radius: 14px;
   box-shadow: 0 6px 18px rgba(15,61,46,.28);
 }
-.hero-logo-word{ font-size: 30px; font-weight: 800; letter-spacing: -0.025em; }
+.hero-logo-text{ display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.hero-logo-word{ font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
 .hero-logo-word-a{ color: #1C1C1A; }
 .hero-logo-word-b{ color: #059669; }
+.hero-logo-tagline{
+  font-size: 12.5px; font-weight: 600; color: #8A8582;
+  letter-spacing: .03em; margin-top: 2px;
+}
 @keyframes heroLogoIn{
   0%   { opacity: 0; transform: translateY(6px) scale(.96); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -1488,6 +1493,7 @@ th{
 @media (max-width: 520px){
   .hero-logo-icon{ width:38px; height:38px; }
   .hero-logo-word{ font-size: 24px; }
+  .hero-logo-tagline{ font-size: 11px; }
 }
 /* Wrapper auto-sizes to the widest of all stacked words (every word
    occupies the same grid cell), so "freedom —" before it never shifts
@@ -3088,10 +3094,10 @@ select.exp-input { cursor:pointer; }
                     stroke="#3FE0A5" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="21.3" cy="8.3" r="1.5" fill="#FFFFFF"/>
-          <!-- Wordmark: "Wealth" charcoal + " Model" teal -->
+          <!-- Wordmark: one tight word, "Wealth" charcoal + "Model" teal -->
           <text x="40" y="15" dominant-baseline="middle"
-                style="font-family:inherit; font-weight:800; font-size:17px; letter-spacing:-0.03em;">
-            <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75"> Model</tspan>
+                style="font-family:inherit; font-weight:800; font-size:17px; letter-spacing:-0.04em;">
+            <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75">Model</tspan>
           </text>
         </svg>
         <span class="api-dot" id="apiStatusDot" onclick="pingAPI()" style="cursor:pointer;"></span>
@@ -3164,7 +3170,10 @@ select.exp-input { cursor:pointer; }
                       stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="60" cy="14" r="4.8" fill="#FFFFFF"/>
           </svg>
-          <span class="hero-logo-word"><span class="hero-logo-word-a">Wealth</span><span class="hero-logo-word-b"> Model</span></span>
+          <div class="hero-logo-text">
+            <span class="hero-logo-word"><span class="hero-logo-word-a">Wealth</span><span class="hero-logo-word-b">Model</span></span>
+            <span class="hero-logo-tagline">Financial Independence Planner</span>
+          </div>
         </div>
 
         <h1 class="hero-title" style="margin-top:0;">
@@ -3552,19 +3561,6 @@ select.exp-input { cursor:pointer; }
       </div>
 
     </div>
-
-    <!-- === SEO footer / About text (inside #tab-landing) === -->
-    <footer class="card" style="margin-top:18px;">
-      <h2 style="margin:0 0 8px 0;">About WealthModel</h2>
-      <p class="sub" style="line-height:1.55;">
-        WealthModel is a FIRE (Financial Independence, Retire Early) simulator that helps you model
-        income, expenses, superannuation, stock growth, and property cashflow to estimate your
-        projected FIRE age. Compare scenarios (rent vs buy, offset usage, PPOR vs investment),
-        view monthly/annual projections, and see when your plan becomes self‑funding via a clear
-        FIRE marker on the timeline. General information only — not financial advice.
-      </p>
-    </footer>
-    <!-- === End footer / About text === -->
 
   </div>
 </section>
