@@ -5556,11 +5556,9 @@ function renderProperties(){
 	    const pdWrap = document.createElement("div");
 	    pdWrap.innerHTML = `
 	      <label style="font-size:12px; color:#5C5955; display:block; margin-bottom:4px;">Purchase Date</label>
-	      <input type="month" id="p_${p.id}_purchase_date"
-	             value="${p.purchase_date || `${p.year_bought||2020}-01`}"
-	             style="font-size:13px; padding:5px 10px; border:1px solid #D8D4CC; border-radius:8px;
-	                    background:white; color:#1C1C1A; width:160px;"
-	             onchange="updatePurchaseDate(${p.id}, this.value)" />
+	      <div style="width:160px;">${monthPickerHTML(`p_${p.id}_purchase_date`, p.purchase_date || `${p.year_bought||2020}-01`, {
+	        onChange: (val) => updatePurchaseDate(p.id, val)
+	      })}</div>
 	    `;
 	    g.appendChild(pdWrap);
 
@@ -5639,9 +5637,10 @@ function renderProperties(){
         <div class="fieldgrid" style="margin-top:6px;">
           <div>
             <label>Sale Date</label>
-            <input id="p_${p.id}_sale_date" type="month"
-                   value="${p.sale_date || (p.sale_year ? p.sale_year+'-12' : '')}"
-                   onchange="updateSaleField(${p.id},'sale_date',this.value)" />
+            ${monthPickerHTML(`p_${p.id}_sale_date`, p.sale_date || (p.sale_year ? p.sale_year+'-12' : ''), {
+              allowClear: true, clearLabel: 'Clear date',
+              onChange: (val) => updateSaleField(p.id, 'sale_date', val)
+            })}
           </div>
           <div>
             <label>Sale Price <span style="font-size:10px; color:#8A8582;">(blank = projected)</span></label>
@@ -6161,14 +6160,14 @@ function renderPporRows(id){
     const row = document.createElement('div');
     row.className = 'ppor-row';
     row.innerHTML = `
-      <input class="ppor-input" type="month" value="${pr.from||''}"
-             title="From"
-             onchange="updatePporPeriod(${id},${idx},'from',this.value)" />
+      <div style="width:126px;">${monthPickerHTML(`ppor_${id}_${idx}_from`, pr.from || '', {
+        onChange: (val) => updatePporPeriod(id, idx, 'from', val)
+      })}</div>
       <span class="ppor-arrow">→</span>
-      <input class="ppor-input ppor-to" type="month" value="${pr.to||''}"
-             placeholder="ongoing"
-             title="To (blank = ongoing)"
-             onchange="updatePporPeriod(${id},${idx},'to',this.value||null)" />
+      <div style="width:126px;">${monthPickerHTML(`ppor_${id}_${idx}_to`, pr.to || '', {
+        placeholder: 'Ongoing', allowClear: true, clearLabel: 'Ongoing',
+        onChange: (val) => updatePporPeriod(id, idx, 'to', val || null)
+      })}</div>
       <label class="ppor-sixyr-chip${hasEnd ? '' : ' chip-disabled'}"
              title="${hasEnd ? 'Claim 6-year CGT absence rule after this period ends' : 'Set an end date to enable the 6-year absence rule'}">
         <input type="checkbox" ${pr.six_year_rule?'checked':''} ${hasEnd?'':'disabled'}
@@ -10000,8 +9999,17 @@ function _fmtLifeEventAmount(ev){
 let _mpOutsideBound = false;
 const _mpAllowClear = {};   // fieldId -> { clearLabel }
 
+const _mpOnChange = {}; // fieldId -> function(newValue) — for callers that need a side effect on change
+
 function monthPickerHTML(fieldId, value, opts={}){
-  if (opts.allowClear) _mpAllowClear[fieldId] = { clearLabel: opts.clearLabel || 'Clear' };
+  // clearLabel is the wording on the clear *button* (an action, e.g. "Clear date");
+  // placeholder is what the field itself shows once empty (e.g. "Select month").
+  // Keeping these separate avoids a cleared field echoing the button's action text.
+  if (opts.allowClear) _mpAllowClear[fieldId] = {
+    clearLabel: opts.clearLabel || 'Clear',
+    placeholder: opts.placeholder || 'Select month'
+  };
+  if (opts.onChange) _mpOnChange[fieldId] = opts.onChange;
   const label = value ? _fmtLifeEventMonth(value) : (opts.placeholder || 'Select month');
   return `
     <div class="month-picker" id="${fieldId}_wrap">
@@ -10056,7 +10064,7 @@ function _renderMonthPickerPop(fieldId, year){
                 onclick="event.stopPropagation(); _mpSelect('${fieldId}', ${year}, ${i+1})">${m}</button>
       `).join('')}
     </div>
-    ${clearOpt ? `<button type="button" class="month-picker-clear" onclick="event.stopPropagation(); _mpClear('${fieldId}', '${clearOpt.clearLabel}')">${clearOpt.clearLabel}</button>` : ''}
+    ${clearOpt ? `<button type="button" class="month-picker-clear" onclick="event.stopPropagation(); _mpClear('${fieldId}')">${clearOpt.clearLabel}</button>` : ''}
   `;
 }
 
@@ -10065,12 +10073,14 @@ function _mpSelect(fieldId, year, month){
   document.getElementById(fieldId).value = ym;
   document.getElementById(`${fieldId}_label`).textContent = _fmtLifeEventMonth(ym);
   document.getElementById(`${fieldId}_pop`).classList.remove('open');
+  if (_mpOnChange[fieldId]) _mpOnChange[fieldId](ym);
 }
 
-function _mpClear(fieldId, clearLabel){
+function _mpClear(fieldId){
   document.getElementById(fieldId).value = '';
-  document.getElementById(`${fieldId}_label`).textContent = clearLabel;
+  document.getElementById(`${fieldId}_label`).textContent = _mpAllowClear[fieldId]?.placeholder || 'Select month';
   document.getElementById(`${fieldId}_pop`).classList.remove('open');
+  if (_mpOnChange[fieldId]) _mpOnChange[fieldId]('');
 }
 
 let _lifeEventFormOpen = null; // { id, name, type, start, end, mode, amount } while add/edit form is showing
@@ -10208,7 +10218,7 @@ function _renderLifeEventForm(form){
         ${!isWindfall ? `
         <div>
           <label>End <span style="font-size:10px;color:#8A8582;">(blank = ongoing)</span></label>
-          ${monthPickerHTML('lev_end', form.end, { allowClear: true, clearLabel: 'Ongoing' })}
+          ${monthPickerHTML('lev_end', form.end, { placeholder: 'Ongoing', allowClear: true, clearLabel: 'Ongoing' })}
         </div>
         <div>
           <label>Amount type</label>
