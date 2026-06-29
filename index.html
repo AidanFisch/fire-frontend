@@ -8999,7 +8999,18 @@ function updateBudgetMonthLabel(){
 }
 
 /** Load a month into the inline editor */
+/** How many whole months before the current real-world month this falls. Negative = future. */
+function _monthsBeforeNow(monthStr){
+  const [y, m] = monthStr.split('-').map(Number);
+  const now = new Date();
+  return (now.getFullYear()*12 + now.getMonth()+1) - (y*12 + m);
+}
+
 function loadBudgetMonth(monthStr){
+  if (!isPro() && _monthsBeforeNow(monthStr) > 2) {
+    showUpgradeModal('Free plan shows the last 3 months of budget history. Upgrade for unlimited history.');
+    return;
+  }
   clearTimeout(_autosaveTimer);
   budgetMonthStr = monthStr;
   updateBudgetMonthLabel();
@@ -10212,6 +10223,10 @@ function renderLifeEvents(){
 }
 
 function openAddLifeEvent(){
+  if (!isPro() && (state.life_events||[]).length >= 1) {
+    showUpgradeModal('Free plan is limited to 1 life event. Upgrade to model unlimited income changes, expenses, and windfalls.');
+    return;
+  }
   _lifeEventFormOpen = { id:null, name:'', type:'income_change', start: todayMonthStr(), end:'', mode:'percent', amount:'' };
   renderLifeEvents();
 }
@@ -10468,7 +10483,12 @@ function renderPortfolioTab(){
 }
 
 function portYearStep(delta){
-  _portYear += delta;
+  const nextYear = _portYear + delta;
+  if (!isPro() && nextYear < new Date().getFullYear()) {
+    showUpgradeModal('Free plan shows the current year of holdings history. Upgrade for unlimited history.');
+    return;
+  }
+  _portYear = nextYear;
   renderPortYear(portLoad());
 }
 
