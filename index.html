@@ -14,11 +14,14 @@
 <meta property="og:description" content="Project your wealth and plan your financial independence timeline.">
 <meta property="og:url" content="https://wealthmodel.io"> <!-- will be patched dynamically -->
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://wealthmodel.io/og.png">
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <link rel="icon" type="image/png" sizes="32x32" href="https://wealthmodel.io/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="https://wealthmodel.io/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://wealthmodel.io/apple-touch-icon.png">
 
 <script type="application/ld+json">
 {
@@ -3047,17 +3050,15 @@ select.exp-input { cursor:pointer; }
       <div class="brand">
         <svg class="brand-lockup-svg" width="160" height="30" viewBox="0 0 160 30"
              fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Wealth Model">
-          <!-- Area fill beneath trend line -->
-          <polygon points="0,22 10,14 22,18 36,4 36,30 0,30"
-                   fill="#1D9E75" opacity="0.15"/>
-          <!-- Trend line -->
-          <polyline points="0,22 10,14 22,18 36,4"
-                    stroke="#1D9E75" stroke-width="2.5"
+          <!-- Icon: a single zigzag that reads as both "W" and "M" (true
+               vertical mirrors of each other) and as a rising trend line. -->
+          <rect x="0" y="1" width="28" height="28" rx="7" fill="#0F3D2E"/>
+          <polyline points="6.7,16.2 10.3,20.5 14,12.6 17.7,20.5 21.3,8.3"
+                    stroke="#3FE0A5" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- Apex circle -->
-          <circle cx="36" cy="4" r="3" fill="#1D9E75"/>
+          <circle cx="21.3" cy="8.3" r="1.5" fill="#FFFFFF"/>
           <!-- Wordmark: "Wealth" charcoal + " Model" teal -->
-          <text x="46" y="15" dominant-baseline="middle"
+          <text x="40" y="15" dominant-baseline="middle"
                 style="font-family:inherit; font-weight:800; font-size:17px; letter-spacing:-0.03em;">
             <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75"> Model</tspan>
           </text>
