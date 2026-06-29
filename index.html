@@ -823,6 +823,43 @@ th{
 	     Compound selector for specificity: .prop-history-form-grid's 4-column
 	     rule is declared later in the stylesheet and would otherwise win. */
 	  .prop-history-form-grid.life-event-form-grid { grid-template-columns: repeat(2, 1fr); }
+
+	  /* ---- Month picker (replaces native <input type="month">) ---- */
+	  .month-picker { position: relative; }
+	  .month-picker-btn {
+		width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between;
+		background: #FAFAF8; border: 1px solid #D8D4CC; border-radius: 7px;
+		padding: 6px 10px; font-size: 13px; color: #1C1C1A; cursor: pointer;
+	  }
+	  .month-picker-btn:hover { border-color: #B8B4AC; }
+	  .month-picker-caret { color: #8A8582; font-size: 10px; margin-left: 6px; }
+	  .month-picker-pop {
+		display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
+		width: 220px; background: white; border: 1px solid #D8D4CC; border-radius: 10px;
+		box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px;
+	  }
+	  .month-picker-pop.open { display: block; }
+	  .month-picker-yearnav {
+		display: flex; align-items: center; justify-content: space-between;
+		font-size: 13px; font-weight: 700; color: #1C1C1A; margin-bottom: 8px;
+	  }
+	  .month-picker-yearnav button {
+		width: 24px; height: 24px; border: none; background: #F0EDE8; border-radius: 6px;
+		color: #5C5955; cursor: pointer; font-size: 14px; line-height: 1;
+	  }
+	  .month-picker-yearnav button:hover { background: #E2DED7; color: #059669; }
+	  .month-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+	  .month-picker-cell {
+		border: none; background: #F8F7F4; border-radius: 6px; padding: 6px 0;
+		font-size: 12px; color: #3C3C3A; cursor: pointer;
+	  }
+	  .month-picker-cell:hover { background: #E6F7F2; color: #059669; }
+	  .month-picker-cell.selected { background: #059669; color: white; font-weight: 700; }
+	  .month-picker-clear {
+		width: 100%; margin-top: 8px; border: none; background: none; color: #8A8582;
+		font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 2px 0;
+	  }
+	  .month-picker-clear:hover { color: #059669; }
 	  .propYearBadge {
 		font-size: 11px;
 		letter-spacing: 0.02em;
@@ -9951,6 +9988,91 @@ function _fmtLifeEventAmount(ev){
   return `${sign}${fmtMoney(amt)}/mo`;
 }
 
+/* ====== Month picker ======
+   A custom month/year picker to replace native <input type="month">, whose
+   built-in year-scrolling UI is clunky. Renders a button showing the
+   formatted month + a popover with explicit prev/next year arrows and a
+   12-month grid. The real value lives in a hidden input with the given id,
+   so any code reading `document.getElementById(fieldId).value` (e.g.
+   saveLifeEventForm) doesn't need to change. Trying this on Life Events
+   first before rolling it out to Budget/Holdings/Properties. */
+
+let _mpOutsideBound = false;
+const _mpAllowClear = {};   // fieldId -> { clearLabel }
+
+function monthPickerHTML(fieldId, value, opts={}){
+  if (opts.allowClear) _mpAllowClear[fieldId] = { clearLabel: opts.clearLabel || 'Clear' };
+  const label = value ? _fmtLifeEventMonth(value) : (opts.placeholder || 'Select month');
+  return `
+    <div class="month-picker" id="${fieldId}_wrap">
+      <button type="button" class="month-picker-btn" onclick="event.stopPropagation(); toggleMonthPicker('${fieldId}')">
+        <span id="${fieldId}_label">${escapeHtml(label)}</span>
+        <span class="month-picker-caret">▾</span>
+      </button>
+      <input type="hidden" id="${fieldId}" value="${value||''}" />
+      <div class="month-picker-pop" id="${fieldId}_pop"></div>
+    </div>
+  `;
+}
+
+function toggleMonthPicker(fieldId){
+  const pop = document.getElementById(`${fieldId}_pop`);
+  if (!pop) return;
+  const wasOpen = pop.classList.contains('open');
+  document.querySelectorAll('.month-picker-pop.open').forEach(p => p.classList.remove('open'));
+  if (wasOpen) return;
+
+  const val = document.getElementById(fieldId).value;
+  const viewYear = val ? Number(val.split('-')[0]) : new Date().getFullYear();
+  _renderMonthPickerPop(fieldId, viewYear);
+  pop.classList.add('open');
+
+  if (!_mpOutsideBound) {
+    _mpOutsideBound = true;
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.month-picker')) return;
+      document.querySelectorAll('.month-picker-pop.open').forEach(p => p.classList.remove('open'));
+    });
+  }
+}
+
+function _renderMonthPickerPop(fieldId, year){
+  const pop = document.getElementById(`${fieldId}_pop`);
+  if (!pop) return;
+  const val = document.getElementById(fieldId).value;
+  const [selY, selM] = val ? val.split('-').map(Number) : [null, null];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const clearOpt = _mpAllowClear[fieldId];
+
+  pop.innerHTML = `
+    <div class="month-picker-yearnav">
+      <button type="button" onclick="event.stopPropagation(); _renderMonthPickerPop('${fieldId}', ${year - 1})">‹</button>
+      <span>${year}</span>
+      <button type="button" onclick="event.stopPropagation(); _renderMonthPickerPop('${fieldId}', ${year + 1})">›</button>
+    </div>
+    <div class="month-picker-grid">
+      ${months.map((m, i) => `
+        <button type="button" class="month-picker-cell${selY===year && selM===i+1 ? ' selected' : ''}"
+                onclick="event.stopPropagation(); _mpSelect('${fieldId}', ${year}, ${i+1})">${m}</button>
+      `).join('')}
+    </div>
+    ${clearOpt ? `<button type="button" class="month-picker-clear" onclick="event.stopPropagation(); _mpClear('${fieldId}', '${clearOpt.clearLabel}')">${clearOpt.clearLabel}</button>` : ''}
+  `;
+}
+
+function _mpSelect(fieldId, year, month){
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  document.getElementById(fieldId).value = ym;
+  document.getElementById(`${fieldId}_label`).textContent = _fmtLifeEventMonth(ym);
+  document.getElementById(`${fieldId}_pop`).classList.remove('open');
+}
+
+function _mpClear(fieldId, clearLabel){
+  document.getElementById(fieldId).value = '';
+  document.getElementById(`${fieldId}_label`).textContent = clearLabel;
+  document.getElementById(`${fieldId}_pop`).classList.remove('open');
+}
+
 let _lifeEventFormOpen = null; // { id, name, type, start, end, mode, amount } while add/edit form is showing
 
 function renderLifeEvents(){
@@ -10001,6 +10123,17 @@ function deleteLifeEvent(id){
 }
 function _onLifeEventTypeChange(val){
   if (!_lifeEventFormOpen) return;
+  // Preserve whatever the user already typed before the field layout swaps
+  const nameEl = document.getElementById('lev_name');
+  const startEl = document.getElementById('lev_start');
+  const endEl = document.getElementById('lev_end');
+  const modeEl = document.getElementById('lev_mode');
+  const amountEl = document.getElementById('lev_amount');
+  if (nameEl) _lifeEventFormOpen.name = nameEl.value;
+  if (startEl) _lifeEventFormOpen.start = startEl.value;
+  if (endEl) _lifeEventFormOpen.end = endEl.value;
+  if (modeEl) _lifeEventFormOpen.mode = modeEl.value;
+  if (amountEl) _lifeEventFormOpen.amount = toNumber(amountEl.value);
   _lifeEventFormOpen.type = val;
   renderLifeEvents();
 }
@@ -10033,9 +10166,25 @@ function saveLifeEventForm(){
   renderLifeEvents();
   showToast('Saved', `"${name || 'Life event'}" saved.`);
 }
+function _onLifeEventModeChange(val){
+  if (!_lifeEventFormOpen) return;
+  const amountEl = document.getElementById('lev_amount');
+  if (amountEl) _lifeEventFormOpen.amount = toNumber(amountEl.value);
+  _lifeEventFormOpen.mode = val;
+  renderLifeEvents();
+}
+function _levAmountFocus(el){
+  el.value = el.value.replace(/[^0-9.\-]/g, '');
+}
+function _levAmountBlur(el, isDollar){
+  if (el.value.trim() === '') return;
+  const v = toNumber(el.value);
+  el.value = isDollar ? fmtMoney(v) : v;
+}
 function _renderLifeEventForm(form){
   const isEdit = form.id != null;
   const isWindfall = form.type === 'windfall';
+  const isDollarAmount = isWindfall || form.mode === 'dollar';
   return `
     <div class="prop-history-form">
       <div class="prop-history-form-title">${isEdit ? 'Edit life event' : 'New life event'}</div>
@@ -10054,24 +10203,26 @@ function _renderLifeEventForm(form){
         </div>
         <div>
           <label>${isWindfall ? 'Date' : 'Start'}</label>
-          <input type="month" id="lev_start" value="${form.start||''}" />
+          ${monthPickerHTML('lev_start', form.start)}
         </div>
         ${!isWindfall ? `
         <div>
           <label>End <span style="font-size:10px;color:#8A8582;">(blank = ongoing)</span></label>
-          <input type="month" id="lev_end" value="${form.end||''}" />
+          ${monthPickerHTML('lev_end', form.end, { allowClear: true, clearLabel: 'Ongoing' })}
         </div>
         <div>
           <label>Amount type</label>
-          <select id="lev_mode">
+          <select id="lev_mode" onchange="_onLifeEventModeChange(this.value)">
             <option value="percent" ${form.mode==='percent'?'selected':''}>% change</option>
             <option value="dollar" ${form.mode==='dollar'?'selected':''}>$ per month</option>
           </select>
         </div>` : ''}
         <div style="grid-column:1/-1;">
           <label>${isWindfall ? 'Amount ($, negative = expense)' : (form.mode==='percent' ? 'Amount (%)' : 'Amount ($/mo)')}</label>
-          <input type="text" inputmode="decimal" id="lev_amount" value="${form.amount===''?'':form.amount}"
-                 placeholder="${isWindfall ? 'e.g. 50000 or -15000' : 'e.g. -30'}" />
+          <input type="text" inputmode="decimal" id="lev_amount"
+                 value="${form.amount==='' ? '' : (isDollarAmount ? fmtMoney(Number(form.amount)) : form.amount)}"
+                 placeholder="${isWindfall ? 'e.g. $50,000 or -$15,000' : 'e.g. -30'}"
+                 onfocus="_levAmountFocus(this)" onblur="_levAmountBlur(this, ${isDollarAmount})" />
         </div>
       </div>
       <div class="prop-history-form-actions">
