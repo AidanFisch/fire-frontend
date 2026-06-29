@@ -111,6 +111,15 @@
     window._fbReset    = (e)    => sendPasswordResetEmail(auth, e);
     window._fbGoogleIn = ()     => signInWithPopup(auth, new GoogleAuthProvider());
 
+    // Lets non-module code attach a real auth token to API calls (e.g. /fire)
+    // so server-side per-account limits can't be dodged by clearing
+    // localStorage / incognito — those only erase the client-side copy.
+    window._fbGetIdToken = async () => {
+      const user = auth.currentUser;
+      if (!user) return null;
+      try { return await user.getIdToken(); } catch(_) { return null; }
+    };
+
     window._fbSave = async (stateObj) => {
       const user = auth.currentUser;
       if (!user) return;
@@ -6523,7 +6532,7 @@ function nowMs(){ return performance.now(); }
 
 
 
-async function callPath(base, path, payload){
+async function callPath(base, path, payload, idToken){
   const url = base + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
 
   const body = JSON.stringify(payload);
@@ -6534,13 +6543,15 @@ async function callPath(base, path, payload){
 
   let r, text;
   try {
+    const headers = {
+      "Content-Type":"application/json",
+      "Cache-Control":"no-store",
+      "Pragma":"no-cache"
+    };
+    if (idToken) headers["Authorization"] = "Bearer " + idToken;
     r = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type":"application/json",
-        "Cache-Control":"no-store",
-        "Pragma":"no-cache"
-      },
+      headers,
       cache: "no-store",
       body
     });
@@ -6650,17 +6661,35 @@ async function runModel(){
   document.getElementById("rawOut").textContent = "Running…";
   document.getElementById("resultsMeta").textContent = "Running…";
 
+  // Attach a real auth token (when signed in) so the server can enforce the
+  // free-plan run cap per account — a client-only check can't survive
+  // incognito mode or someone clearing localStorage.
+  const idToken = window._fbGetIdToken ? await window._fbGetIdToken() : null;
+
   let result = null;
   let usedPath = null;
   let lastErr = null;
 
   for(const p of candidates){
     try{
-      result = await callPath(base, p, payload);
+      result = await callPath(base, p, payload, idToken);
       usedPath = p;
       break;
     }catch(e){
       lastErr = e;
+      // 403 from the real endpoint means the server-side run quota was hit —
+      // stop immediately instead of burning time on the other (wrong) guessed
+      // candidate paths, and surface the quota message, not a generic failure.
+      if (String(e.message || e).startsWith("HTTP_403")) {
+        if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
+        const detailMatch = String(e.message).match(/--- body ---\n([\s\S]*)/);
+        let detailMsg = `Free plan is limited to ${FREE_DAILY_RUN_LIMIT} model runs per day. Upgrade for unlimited runs.`;
+        if (detailMatch) {
+          try { detailMsg = JSON.parse(detailMatch[1]).detail || detailMsg; } catch(_) {}
+        }
+        showUpgradeModal(detailMsg);
+        return;
+      }
     }
   }
 
