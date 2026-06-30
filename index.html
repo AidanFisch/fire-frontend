@@ -896,6 +896,21 @@ th{
 		font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 2px 0;
 	  }
 	  .month-picker-clear:hover { color: #059669; }
+
+	  /* Shows what a future purchase price is worth in today's dollars,
+	     discounted by the property's own growth rate — future prices are
+	     hard to reason about on their own. */
+	  .prop-field-hint {
+		font-size: 11px; color: #8A8582; margin-top: 5px; line-height: 1.4;
+	  }
+	  .btn-estimate-rent {
+		display: inline-flex; align-items: center; gap: 4px;
+		margin-top: 5px; padding: 3px 9px; font-size: 11px; font-weight: 600;
+		background: #F0FDF4; border: 1px solid #D8F0E4; border-radius: 14px;
+		color: #5C5955; cursor: pointer;
+	  }
+	  .btn-estimate-rent:hover { background: #E6F7F2; color: #059669; }
+
 	  .propYearBadge {
 		font-size: 11px;
 		letter-spacing: 0.02em;
@@ -5791,7 +5806,9 @@ function renderProperties(){
 
 	  grp.fields.forEach(([key, type, label]) => {
 	    const d = document.createElement("div");
-	    d.innerHTML = `<label>${label}</label><input id="p_${p.id}_${key}" type="${type}" />`;
+	    d.innerHTML = `<label>${label}</label><input id="p_${p.id}_${key}" type="${type}" />`
+	      + (key === "purchase_price" ? `<div class="prop-field-hint" id="p_${p.id}_todays_value_hint"></div>` : "")
+	      + (key === "monthly_rent" ? `<button type="button" class="btn-estimate-rent" onclick="event.stopPropagation(); estimatePropertyRent(${p.id})">🏷 Estimate from value</button>` : "");
 	    g.appendChild(d);
 	  });
 
@@ -5990,10 +6007,13 @@ function renderProperties(){
 			if(!prop) return;
 			prop[key] = v;
 			saveState();
+			if (key === "purchase_price" || key === "property_growth") _updatePropTodaysValueHint(p.id);
 		  }
 		);
 
     });
+
+    _updatePropTodaysValueHint(p.id);
 
     const offEl = document.getElementById(`p_${p.id}_use_offset`);
     offEl.checked = !!p.use_offset;
@@ -6230,8 +6250,52 @@ function updatePurchaseDate(id, value){
     }
   }
   updatePropSummaryStrip();
+  _updatePropTodaysValueHint(id);
 }
 
+/** Future purchase prices are hard to sanity-check on their own (is $2.1M
+ *  in 15 years high or low?) — show what that price discounts back to in
+ *  today's dollars, using the property's own growth-rate assumption. */
+function _updatePropTodaysValueHint(id){
+  const el = document.getElementById(`p_${id}_todays_value_hint`);
+  if (!el) return;
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) { el.textContent = ''; return; }
+
+  const buyDateStr = prop.purchase_date || `${prop.year_bought || new Date().getFullYear()}-01`;
+  const [buyYear, buyMonth] = buyDateStr.split('-').map(Number);
+  const now = new Date();
+  const yearsUntil = ((buyYear * 12 + buyMonth) - (now.getFullYear() * 12 + now.getMonth() + 1)) / 12;
+
+  const price = toNumber(prop.purchase_price);
+  const growth = toNumber(prop.property_growth);
+  if (yearsUntil <= 0 || !price) { el.textContent = ''; return; }
+
+  const todaysValue = price / Math.pow(1 + growth, yearsUntil);
+  el.textContent = `≈ ${fmtMoney(todaysValue)} in today's dollars (at ${(growth*100).toFixed(1)}%/yr growth over ${yearsUntil.toFixed(1)} yrs)`;
+}
+
+/** Quick rent ballpark for properties far enough out that the user has no
+ *  real basis for a number — assumes a typical AU residential gross yield.
+ *  Deliberately rough (one flat assumption, not suburb-aware); it's a
+ *  starting point to edit, not a valuation. */
+const ASSUMED_GROSS_RENTAL_YIELD = 0.04; // ~4%/yr
+
+function estimatePropertyRent(id){
+  const prop = state.property_list.find(x => Number(x.id) === Number(id));
+  if (!prop) return;
+  const value = toNumber(prop.current_value) || toNumber(prop.purchase_price);
+  if (!value) {
+    showToast('Add a value first', 'Enter Current Value or Purchase Price to estimate rent.');
+    return;
+  }
+  const estMonthly = Math.round((value * ASSUMED_GROSS_RENTAL_YIELD) / 12);
+  prop.monthly_rent = estMonthly;
+  saveState();
+  const el = document.getElementById(`p_${id}_monthly_rent`);
+  if (el) el.value = formatForUI(estMonthly, PROP_FIELD_META.monthly_rent);
+  showToast('Estimated', `Rent set to ${fmtMoney(estMonthly)}/mo — ~${(ASSUMED_GROSS_RENTAL_YIELD*100).toFixed(0)}% gross yield on ${fmtMoney(value)}. Adjust if you know the area.`);
+}
 
 function duplicateProperty(id){
   const p = state.property_list.find(x => Number(x.id) === Number(id));
