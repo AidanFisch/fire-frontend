@@ -829,6 +829,30 @@ th{
 	  .life-event-name { font-weight: 700; font-size: 13px; color: #1C1C1A; }
 	  .life-event-actions { margin-left: auto; display: flex; gap: 4px; }
 	  .life-event-meta { font-size: 11.5px; color: #5C5955; margin-top: 4px; }
+
+	  /* ---- Additional stock contributions ---- */
+	  .stock-override-panel {
+		border: 1px solid #E8E4DE; border-radius: 8px;
+		background: #F8F7F4; padding: 10px 12px; margin-bottom: 14px;
+	  }
+	  .stock-override-hint {
+		font-size: 11.5px; color: #5C5955; margin-top: 8px; line-height: 1.5;
+	  }
+	  .stock-override-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+	  .stock-override-chip {
+		display: inline-flex; align-items: center; gap: 6px;
+		background: white; border: 1px solid #D8D4CC; border-radius: 20px;
+		padding: 4px 6px 4px 12px; font-size: 12px; font-weight: 600; color: #1C1C1A;
+		cursor: pointer;
+	  }
+	  .stock-override-chip:hover { border-color: #0EA5E9; }
+	  .stock-override-chip .amt { color: #0369A1; }
+	  .stock-override-chip .x {
+		background: none; border: none; color: #C4B5B0; cursor: pointer;
+		font-size: 12px; padding: 2px 4px; border-radius: 50%;
+	  }
+	  .stock-override-chip .x:hover { color: #E11D48; background: #FCE8EC; }
+	  .stock-override-footer { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
 	  /* The add/edit form lives in the ~560px-wide Inputs drawer, much
 	     narrower than where .prop-history-form-grid's default 4 columns were
 	     designed (the property card area) — 2 columns keeps selects readable.
@@ -3842,6 +3866,20 @@ select.exp-input { cursor:pointer; }
         <button id="eventMarkersToggle" class="btn-event-toggle" onclick="toggleEventMarkers()">📍 Major events</button>
       </div>
       <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
+
+      <div class="stock-override-panel">
+        <label class="prop-toggle">
+          <input type="checkbox" id="stockOverrideToggle" onchange="toggleStockOverrideMode(this.checked)" />
+          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+          <span class="prop-toggle-label">Additional Stock Contributions</span>
+        </label>
+        <span class="info-tip" data-tip="stock_override">?</span>
+        <div id="stockOverrideHint" class="stock-override-hint" style="display:none;">
+          Click a year on the chart above to set what you actually contributed that year — handy when cash is tight some years and flush in others.
+        </div>
+        <div id="stockOverridePanelBody"></div>
+      </div>
+
       <div class="chips-bar">
         <div class="chips-group">
           <span class="chips-label">Balances</span>
@@ -4694,6 +4732,7 @@ let state = {
   ],
   life_events: [],
   modelRunUsage: null, // { date: 'YYYY-MM-DD', count: N } — free-plan daily run cap
+  stock_contribution_overrides: [], // [{ year, amount }] — per-year override of annual stock contribution
   chartTogglesVersion: 2,
   chartToggles: {
     netWorth: true,
@@ -5107,6 +5146,10 @@ function loadState(){
         state.modelRunUsage = parsed.modelRunUsage;
       }
 
+      if (Array.isArray(parsed.stock_contribution_overrides)) {
+        state.stock_contribution_overrides = parsed.stock_contribution_overrides;
+      }
+
       if (isPlainObject(parsed.chartToggles) && parsed.chartTogglesVersion === state.chartTogglesVersion) {
         state.chartToggles = { ...state.chartToggles, ...parsed.chartToggles };
       }
@@ -5155,6 +5198,109 @@ function toggleEventMarkers() {
   const btn = document.getElementById('eventMarkersToggle');
   if (btn) btn.classList.toggle('off', !_showEventMarkers);
   if (chart) chart.update('none');
+}
+
+/* ====== Additional Stock Contributions ======
+   Per-year override of the annual stock contribution, so the model can
+   reflect years where less/more was actually invested (e.g. cash was
+   tight) instead of a flat inflation-adjusted amount every year. */
+let _stockOverrideModeOn = false;
+let _stockOverrideFormYear = null;
+
+function toggleStockOverrideMode(on){
+  _stockOverrideModeOn = on;
+  const hint = document.getElementById('stockOverrideHint');
+  if (hint) hint.style.display = on ? '' : 'none';
+  if (!on) _stockOverrideFormYear = null;
+  renderStockOverridePanel();
+}
+
+function openStockOverrideEditor(year){
+  const toggle = document.getElementById('stockOverrideToggle');
+  if (toggle && !toggle.checked) {
+    toggle.checked = true;
+    toggleStockOverrideMode(true);
+  }
+  _stockOverrideFormYear = year;
+  renderStockOverridePanel();
+}
+
+function cancelStockOverrideForm(){
+  _stockOverrideFormYear = null;
+  renderStockOverridePanel();
+}
+
+function saveStockOverride(year){
+  const amountEl = document.getElementById('stockOverrideAmount');
+  if (!amountEl) return;
+  const amount = toNumber(amountEl.value);
+  let list = (state.stock_contribution_overrides || []).filter(o => o.year !== year);
+  list.push({ year, amount });
+  state.stock_contribution_overrides = list;
+  _stockOverrideFormYear = null;
+  saveState();
+  renderStockOverridePanel();
+  showToast('Saved', `Stock contribution for ${year} set to ${fmtMoney(amount)}.`);
+}
+
+function removeStockOverride(year){
+  state.stock_contribution_overrides = (state.stock_contribution_overrides || []).filter(o => o.year !== year);
+  if (_stockOverrideFormYear === year) _stockOverrideFormYear = null;
+  saveState();
+  renderStockOverridePanel();
+}
+
+function clearAllStockOverrides(){
+  if (!(state.stock_contribution_overrides || []).length) return;
+  if (!confirm('Remove all additional stock contributions?')) return;
+  state.stock_contribution_overrides = [];
+  _stockOverrideFormYear = null;
+  saveState();
+  renderStockOverridePanel();
+}
+
+function _renderStockOverrideForm(year){
+  const existing = (state.stock_contribution_overrides || []).find(o => o.year === year);
+  const defaultAmt = existing ? existing.amount : toNumber(state.inputs.stock_yearly_contribution);
+  return `
+    <div class="prop-history-form" style="margin-top:10px;">
+      <div class="prop-history-form-title">Stock contribution for ${year}</div>
+      <div class="prop-history-form-grid" style="grid-template-columns:1fr;">
+        <div>
+          <label>Annual amount</label>
+          <input type="text" inputmode="decimal" id="stockOverrideAmount" value="${fmtMoneyInput(defaultAmt)}" placeholder="e.g. 15000" />
+        </div>
+      </div>
+      <div class="prop-history-form-actions" style="${existing ? 'justify-content:space-between;' : ''}">
+        ${existing ? `<button class="btn ghost" style="color:#E11D48;" onclick="removeStockOverride(${year})">Remove</button>` : ''}
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost" onclick="cancelStockOverrideForm()">Cancel</button>
+          <button class="btn primary" onclick="saveStockOverride(${year})">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStockOverridePanel(){
+  const body = document.getElementById('stockOverridePanelBody');
+  if (!body) return;
+
+  let html = _stockOverrideFormYear != null ? _renderStockOverrideForm(_stockOverrideFormYear) : '';
+
+  const overrides = (state.stock_contribution_overrides || []).slice().sort((a,b) => a.year - b.year);
+  if (overrides.length) {
+    html += `<div class="stock-override-chips">` + overrides.map(o => `
+      <span class="stock-override-chip" onclick="openStockOverrideEditor(${o.year})">
+        ${o.year}: <span class="amt">${fmtMoney(o.amount)}</span>
+        <button class="x" onclick="event.stopPropagation(); removeStockOverride(${o.year})" title="Remove">✕</button>
+      </span>`).join('') + `</div>
+      <div class="stock-override-footer">
+        <button class="btn ghost" style="font-size:11px;" onclick="clearAllStockOverrides()">Remove all</button>
+      </div>`;
+  }
+
+  body.innerHTML = html;
 }
 function enterApp(){
   _appEntered = true;
@@ -6360,6 +6506,10 @@ function checkPporConflicts(){
  *  Info tooltip system
  *  --------------------------*/
 const INFO_TIPS = {
+  stock_override: {
+    title: 'Additional Stock Contributions',
+    body: 'Override what you actually contributed to stocks in a specific year, instead of the model\'s flat inflation-adjusted amount. Turn this on, then click any year on the chart above to set or clear that year\'s contribution — useful for years cash was tight (set it lower) or you had a windfall (set it higher).'
+  },
   ppor: {
     title: 'Main Residence (PPOR)',
     body: 'Your Principal Place of Residence is fully exempt from Capital Gains Tax. You can only have one PPOR at a time. If you move out, the 6-year absence rule may extend the exemption.'
@@ -6555,6 +6705,7 @@ function buildPayload(){
     inputs: normalizeInputs(state.inputs),  // ✅ normalize ALL inputs, no key list
     property_list: state.property_list,
     life_events: state.life_events || [],
+    stock_contribution_overrides: state.stock_contribution_overrides || [],
     display_month: (state.mode === "monthly")
   };
 }
@@ -7237,6 +7388,15 @@ propPrefixes.forEach((prefix, i) => {
     propEventMarkers.push({ index: idx, label: ev.name || _lifeEventTypeLabel(ev.type), color: lineC, boxBg: boxC });
   });
 
+  // Additional stock contribution markers
+  (state.stock_contribution_overrides || []).forEach(o => {
+    const idx = mode === 'yearly'
+      ? rows.findIndex(r => toNumber(r[yearKey]) === o.year)
+      : rows.findIndex(r => r['Date'] && r['Date'].startsWith(String(o.year)));
+    if (idx < 0) return;
+    propEventMarkers.push({ index: idx, label: `Stock: ${fmtMoney(o.amount)}`, color: '#0EA5E9AA', boxBg: '#0369A1' });
+  });
+
   const ctx = document.getElementById("chartMain");
   if(chart){ chart.destroy(); chart = null; }
 
@@ -7251,6 +7411,12 @@ propPrefixes.forEach((prefix, i) => {
 	  locale: "en-US",
       responsive: true,
       interaction: { mode: "index", intersect: false },
+      onClick: (evt, elements) => {
+        if (!_stockOverrideModeOn || !elements.length) return;
+        const row = rows[elements[0].index];
+        const year = row && yearKey ? parseInt(row[yearKey]) : null;
+        if (year) openStockOverrideEditor(year);
+      },
       plugins: {
         legend: { display: false }, // chips are the legend
         tooltip: {
@@ -7306,8 +7472,6 @@ propPrefixes.forEach((prefix, i) => {
       }
     }
   });
-
-
 
 function renderMiniSummary(result){
   const wrap = document.getElementById("miniSummaryWrap");
@@ -7371,6 +7535,7 @@ renderAnalysisFlags({ rows, cols, fireIndex, cashKey });
   if (_pinnedScenarios.size > 0) updateChartScenarios();
   // Refresh dashboard if it's the active tab
   if(document.getElementById('tab-dashboard')?.classList.contains('active')) renderDashboard();
+  renderStockOverridePanel();
 }
 
 
@@ -9283,6 +9448,7 @@ async function fetchFireModelTargets(){
       inputs: normalizeInputs(state.inputs),
       property_list: state.property_list || [],
       life_events: state.life_events || [],
+      stock_contribution_overrides: state.stock_contribution_overrides || [],
       display_month: false   // yearly rollup
     };
     const r = await fetch(`${base}/fire`, {
@@ -11327,6 +11493,7 @@ function saveScenario(){
     inputs: {...state.inputs},
     property_list: JSON.parse(JSON.stringify(state.property_list||[])),
     life_events: JSON.parse(JSON.stringify(state.life_events||[])),
+    stock_contribution_overrides: JSON.parse(JSON.stringify(state.stock_contribution_overrides||[])),
     summary,
     chartData: _extractScenarioChartData()
   });
@@ -11346,6 +11513,7 @@ function loadScenario(id){
   state.inputs = {...s.inputs};
   state.property_list = JSON.parse(JSON.stringify(s.property_list||[]));
   state.life_events = JSON.parse(JSON.stringify(s.life_events||[]));
+  state.stock_contribution_overrides = JSON.parse(JSON.stringify(s.stock_contribution_overrides||[]));
   saveState();
   bindCoreInputs();
   showTab('results');
