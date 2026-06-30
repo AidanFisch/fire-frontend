@@ -832,11 +832,20 @@ th{
 
 	  /* ---- Additional stock contributions ---- */
 	  .stock-override-panel {
-		border: 1px solid #E8E4DE; border-radius: 8px;
-		background: #F8F7F4; padding: 10px 12px; margin-bottom: 14px;
+		border: 1px solid #E8E4DE; border-radius: 7px;
+		background: #F8F7F4; padding: 6px 10px; margin-bottom: 14px;
+	  }
+	  .stock-override-toggle.prop-toggle { padding: 2px 0; gap: 7px; }
+	  .stock-override-toggle .prop-toggle-track { width: 28px; height: 16px; }
+	  .stock-override-toggle .prop-toggle-thumb { width: 12px; height: 12px; }
+	  .stock-override-toggle input[type="checkbox"]:checked + .prop-toggle-track .prop-toggle-thumb {
+		left: 14px;
+	  }
+	  .prop-toggle-label.stock-override-toggle-label {
+		font-size: 12px; font-weight: 700; color: #92400E;
 	  }
 	  .stock-override-hint {
-		font-size: 11.5px; color: #5C5955; margin-top: 8px; line-height: 1.5;
+		font-size: 11px; color: #5C5955; margin-top: 5px; line-height: 1.4;
 	  }
 	  /* The add/edit form lives in the ~560px-wide Inputs drawer, much
 	     narrower than where .prop-history-form-grid's default 4 columns were
@@ -3872,14 +3881,14 @@ select.exp-input { cursor:pointer; }
       <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
 
       <div class="stock-override-panel">
-        <label class="prop-toggle">
+        <label class="prop-toggle stock-override-toggle">
           <input type="checkbox" id="stockOverrideToggle" onchange="toggleStockOverrideMode(this.checked)" />
           <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
-          <span class="prop-toggle-label">Additional Stock Contributions</span>
+          <span class="prop-toggle-label stock-override-toggle-label">Additional Stock Contributions</span>
         </label>
         <span class="info-tip" data-tip="stock_override">?</span>
         <div id="stockOverrideHint" class="stock-override-hint" style="display:none;">
-          Click a year above — the line, the Year row, or the Age row — to set what you actually contributed that year. Years with one turn dark yellow.
+          Click a year above — the line, the Year row, or the Age row — to add to (or subtract from) that year's normal contribution. Years with one turn dark yellow.
         </div>
         <div id="stockOverridePanelBody"></div>
       </div>
@@ -5244,7 +5253,8 @@ function saveStockOverride(year){
   _stockOverrideFormYear = null;
   saveState();
   _refreshAfterStockOverrideChange();
-  showToast('Saved', `Stock contribution for ${year} set to ${fmtMoney(amount)}.`);
+  const sign = amount >= 0 ? '+' : '';
+  showToast('Saved', `${year}: ${sign}${fmtMoney(amount)} on top of the normal contribution.`);
 }
 
 function removeStockOverride(year){
@@ -5256,14 +5266,15 @@ function removeStockOverride(year){
 
 function _renderStockOverrideForm(year){
   const existing = (state.stock_contribution_overrides || []).find(o => o.year === year);
-  const defaultAmt = existing ? existing.amount : toNumber(state.inputs.stock_yearly_contribution);
+  const baseAmt = toNumber(state.inputs.stock_yearly_contribution);
+  const additionalAmt = existing ? existing.amount : 0;
   return `
     <div class="prop-history-form" style="margin-top:10px;">
-      <div class="prop-history-form-title">Stock contribution for ${year}</div>
+      <div class="prop-history-form-title">Additional contribution for ${year}</div>
       <div class="prop-history-form-grid" style="grid-template-columns:1fr;">
         <div>
-          <label>Annual amount</label>
-          <input type="text" inputmode="decimal" id="stockOverrideAmount" value="${fmtMoneyInput(defaultAmt)}" placeholder="e.g. 15000" />
+          <label>On top of the normal ${fmtMoney(baseAmt)}/yr <span style="font-size:10px;color:#8A8582;">(+ to add, − to reduce)</span></label>
+          <input type="text" inputmode="decimal" id="stockOverrideAmount" value="${additionalAmt ? fmtMoneyInput(additionalAmt) : ''}" placeholder="e.g. 5000 or -5000" />
         </div>
       </div>
       <div class="prop-history-form-actions" style="${existing ? 'justify-content:space-between;' : ''}">
@@ -6551,7 +6562,7 @@ function checkPporConflicts(){
 const INFO_TIPS = {
   stock_override: {
     title: 'Additional Stock Contributions',
-    body: 'Override what you actually contributed to stocks in a specific year, instead of the model\'s flat inflation-adjusted amount — useful for years cash was tight (set it lower) or you had a windfall (set it higher). On the Model tab, switch on "Additional Stock Contributions" below the chart, then click that year — the line, the Year row, or the Age row all work. Years with an override turn dark yellow on the Year/Age axis so you can see which ones are set at a glance; click a highlighted year again to edit or remove it.'
+    body: 'Add to (or subtract from) what the model normally contributes to stocks in a specific year — it\'s additional on top of your usual yearly contribution, not a replacement of it. Useful for years with a bonus or windfall (positive amount) or years cash was tight (negative amount). On the Model tab, switch on "Additional Stock Contributions" below the chart, then click that year — the line, the Year row, or the Age row all work. Years with one turn dark yellow on the Year/Age axis so you can see which are set at a glance; click a highlighted year again to edit or remove it.'
   },
   ppor: {
     title: 'Main Residence (PPOR)',
@@ -7064,48 +7075,9 @@ const fireMarkerPlugin = {
 };
 
 // Quiet marker for years with an Additional Stock Contribution override —
-// colors + underlines that year's tick label on both the Year (top) and
-// Age (bottom) axes, instead of a chart pin or a separate list.
+// just colors that year's tick label on both the Year (top) and Age
+// (bottom) axes (no underline — it was drawing through the text).
 const STOCK_OVERRIDE_COLOR = "#92400E";
-const stockOverrideTickPlugin = {
-  id: "stockOverrideTick",
-  afterDraw(chart, args, pluginOptions) {
-    const idxSet = pluginOptions?.idxSet;
-    if (!idxSet || !idxSet.size) return;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return;
-
-    ctx.save();
-    ctx.strokeStyle = STOCK_OVERRIDE_COLOR;
-    ctx.lineWidth = 2;
-
-    const xScale = chart.scales.x;
-    if (xScale) {
-      idxSet.forEach(idx => {
-        const px = xScale.getPixelForTick(idx);
-        if (!Number.isFinite(px)) return;
-        const y = chartArea.top - 4;
-        ctx.beginPath();
-        ctx.moveTo(px - 11, y);
-        ctx.lineTo(px + 11, y);
-        ctx.stroke();
-      });
-    }
-    const xAgeScale = chart.scales.xAge;
-    if (xAgeScale) {
-      idxSet.forEach(idx => {
-        const px = xAgeScale.getPixelForTick(idx);
-        if (!Number.isFinite(px)) return;
-        const y = chartArea.bottom + 15;
-        ctx.beginPath();
-        ctx.moveTo(px - 11, y);
-        ctx.lineTo(px + 11, y);
-        ctx.stroke();
-      });
-    }
-    ctx.restore();
-  }
-};
 
 /** ---------------------------
  *  Results rendering
@@ -7494,7 +7466,7 @@ propPrefixes.forEach((prefix, i) => {
 	labels,
 	datasets
 	},
-    plugins: [fireMarkerPlugin, stockOverrideTickPlugin],
+    plugins: [fireMarkerPlugin],
     options: {
 	  locale: "en-US",
       responsive: true,
@@ -7531,8 +7503,7 @@ propPrefixes.forEach((prefix, i) => {
         lineWidth: 1.5,
         boxBg: "#1C1C1A",
         events: propEventMarkers
-      },
-      stockOverrideTick: { idxSet: stockOverrideIdxSet }
+      }
       },
       scales: {
         x: {
