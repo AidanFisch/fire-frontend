@@ -838,21 +838,6 @@ th{
 	  .stock-override-hint {
 		font-size: 11.5px; color: #5C5955; margin-top: 8px; line-height: 1.5;
 	  }
-	  .stock-override-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-	  .stock-override-chip {
-		display: inline-flex; align-items: center; gap: 6px;
-		background: white; border: 1px solid #D8D4CC; border-radius: 20px;
-		padding: 4px 6px 4px 12px; font-size: 12px; font-weight: 600; color: #1C1C1A;
-		cursor: pointer;
-	  }
-	  .stock-override-chip:hover { border-color: #0EA5E9; }
-	  .stock-override-chip .amt { color: #0369A1; }
-	  .stock-override-chip .x {
-		background: none; border: none; color: #C4B5B0; cursor: pointer;
-		font-size: 12px; padding: 2px 4px; border-radius: 50%;
-	  }
-	  .stock-override-chip .x:hover { color: #E11D48; background: #FCE8EC; }
-	  .stock-override-footer { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
 	  /* The add/edit form lives in the ~560px-wide Inputs drawer, much
 	     narrower than where .prop-history-form-grid's default 4 columns were
 	     designed (the property card area) — 2 columns keeps selects readable.
@@ -3811,6 +3796,10 @@ select.exp-input { cursor:pointer; }
                   <span>On income support / Age Pension (exempt from 30% CGT minimum)</span>
                 </label>
               </div>
+              <div style="margin-top:10px; display:flex; align-items:center; gap:6px; font-size:13px; color:#1C1C1A;">
+                Additional Stock Contributions by Year
+                <span class="info-tip" data-tip="stock_override">?</span>
+              </div>
             </div>
           </div>
         </div>
@@ -3890,7 +3879,7 @@ select.exp-input { cursor:pointer; }
         </label>
         <span class="info-tip" data-tip="stock_override">?</span>
         <div id="stockOverrideHint" class="stock-override-hint" style="display:none;">
-          Click a year on the chart above to set what you actually contributed that year — handy when cash is tight some years and flush in others.
+          Click a year above — the line, the Year row, or the Age row — to set what you actually contributed that year. Years with one turn dark yellow.
         </div>
         <div id="stockOverridePanelBody"></div>
       </div>
@@ -5254,7 +5243,7 @@ function saveStockOverride(year){
   state.stock_contribution_overrides = list;
   _stockOverrideFormYear = null;
   saveState();
-  renderStockOverridePanel();
+  _refreshAfterStockOverrideChange();
   showToast('Saved', `Stock contribution for ${year} set to ${fmtMoney(amount)}.`);
 }
 
@@ -5262,16 +5251,7 @@ function removeStockOverride(year){
   state.stock_contribution_overrides = (state.stock_contribution_overrides || []).filter(o => o.year !== year);
   if (_stockOverrideFormYear === year) _stockOverrideFormYear = null;
   saveState();
-  renderStockOverridePanel();
-}
-
-function clearAllStockOverrides(){
-  if (!(state.stock_contribution_overrides || []).length) return;
-  if (!confirm('Remove all additional stock contributions?')) return;
-  state.stock_contribution_overrides = [];
-  _stockOverrideFormYear = null;
-  saveState();
-  renderStockOverridePanel();
+  _refreshAfterStockOverrideChange();
 }
 
 function _renderStockOverrideForm(year){
@@ -5300,22 +5280,21 @@ function _renderStockOverrideForm(year){
 function renderStockOverridePanel(){
   const body = document.getElementById('stockOverridePanelBody');
   if (!body) return;
+  // No chip list/remove-all here by design — the chart's colored, underlined
+  // Year/Age tick labels (stockOverrideTickPlugin) are the only "which years
+  // have an override" indicator now. Click a flagged year to edit or remove it.
+  body.innerHTML = _stockOverrideFormYear != null ? _renderStockOverrideForm(_stockOverrideFormYear) : '';
+}
 
-  let html = _stockOverrideFormYear != null ? _renderStockOverrideForm(_stockOverrideFormYear) : '';
-
-  const overrides = (state.stock_contribution_overrides || []).slice().sort((a,b) => a.year - b.year);
-  if (overrides.length) {
-    html += `<div class="stock-override-chips">` + overrides.map(o => `
-      <span class="stock-override-chip" onclick="openStockOverrideEditor(${o.year})">
-        ${o.year}: <span class="amt">${fmtMoney(o.amount)}</span>
-        <button class="x" onclick="event.stopPropagation(); removeStockOverride(${o.year})" title="Remove">✕</button>
-      </span>`).join('') + `</div>
-      <div class="stock-override-footer">
-        <button class="btn ghost" style="font-size:11px;" onclick="clearAllStockOverrides()">Remove all</button>
-      </div>`;
-  }
-
-  body.innerHTML = html;
+/** Save/remove change which years are flagged, so the chart's tick colors
+ *  need a real rebuild (not just a redraw) — re-running renderResults on
+ *  the last known result is the simplest way to recompute stockOverrideIdxSet.
+ *  renderResults() calls renderStockOverridePanel() itself at the end, so
+ *  callers should use this instead of renderStockOverridePanel() directly
+ *  whenever the override list itself changed. */
+function _refreshAfterStockOverrideChange(){
+  if (state.lastResult) renderResults(state.lastResult);
+  else renderStockOverridePanel();
 }
 function enterApp(){
   _appEntered = true;
@@ -6572,7 +6551,7 @@ function checkPporConflicts(){
 const INFO_TIPS = {
   stock_override: {
     title: 'Additional Stock Contributions',
-    body: 'Override what you actually contributed to stocks in a specific year, instead of the model\'s flat inflation-adjusted amount. Turn this on, then click any year on the chart above to set or clear that year\'s contribution — useful for years cash was tight (set it lower) or you had a windfall (set it higher).'
+    body: 'Override what you actually contributed to stocks in a specific year, instead of the model\'s flat inflation-adjusted amount — useful for years cash was tight (set it lower) or you had a windfall (set it higher). On the Model tab, switch on "Additional Stock Contributions" below the chart, then click that year — the line, the Year row, or the Age row all work. Years with an override turn dark yellow on the Year/Age axis so you can see which ones are set at a glance; click a highlighted year again to edit or remove it.'
   },
   ppor: {
     title: 'Main Residence (PPOR)',
@@ -7083,7 +7062,51 @@ const fireMarkerPlugin = {
     }
   }
 };
-	
+
+// Quiet marker for years with an Additional Stock Contribution override —
+// colors + underlines that year's tick label on both the Year (top) and
+// Age (bottom) axes, instead of a chart pin or a separate list.
+const STOCK_OVERRIDE_COLOR = "#92400E";
+const stockOverrideTickPlugin = {
+  id: "stockOverrideTick",
+  afterDraw(chart, args, pluginOptions) {
+    const idxSet = pluginOptions?.idxSet;
+    if (!idxSet || !idxSet.size) return;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+
+    ctx.save();
+    ctx.strokeStyle = STOCK_OVERRIDE_COLOR;
+    ctx.lineWidth = 2;
+
+    const xScale = chart.scales.x;
+    if (xScale) {
+      idxSet.forEach(idx => {
+        const px = xScale.getPixelForTick(idx);
+        if (!Number.isFinite(px)) return;
+        const y = chartArea.top - 4;
+        ctx.beginPath();
+        ctx.moveTo(px - 11, y);
+        ctx.lineTo(px + 11, y);
+        ctx.stroke();
+      });
+    }
+    const xAgeScale = chart.scales.xAge;
+    if (xAgeScale) {
+      idxSet.forEach(idx => {
+        const px = xAgeScale.getPixelForTick(idx);
+        if (!Number.isFinite(px)) return;
+        const y = chartArea.bottom + 15;
+        ctx.beginPath();
+        ctx.moveTo(px - 11, y);
+        ctx.lineTo(px + 11, y);
+        ctx.stroke();
+      });
+    }
+    ctx.restore();
+  }
+};
+
 /** ---------------------------
  *  Results rendering
  *  --------------------------*/
@@ -7452,13 +7475,14 @@ propPrefixes.forEach((prefix, i) => {
     propEventMarkers.push({ index: idx, label: ev.name || _lifeEventTypeLabel(ev.type), color: lineC, boxBg: boxC });
   });
 
-  // Additional stock contribution markers
+  // Additional stock contribution years — marked via colored/underlined
+  // axis tick labels (stockOverrideTickPlugin) rather than a chart pin.
+  const stockOverrideIdxSet = new Set();
   (state.stock_contribution_overrides || []).forEach(o => {
     const idx = mode === 'yearly'
       ? rows.findIndex(r => toNumber(r[yearKey]) === o.year)
       : rows.findIndex(r => r['Date'] && r['Date'].startsWith(String(o.year)));
-    if (idx < 0) return;
-    propEventMarkers.push({ index: idx, label: `Stock: ${fmtMoney(o.amount)}`, color: '#0EA5E9AA', boxBg: '#0369A1' });
+    if (idx >= 0) stockOverrideIdxSet.add(idx);
   });
 
   const ctx = document.getElementById("chartMain");
@@ -7470,14 +7494,25 @@ propPrefixes.forEach((prefix, i) => {
 	labels,
 	datasets
 	},
-    plugins: [fireMarkerPlugin],
+    plugins: [fireMarkerPlugin, stockOverrideTickPlugin],
     options: {
 	  locale: "en-US",
       responsive: true,
       interaction: { mode: "index", intersect: false },
-      onClick: (evt, elements) => {
-        if (!_stockOverrideModeOn || !elements.length) return;
-        const row = rows[elements[0].index];
+      onClick: (evt, elements, chartInstance) => {
+        if (!_stockOverrideModeOn) return;
+        // Clicking the line itself hits `elements` via index-mode hit-testing;
+        // clicking a Year/Age tick label sits outside chartArea so `elements`
+        // is empty there — fall back to nearest-pixel lookup on the x scale,
+        // which works the same whether the click was top, bottom, or on the line.
+        let idx = elements.length ? elements[0].index : null;
+        if (idx == null) {
+          const xScale = chartInstance.scales.x;
+          if (!xScale) return;
+          idx = Math.round(xScale.getValueForPixel(evt.x));
+        }
+        if (idx == null || idx < 0 || idx >= rows.length) return;
+        const row = rows[idx];
         const year = row && yearKey ? parseInt(row[yearKey]) : null;
         if (year) openStockOverrideEditor(year);
       },
@@ -7496,14 +7531,15 @@ propPrefixes.forEach((prefix, i) => {
         lineWidth: 1.5,
         boxBg: "#1C1C1A",
         events: propEventMarkers
-      }
+      },
+      stockOverrideTick: { idxSet: stockOverrideIdxSet }
       },
       scales: {
         x: {
 			  position: "top",
 			  ticks: {
-				color: "#5C5955",
-				font: { size: 11 }
+				color: (c) => stockOverrideIdxSet.has(c.index) ? STOCK_OVERRIDE_COLOR : "#5C5955",
+				font: (c) => ({ size: 11, weight: stockOverrideIdxSet.has(c.index) ? '700' : '400' })
 			  },
 			  grid: {
 				color: "#F0EDE8"
@@ -7513,8 +7549,8 @@ propPrefixes.forEach((prefix, i) => {
 			  position: "bottom",
 			  labels: ageLabels,
 			  ticks: {
-				color: "#9A9590",
-				font: { size: 11 }
+				color: (c) => stockOverrideIdxSet.has(c.index) ? STOCK_OVERRIDE_COLOR : "#9A9590",
+				font: (c) => ({ size: 11, weight: stockOverrideIdxSet.has(c.index) ? '700' : '400' })
 			  },
 			  grid: {
 				drawOnChartArea: false
