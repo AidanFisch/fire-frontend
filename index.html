@@ -2821,10 +2821,24 @@ select.exp-input { cursor:pointer; }
     display: flex; align-items: center; justify-content: center;
   }
   .auth-box {
+    position: relative;
     background: #fff; border-radius: 16px;
     padding: 32px; width: 360px; max-width: calc(100vw - 32px);
     box-shadow: 0 24px 64px rgba(0,0,0,.2);
   }
+  .auth-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: none; background: #F0EDE8; color: #5C5955;
+    font-size: 14px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-close:hover { background: #E2DED7; color: #1C1C1A; }
+  .auth-skip {
+    display: block; text-align: center; margin-top: 16px;
+    font-size: 12.5px; color: #8A8582; cursor: pointer; text-decoration: underline;
+  }
+  .auth-skip:hover { color: #5C5955; }
   .auth-brand { font-size: 18px; font-weight: 800; color: #1C1C1A; letter-spacing: -.02em; }
   .auth-tagline { font-size: 12px; color: #8A8582; margin: 3px 0 22px; }
   .auth-tabs {
@@ -3220,6 +3234,9 @@ select.exp-input { cursor:pointer; }
 
         <div class="hero-pills">
           <span class="hero-pill">✓ No signup required</span>
+          <span class="hero-pill">🇦🇺 Built for Australia</span>
+          <span class="hero-pill">🔒 Private &amp; secure</span>
+          <span class="hero-pill">🤝 Trusted by Australians</span>
         </div>
       </div>
 
@@ -3553,7 +3570,7 @@ select.exp-input { cursor:pointer; }
       <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:22px;">
         <button class="btn primary big"
                 style="font-size:18px; padding:18px 36px; min-width:260px;"
-                onclick="enterApp()">
+                onclick="beginFree()">
           Get Started Free
         </button>
         <div id="landingSignInRow" style="display:flex; align-items:center; gap:8px;">
@@ -4510,6 +4527,7 @@ select.exp-input { cursor:pointer; }
 <div id="authModal" class="auth-backdrop" style="display:none;"
      onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-box">
+    <button class="auth-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
     <div class="auth-brand">WealthModel</div>
     <div class="auth-tagline">Sign in to sync your plan across devices</div>
     <div class="auth-tabs">
@@ -4556,6 +4574,7 @@ select.exp-input { cursor:pointer; }
       <button class="auth-submit" id="authRegisterBtn" onclick="authRegister()">Create account</button>
       <div class="auth-error" id="authRegisterError"></div>
     </div>
+    <a class="auth-skip" onclick="closeAuthModal()">Continue without an account</a>
   </div>
 </div>
 
@@ -5143,6 +5162,16 @@ function enterApp(){
   const hdr = document.getElementById('btnRunModelHeader');
   if (hdr) hdr.style.display = '';
   showDashboard();
+}
+
+/** "Get Started Free" CTA: drop them straight into the app (no forced
+ *  signup), then nudge sign-up a beat later — dismissible via the ✕,
+ *  the "Continue without an account" link, or clicking the backdrop. */
+function beginFree(){
+  enterApp();
+  if (!_currentUser) {
+    setTimeout(() => openAuthModal(), 500);
+  }
 }
 
 function initLanding(){
