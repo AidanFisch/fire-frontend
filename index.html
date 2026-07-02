@@ -2302,13 +2302,57 @@ label { color: #5C5955 !important; }
 #modelActionsBar {
   background: #FFFFFF;
   border-bottom: 1px solid #D8D4CC;
-  padding: 8px 24px;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 body.landing #modelActionsBar { display: none !important; }
+
+#modelActionsBar .bar-primary-group {
+  display: flex; align-items: center; gap: 6px;
+}
+#modelActionsBar .bar-secondary-group {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+}
+#modelActionsBar .bar-divider {
+  width: 1px; height: 22px; background: #D8D4CC; margin: 0 4px;
+}
+.btn.bar-primary {
+  background: #1C1C1A !important;
+  border-color: #1C1C1A !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn.bar-primary:hover { background: #333330 !important; }
+.btn.bar-primary.run-btn {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+.btn.bar-primary.run-btn:hover { background: #047857 !important; }
+.btn.bar-primary.run-btn:disabled { background: #6B7280 !important; border-color: #6B7280 !important; opacity: .8; }
+.btn.bar-secondary {
+  background: transparent !important;
+  border: 1px solid #D8D4CC !important;
+  color: #5C5955 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 11px !important;
+  border-radius: 7px !important;
+  display: flex; align-items: center; gap: 4px;
+}
+.btn.bar-secondary:hover { background: #F5F2EE !important; color: #1C1C1A !important; border-color: #B8B4AC !important; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#modelActionsBar { position: relative; } /* anchor for scenario dropdown */
 
 /* Budget section labels & summary strip — same green-accent-bar treatment
    as the Properties tab's section headers (.prop-section-label), rolled
@@ -3172,7 +3216,7 @@ select.exp-input { cursor:pointer; }
         </div>
         <button id="btnResults"     onclick="showTab('results')">Model</button>
       </div>
-      <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
+      <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button><!-- legacy; bar btn is canonical -->
       <div class="header-actions">
         <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
         <button class="btn btn-auth" id="btnSignIn" onclick="openAuthModal()">Sign in</button>
@@ -3200,17 +3244,38 @@ select.exp-input { cursor:pointer; }
       <button id="btnInputs" style="display:none"></button>
       <button id="themeToggle" style="display:none"></button>
     </div>
-    <!-- Model-only action bar — shown below header only on the Model tab -->
+    <!-- Model-only action bar — sticky, shown only on the Model tab -->
     <div id="modelActionsBar" style="display:none;">
-      <button class="btn" onclick="downloadLastCSV()">Download CSV</button>
-      <button class="btn" id="btnSaveScenario" onclick="saveScenario()" style="display:none;">Save Scenario</button>
-      <div style="position:relative;">
-        <button class="btn" id="btnLoadScenario" onclick="toggleScenarioDropdown()" style="display:none;">Load Scenario ▾</button>
-        <div id="scenarioDropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:200; background:white; border:1px solid #D8D4CC; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.1); min-width:300px; padding:6px 0; max-height:320px; overflow-y:auto;">
-          <div id="scenariosList"></div>
-        </div>
+      <div class="bar-primary-group">
+        <button class="btn bar-primary" onclick="openInputsDrawer()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5a2.121 2.121 0 013 3L5 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Inputs
+        </button>
+        <button class="btn bar-primary run-btn" id="btnRunModelBar" onclick="showTab('results');runModel()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>
+          Run Model
+        </button>
       </div>
-      <button class="btn" onclick="openInputsDrawer()">Edit Inputs</button>
+      <div class="bar-secondary-group">
+        <div style="position:relative;">
+          <button class="btn bar-secondary" id="btnLoadScenario" onclick="toggleScenarioDropdown()" style="display:none;">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h12M2 8h8M2 11h5"/></svg>
+            Load Scenario ▾
+          </button>
+          <div id="scenarioDropdown" style="display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:200; background:white; border:1px solid #D8D4CC; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.1); min-width:300px; padding:6px 0; max-height:320px; overflow-y:auto;">
+            <div id="scenariosList"></div>
+          </div>
+        </div>
+        <button class="btn bar-secondary" id="btnSaveScenario" onclick="saveScenario()" style="display:none;">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 13H3a1 1 0 01-1-1V3l3-1h7l2 2v8a1 1 0 01-1 1z"/><rect x="5" y="8" width="6" height="5"/><rect x="5" y="2" width="5" height="3"/></svg>
+          Save
+        </button>
+        <div class="bar-divider"></div>
+        <button class="btn bar-secondary" onclick="downloadLastCSV()">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 13h12"/></svg>
+          CSV
+        </button>
+      </div>
     </div>
 	
 <!-- LANDING -->
@@ -6871,8 +6936,8 @@ function _checkModelRunLimit(){
 async function runModel(){
   if (!_checkModelRunLimit()) return;
 
-  const runBtn = document.getElementById("btnRunModelHeader");
-  if(runBtn){ runBtn.textContent = "Running…"; runBtn.disabled = true; }
+  const runBtn = document.getElementById("btnRunModelBar") || document.getElementById("btnRunModelHeader");
+  if(runBtn){ runBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3z" opacity=".3"/><path d="M8 1a7 7 0 017 7h-2a5 5 0 00-5-5V1z"/></svg> Running…'; runBtn.disabled = true; }
 
   // Inputs changed — projections cache is stale
   invalidateFireProjections();
@@ -6923,7 +6988,7 @@ async function runModel(){
       // stop immediately instead of burning time on the other (wrong) guessed
       // candidate paths, and surface the quota message, not a generic failure.
       if (String(e.message || e).startsWith("HTTP_403")) {
-        if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
+        if(runBtn){ runBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg> Run Model'; runBtn.disabled = false; }
         const detailMatch = String(e.message).match(/--- body ---\n([\s\S]*)/);
         let detailMsg = `Free plan is limited to ${FREE_DAILY_RUN_LIMIT} model runs per day. Upgrade for unlimited runs.`;
         if (detailMatch) {
