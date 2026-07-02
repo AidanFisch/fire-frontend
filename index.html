@@ -1943,7 +1943,8 @@ html, body {
 #themeToggle { display: none !important; }
 
 /* Page layout */
-.wrap { padding: 24px 24px 56px; }
+.wrap { padding: 24px 24px 56px; padding-top: calc(var(--topbar-height, 85px) + 24px); }
+body.has-action-bar .wrap { padding-top: calc(var(--topbar-height, 85px) + var(--bar-height, 50px) + 24px); }
 .grid { gap: 20px; }
 
 /* ── Topbar ── */
@@ -1952,8 +1953,10 @@ html, body {
   border: none !important;
   border-bottom: 1px solid #D8D4CC !important;
   border-radius: 0 !important;
-  position: sticky !important;
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   z-index: 100 !important;
   box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
   padding: 12px 24px !important;
@@ -2307,8 +2310,10 @@ label { color: #5C5955 !important; }
   display: flex;
   align-items: center;
   gap: 8px;
-  position: sticky;
+  position: fixed;
   top: var(--topbar-height, 85px);
+  left: 0;
+  right: 0;
   z-index: 90;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
@@ -4891,6 +4896,8 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () 
 function _updateTopbarHeightVar() {
   const h = document.querySelector('.topbar')?.offsetHeight || 85;
   document.documentElement.style.setProperty('--topbar-height', h + 'px');
+  const bar = document.getElementById('modelActionsBar');
+  if(bar && bar.offsetHeight) document.documentElement.style.setProperty('--bar-height', bar.offsetHeight + 'px');
 }
 window.addEventListener('resize', _updateTopbarHeightVar);
 
@@ -9060,8 +9067,11 @@ showTab = function(name){
   if(modelActions) {
     if(name === 'results') {
       modelActions.style.display = 'flex';
+      document.body.classList.add('has-action-bar');
+      document.documentElement.style.setProperty('--bar-height', modelActions.offsetHeight + 'px');
     } else {
       modelActions.style.display = 'none';
+      document.body.classList.remove('has-action-bar');
     }
   }
 };
