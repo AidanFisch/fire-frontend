@@ -8998,6 +8998,8 @@ function openInputsDrawer(){
   drawerEl.classList.add("show");
   backdrop.hidden = false;
   setTimeout(()=>backdrop.classList.add("show"), 0);
+  const _bar = document.getElementById('modelActionsBar');
+  if(_bar && _bar.style.display !== 'none') { _bar.dataset.wasVisible = '1'; _bar.style.display = 'none'; }
 
   _priorFocus = document.activeElement;
   drawerEl.setAttribute("aria-hidden","false");
@@ -9025,6 +9027,8 @@ function closeInputsDrawer(){
   drawerEl.setAttribute("aria-hidden","true");
   backdrop.classList.remove("show");
   setTimeout(()=>{ backdrop.hidden = true; }, 200);
+  const _bar = document.getElementById('modelActionsBar');
+  if(_bar && _bar.dataset.wasVisible === '1') { _bar.style.display = 'flex'; delete _bar.dataset.wasVisible; }
 
   document.removeEventListener("keydown", handleDrawerEsc);
   if(_priorFocus && typeof _priorFocus.focus === "function") {
