@@ -1952,11 +1952,12 @@ html, body {
   border: none !important;
   border-bottom: 1px solid #D8D4CC !important;
   border-radius: 0 !important;
-  position: static !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
   box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
   padding: 12px 24px !important;
   backdrop-filter: none !important;
-  top: unset !important;
 }
 body.landing .topbar { display: none; }
 
@@ -2306,10 +2307,8 @@ label { color: #5C5955 !important; }
   display: flex;
   align-items: center;
   gap: 8px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: sticky;
+  top: var(--topbar-height, 85px);
   z-index: 90;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
@@ -4889,7 +4888,14 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () 
 });
 
 // Hook up toggle
+function _updateTopbarHeightVar() {
+  const h = document.querySelector('.topbar')?.offsetHeight || 85;
+  document.documentElement.style.setProperty('--topbar-height', h + 'px');
+}
+window.addEventListener('resize', _updateTopbarHeightVar);
+
 window.addEventListener("load", () => {
+  _updateTopbarHeightVar();
   const btn = document.getElementById("themeToggle");
   if (!btn) return;
   btn.onclick = () => {
@@ -9053,13 +9059,9 @@ showTab = function(name){
   const wrap = document.querySelector('.wrap');
   if(modelActions) {
     if(name === 'results') {
-      const tbH = (document.querySelector('.topbar')?.getBoundingClientRect().height || 0);
-      modelActions.style.top = tbH + 'px';
       modelActions.style.display = 'flex';
-      if(wrap) wrap.style.paddingTop = (tbH + modelActions.offsetHeight + 8) + 'px';
     } else {
       modelActions.style.display = 'none';
-      if(wrap) wrap.style.paddingTop = '';
     }
   }
 };
