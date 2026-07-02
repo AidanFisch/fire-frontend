@@ -2306,8 +2306,10 @@ label { color: #5C5955 !important; }
   display: flex;
   align-items: center;
   gap: 8px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 90;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
@@ -9048,7 +9050,18 @@ showTab = function(name){
   ensureInputsAtHome();
   _origShowTab(name);
   const modelActions = document.getElementById('modelActionsBar');
-  if(modelActions) modelActions.style.display = (name === 'results') ? 'flex' : 'none';
+  const wrap = document.querySelector('.wrap');
+  if(modelActions) {
+    if(name === 'results') {
+      const tbH = (document.querySelector('.topbar')?.getBoundingClientRect().height || 0);
+      modelActions.style.top = tbH + 'px';
+      modelActions.style.display = 'flex';
+      if(wrap) wrap.style.paddingTop = (tbH + modelActions.offsetHeight + 8) + 'px';
+    } else {
+      modelActions.style.display = 'none';
+      if(wrap) wrap.style.paddingTop = '';
+    }
+  }
 };
 
 /* ═══════════════════════════════════════════════════════
