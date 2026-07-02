@@ -1953,14 +1953,11 @@ body.has-action-bar .wrap { padding-top: calc(var(--topbar-height, 85px) + var(-
   border: none !important;
   border-bottom: 1px solid #D8D4CC !important;
   border-radius: 0 !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: 100 !important;
+  position: static !important;
   box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
   padding: 12px 24px !important;
   backdrop-filter: none !important;
+  top: unset !important;
 }
 body.landing .topbar { display: none; }
 
@@ -2311,7 +2308,7 @@ label { color: #5C5955 !important; }
   align-items: center;
   gap: 8px;
   position: fixed;
-  top: var(--topbar-height, 85px);
+  top: 0;
   left: 0;
   right: 0;
   z-index: 90;
@@ -4900,6 +4897,14 @@ function _updateTopbarHeightVar() {
   if(bar && bar.offsetHeight) document.documentElement.style.setProperty('--bar-height', bar.offsetHeight + 'px');
 }
 window.addEventListener('resize', _updateTopbarHeightVar);
+
+function _syncActionBarPosition() {
+  const bar = document.getElementById('modelActionsBar');
+  if (!bar || bar.style.display === 'none') return;
+  const tbH = document.querySelector('.topbar')?.offsetHeight || 0;
+  bar.style.top = (window.scrollY >= tbH ? 0 : tbH - window.scrollY) + 'px';
+}
+window.addEventListener('scroll', _syncActionBarPosition, { passive: true });
 
 window.addEventListener("load", () => {
   _updateTopbarHeightVar();
@@ -9069,6 +9074,7 @@ showTab = function(name){
       modelActions.style.display = 'flex';
       document.body.classList.add('has-action-bar');
       document.documentElement.style.setProperty('--bar-height', modelActions.offsetHeight + 'px');
+      _syncActionBarPosition();
     } else {
       modelActions.style.display = 'none';
       document.body.classList.remove('has-action-bar');
