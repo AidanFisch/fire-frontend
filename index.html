@@ -280,7 +280,7 @@
   background: rgba(0,0,0,.45);
   opacity: 0; pointer-events: none;
   transition: opacity .2s ease;
-  z-index: 59;
+  z-index: 95;
 }
 .drawer-backdrop.show{ opacity: 1; pointer-events: auto; }
 
@@ -292,7 +292,7 @@
   box-shadow: var(--shadow);
   transform: translateX(100%);
   transition: transform .25s ease;
-  z-index: 60;
+  z-index: 96;
   display:flex; flex-direction: column;
 }
 .drawer.show{ transform: translateX(0); }
@@ -8998,8 +8998,6 @@ function openInputsDrawer(){
   drawerEl.classList.add("show");
   backdrop.hidden = false;
   setTimeout(()=>backdrop.classList.add("show"), 0);
-  const _bar = document.getElementById('modelActionsBar');
-  if(_bar && _bar.style.display !== 'none') { _bar.dataset.wasVisible = '1'; _bar.style.display = 'none'; }
 
   _priorFocus = document.activeElement;
   drawerEl.setAttribute("aria-hidden","false");
@@ -9027,8 +9025,6 @@ function closeInputsDrawer(){
   drawerEl.setAttribute("aria-hidden","true");
   backdrop.classList.remove("show");
   setTimeout(()=>{ backdrop.hidden = true; }, 200);
-  const _bar = document.getElementById('modelActionsBar');
-  if(_bar && _bar.dataset.wasVisible === '1') { _bar.style.display = 'flex'; delete _bar.dataset.wasVisible; }
 
   document.removeEventListener("keydown", handleDrawerEsc);
   if(_priorFocus && typeof _priorFocus.focus === "function") {
