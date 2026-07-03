@@ -3615,7 +3615,7 @@ select.exp-input { cursor:pointer; }
             <text class="hero-chart-axislabel" id="heroAxisLabel3" x="14" y="145" font-size="9.5" fill="#C8C4BC">$167K</text>
             <text class="hero-chart-axislabel" x="14" y="200" font-size="9.5" fill="#C8C4BC">$0</text>
             <g class="hero-chart-years">
-              <text x="10"  y="222" text-anchor="start"  font-size="9.5" fill="#B0ABA6">2026</text>
+              <text x="42"  y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2026</text>
               <text x="105" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2031</text>
               <text x="200" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2036</text>
               <text x="295" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2041</text>
@@ -3625,8 +3625,8 @@ select.exp-input { cursor:pointer; }
               <path class="hero-chart-savings" id="heroSavingsPath" d="" />
               <path class="hero-chart-fill" id="heroFillPath" fill="url(#heroGrad)" stroke="none" d="" />
               <path class="hero-chart-line" id="heroLinePath" d="" />
-              <circle id="heroSaveTipDot" cx="10" cy="205" r="3.5" fill="#828A85" />
-              <circle id="heroTipDot" cx="10" cy="205" r="4.5" fill="#059669" />
+              <circle id="heroSaveTipDot" cx="42" cy="205" r="3.5" fill="#828A85" />
+              <circle id="heroTipDot" cx="42" cy="205" r="4.5" fill="#059669" />
               <g id="heroInvestLabelAnchor" class="hero-tip-label">
                 <rect x="6" y="-21" width="92" height="16" rx="8" fill="#059669" />
                 <text x="52" y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Wealth Model</text>
@@ -3689,7 +3689,7 @@ select.exp-input { cursor:pointer; }
                                           // this gap is what makes the line visibly climb the
                                           // whole way instead of flatlining once value catches
                                           // up to a purely-proportional axis
-            var X0 = 10, X1 = 220, BASELINE_Y = 205, TOP_Y = 45;
+            var X0 = 42, X1 = 220, BASELINE_Y = 205, TOP_Y = 45;  // X0 clear of the $-axis labels
             var SAMPLES = 48;
             var MILESTONES = [250000, 500000, 750000, 1000000];
             var start = null;
@@ -4110,7 +4110,16 @@ select.exp-input { cursor:pointer; }
                 <div><label>Super Starting Balance</label><input id="super_starting_balance" type="number" step="1"/></div>
                 <div><label>Employer Super (SG) Rate <span class="info-tip" data-tip="sg_rate">?</span></label><input id="super_sg_rate" type="number" step="0.001"/><div class="input-hint">Legislated 12% from 1 July 2025</div></div>
                 <div><label>Super Growth <span class="info-tip" data-tip="super_growth">?</span></label><input id="super_growth" type="number" step="0.001"/><div class="input-hint">Balanced fund after fees/taxes: 6–7%</div></div>
-                <div><label>Extra Contributions ($/yr)</label><input id="super_additional_annual" type="number" step="1"/><div class="input-hint">Voluntary after-tax top-up from cash</div></div>
+                <div>
+                  <label>Extra Contributions ($/yr) <span class="info-tip" data-tip="super_extra_tax">?</span></label>
+                  <input id="super_additional_annual" type="number" step="1"/>
+                  <label class="prop-toggle" style="display:flex; align-items:center; gap:7px; margin-top:6px; cursor:pointer;">
+                    <input type="checkbox" id="super_extra_is_pre_tax" />
+                    <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+                    <span style="font-size:11.5px; color:#3E4A3F; font-weight:600;">Before tax (salary sacrifice)</span>
+                  </label>
+                  <div class="input-hint" id="superExtraHint">Reduces your taxable income · 15% contributions tax · stops at FIRE</div>
+                </div>
                 <div><label>Super Access Age <span class="info-tip" data-tip="super_access">?</span></label><input id="super_access_age" type="number" step="1"/><div class="input-hint">Preservation age: 60 for most people</div></div>
                 <div><label>Super Drawdown Rate <span class="info-tip" data-tip="swr">?</span></label><input id="super_swr" type="number" step="0.001"/><div class="input-hint">Safe rate: 3.5–4%</div></div>
               </div>
@@ -4323,7 +4332,7 @@ select.exp-input { cursor:pointer; }
       <div class="card dash-stat-card">
         <div class="psi-label">Net Worth</div>
         <div class="psi-val" id="dashNW">—</div>
-        <div class="dash-stat-sub" id="dashNWDelta"></div>
+        <div class="dash-stat-sub" id="dashNWSub"></div>
       </div>
       <div class="card dash-stat-card">
         <div class="psi-label">Savings Rate <span class="info-tip" data-tip="savings_rate">?</span></div>
@@ -5029,6 +5038,7 @@ let state = {
     super_sg_rate: 0.12,
     super_growth: 0.065,
     super_additional_annual: 0,
+    super_extra_is_pre_tax: true,
     cpi_rate: 0.025,
     on_income_support: false
   },
@@ -5316,6 +5326,7 @@ const FIELD_META = {
   super_additional_annual: { type: "money" },
   cpi_rate: { type: "percent" },
   on_income_support: { type: "bool" },
+  super_extra_is_pre_tax: { type: "bool" },
 };
 
 const PROP_FIELD_META = {
@@ -5728,6 +5739,14 @@ function copyPayload(){
  *  --------------------------*/
 let pingTimer = null;
 
+function _updateSuperExtraHint(){
+  const hint = document.getElementById('superExtraHint');
+  if (!hint) return;
+  hint.textContent = state.inputs.super_extra_is_pre_tax
+    ? 'Reduces your taxable income · 15% contributions tax · stops at FIRE'
+    : 'Paid from after-tax cash · lands in full · no tax deduction';
+}
+
 function bindCoreInputs(){
   // API fields
   document.getElementById("apiBase").value = state.apiBase || "";
@@ -5763,6 +5782,14 @@ function bindCoreInputs(){
       (v) => { state.inputs[k] = v; }
     );
   }
+
+  // Super extra pre/after-tax hint tracks the toggle
+  const preTaxEl = document.getElementById('super_extra_is_pre_tax');
+  if (preTaxEl && !preTaxEl.dataset.hintBound){
+    preTaxEl.dataset.hintBound = '1';
+    preTaxEl.addEventListener('change', _updateSuperExtraHint);
+  }
+  _updateSuperExtraHint();
 
   // API listeners
   document.getElementById("apiBase").oninput = (e)=>{
@@ -6956,7 +6983,11 @@ const INFO_TIPS = {
   },
   savings_rate: {
     title: 'Savings Rate',
-    body: 'Net savings divided by net income. The single most powerful lever for reaching FIRE — a 50% savings rate gets you there in roughly 17 years regardless of income level.'
+    body: 'Net savings divided by after-tax income — the single most powerful FIRE lever, because it sets both how fast you invest AND how little you need to live on. The years-to-FIRE estimates shown assume a 5% real (after-inflation) return, the 4% rule (needing 25× annual spending), and starting from zero. On those assumptions: 20% ≈ 37 yrs, 30% ≈ 28 yrs, 50% ≈ 17 yrs, 70% ≈ 9 yrs — independent of how much you earn. Your full model refines this with your actual balances, property, super and tax.'
+  },
+  super_extra_tax: {
+    title: 'Extra Super: Before vs After Tax',
+    body: 'Before tax (salary sacrifice): the contribution comes out of your salary before income tax, reducing your tax bill, but the fund takes 15% contributions tax on the way in (85% lands), and it stops at FIRE since there\'s no salary left to sacrifice. After tax: paid from your savings — the full amount lands, there\'s no tax deduction, and it can continue after FIRE. Before tax usually wins while your marginal rate is above 15%. Watch the $30k/yr concessional cap (includes employer SG) — the model doesn\'t enforce it.'
   },
   fire_number: {
     title: 'FIRE Number',
@@ -7039,10 +7070,15 @@ function showInfoTip(key, el, pin){
   // falls back to that, so the tip never actually appeared. Set it explicitly.
   tooltip.style.display = 'block';
 
-  // Position near the icon
+  // Position near the icon — below by default, flipped above when there
+  // isn't room (e.g. icons near the bottom of the inputs drawer).
   const rect = el.getBoundingClientRect();
   const scrollY = window.scrollY || 0;
-  let top  = rect.bottom + scrollY + 6;
+  const ttH = tooltip.offsetHeight || 120;
+  let top = rect.bottom + scrollY + 6;
+  if (rect.bottom + ttH + 12 > window.innerHeight && rect.top - ttH - 12 > 0) {
+    top = rect.top + scrollY - ttH - 6;
+  }
   let left = rect.left;
 
   // Keep within viewport
@@ -8798,38 +8834,66 @@ function renderHelpModalContent() {
 
   const sections = [
     {
-      title: 'Getting Started',
-      html: `<p>WealthModel projects your net worth month-by-month using your income, expenses,
-             super, and any properties you add, to estimate the age you become financially
-             independent — your <strong>FIRE age</strong>. Everything updates live as you edit
-             inputs; click <strong>Run Model</strong> to refresh projections and charts.</p>`
+      title: 'What this is',
+      html: `<p>WealthModel runs a month-by-month simulation of your finances — salary, tax,
+             expenses, mortgages, rent, shares and super — to find your <strong>FIRE age</strong>:
+             the age your investments can fund your lifestyle without a salary.</p>`
     },
     {
-      title: 'FIRE Basics',
-      tips: ['fire_number', 'savings_rate', 'swr', 'super_access']
+      title: 'Step 1 — Set your inputs (2 min)',
+      html: `<p>On the <strong>Model</strong> tab, click <strong>Edit Inputs</strong>.</p>
+             <p><strong>About You</strong> — your age, and the age to model to. Set it past 60 so
+             super drawdowns appear.</p>
+             <p><strong>Income &amp; Spending</strong> — gross salary, annual living costs, and the
+             <em>Target Lifestyle Income</em>: what you'd spend per year after retiring, in today's
+             dollars. This one number defines your finish line, so get it right first.</p>
+             <p><strong>Economic Assumptions / Stocks / Super</strong> — growth and inflation rates.
+             Every field shows a recommended range underneath; values outside it get an amber
+             highlight. When unsure, keep the defaults — they're set to sensible long-run figures.</p>`
     },
     {
-      title: 'Budget Tracking',
-      html: `<p>Log planned vs actual income and expenses per month in the Budget tab. Your
-             savings rate and monthly trend feed straight into the Overview dashboard and the
-             FIRE projection — no manual syncing needed.</p>`
+      title: 'Step 2 — Add properties (if you have them)',
+      html: `<p>In <strong>Portfolio → Properties</strong>, add your home and any investments with
+             their loans, rent and running costs. Mark your home as PPOR (it's CGT-exempt and its
+             rent is ignored). Planning to sell? Tick "Plan to sell" and CGT is calculated
+             automatically. Future purchases work too — set the purchase date and the model saves
+             the deposit until then.</p>`
     },
     {
-      title: 'Portfolio Holdings',
-      html: `<p>Track your real asset values month-by-month in Portfolio → Holdings. If you leave
-             the Property row blank for the current month, it automatically fills in from the
-             live total of your property cards in Portfolio → Properties — no double entry.</p>`
+      title: 'Step 3 — Run the model',
+      html: `<p>Hit <strong>Run Model</strong>. The chart shows your net worth path, a 🔥 marker at
+             your FIRE age, and toggleable lines (cash, stocks, super, property equity, cashflow).
+             Click a chart year with "Additional Stock Contributions" switched on to add one-off
+             amounts to specific years — bonuses, windfalls, tight years.</p>`
     },
     {
-      title: 'Properties & Tax',
-      tips: ['ppor', 'six_year_rule', 'negative_gearing', 'offset', 'cost_base', 'cgt_pre2027', 'cgt_post2027']
+      title: 'Step 4 — Track reality (optional but powerful)',
+      html: `<p>Log actual income/expenses monthly in <strong>Budget</strong> and asset values in
+             <strong>Portfolio → Holdings</strong>. The <strong>Overview</strong> tab then compares
+             your real savings rate and net worth against what the model assumed — so you can see
+             if you're ahead or behind plan.</p>`
     },
     {
-      title: 'Scenarios',
-      html: `<p>Save your current inputs as a named scenario (e.g. "Rent & Invest" vs "Buy a
-             Home"), then load or compare scenarios side-by-side on the results chart to see
-             which path gets you to FIRE soonest. Free accounts can save 1 scenario; Pro is
-             unlimited.</p>`
+      title: 'Step 5 — Compare scenarios',
+      html: `<p>Save your inputs as a named scenario ("Buy a home", "Rent &amp; invest"), change
+             things, save again, and compare FIRE ages side-by-side on the chart. Free accounts
+             save 1 scenario; Pro is unlimited.</p>`
+    },
+    {
+      title: 'What moves the needle most',
+      html: `<p>In rough order of impact:</p>
+             <p>1. <strong>Savings rate</strong> — spending less both grows investments faster and
+             shrinks the target. Nothing else comes close.<br>
+             2. <strong>Target lifestyle income</strong> — every $10k/yr of retirement spending adds
+             ~$250k to the wealth you need (at a 4% drawdown).<br>
+             3. <strong>Investment returns</strong> — matter hugely over 20+ years, but you don't
+             control them; be conservative.<br>
+             4. <strong>Tax structure</strong> — salary sacrifice, negative gearing and CGT timing
+             fine-tune the path rather than redraw it.</p>`
+    },
+    {
+      title: 'Key concepts',
+      tips: ['fire_number', 'savings_rate', 'swr', 'super_access', 'super_extra_tax', 'ppor', 'negative_gearing', 'offset', 'six_year_rule', 'cgt_pre2027', 'cgt_post2027']
     },
     {
       title: 'Free vs Pro',
@@ -11641,36 +11705,62 @@ function _dashCurrentNW(){
   return portTot + propEquity;
 }
 
+/* Current net worth for FIRE progress. Prefers tracked Holdings; when none
+   are logged yet, falls back to the model inputs so the card isn't stuck
+   near $0 for new users. Returns { nw, src }. */
+function _dashProgressNW(){
+  const portTot    = portTotals(portGetCurrentData()).total;
+  const propEquity = (state.property_list||[]).reduce((s,p)=>s+propertySummary(p).equity, 0);
+  if (portTot > 0) return { nw: portTot + propEquity, src: 'tracked' };
+  const inp = state.inputs || {};
+  const fallback = toNumber(inp.initial_savings) + toNumber(inp.starting_stock_value)
+                 + toNumber(inp.super_starting_balance) + propEquity;
+  return { nw: fallback, src: 'inputs' };
+}
+
+/* Your FIRE number in TODAY'S dollars: target lifestyle income / drawdown
+   rate (e.g. $80k / 4% = $2M). Progress against this means "how much of the
+   wealth I ultimately need do I already have" — comparing against the
+   inflated projected net worth AT the FIRE date would understate progress. */
+function _dashFireNumber(){
+  const target = toNumber(state.inputs?.todays_lifestyle_income);
+  const swr = toNumber(state.inputs?.stock_swr) || 0.04;
+  return target > 0 ? target / swr : null;
+}
+
 function _dashFireCard(){
   const el = document.getElementById('dashFireCard');
   if(!el) return;
-  const currentNW = _dashCurrentNW();
+  const { nw: currentNW, src } = _dashProgressNW();
+  const fireNumber = _dashFireNumber();
   const sum = state.lastResult ? _extractModelSummary() : null;
-  const fireNW  = sum?.fire_nw  ?? null;
   const fireAge = sum?.fire_age ?? null;
 
-  if(fireAge && fireNW){
-    const pct = Math.min(100, Math.max(0, (currentNW/fireNW)*100));
-    const barColor = pct >= 100 ? '#059669' : pct >= 50 ? '#F59E0B' : '#059669';
+  if(fireNumber){
+    const pct = Math.min(100, Math.max(0, (currentNW/fireNumber)*100));
+    const barColor = '#059669';
+    const ageStr = fireAge ? `🔥 FIRE @ ${Math.round(fireAge)}` : '🔥 FIRE Progress';
+    const srcNote = src === 'inputs' ? ' · from model inputs — log Holdings for live tracking' : '';
     el.innerHTML = `
       <div class="dash-fire-header">
         <div>
-          <div class="dash-fire-label">🔥 FIRE @ ${Math.round(fireAge)}</div>
-          <div class="dash-fire-sub">${fmtDollar(currentNW)} tracked &nbsp;/&nbsp; ${fmtDollar(fireNW)} target</div>
+          <div class="dash-fire-label">${ageStr}</div>
+          <div class="dash-fire-sub">${fmtDollar(currentNW)} now &nbsp;/&nbsp; ${fmtDollar(fireNumber)} FIRE number (today's $)${srcNote}</div>
         </div>
         <div class="dash-fire-pct" style="color:${barColor}">${pct.toFixed(0)}%</div>
       </div>
       <div class="dash-progress-track" style="margin-top:10px;">
         <div class="dash-progress-fill" style="width:${pct}%;background:${barColor};"></div>
-      </div>`;
+      </div>
+      ${!fireAge ? `<div class="small" style="margin-top:8px;"><button class="btn primary" style="white-space:nowrap;" onclick="showTab('results');runModel()">Run Model for your FIRE age</button></div>` : ''}`;
   } else {
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div>
-          <div class="dash-fire-label" style="color:#A8A4A0;font-size:15px;">Run the model to see your FIRE progress</div>
-          <div class="dash-fire-sub">Tracked net worth: <strong>${fmtDollar(currentNW)}</strong></div>
+          <div class="dash-fire-label" style="color:#A8A4A0;font-size:15px;">Set a Target Lifestyle Income to see your FIRE progress</div>
+          <div class="dash-fire-sub">Current net worth: <strong>${fmtDollar(currentNW)}</strong></div>
         </div>
-        <button class="btn primary" style="white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button>
+        <button class="btn primary" style="white-space:nowrap;" onclick="openInputsDrawer()">Edit Inputs</button>
       </div>
       <div class="dash-progress-track" style="margin-top:10px;">
         <div class="dash-progress-fill" style="width:0%;"></div>
@@ -11709,10 +11799,19 @@ function _dashStats(){
     const avgExp = series.reduce((s,m)=>s+(m.expense_actual||0),0)/series.length;
     const sr = avgInc>0 ? Math.max(0,(avgInc-avgExp)/avgInc) : 0;
     srStr = `${Math.round(sr*100)}%`;
+    // Years-to-FIRE at this savings rate (standard shorthand: 5% real return,
+    // 4% rule i.e. target = 25x spending, starting from zero). The info tip
+    // spells out these assumptions.
+    let yrsStr = null;
+    if (sr > 0.01 && sr < 1) {
+      const r = 0.05;
+      const yrs = Math.log((25 * (1 - sr) * r) / sr + 1) / Math.log(1 + r);
+      yrsStr = yrs < 1 ? '<1' : String(Math.round(yrs));
+    }
     const modelSR = state.inputs.current_income>0
       ? Math.max(0,(state.inputs.current_income-state.inputs.current_expenses)/state.inputs.current_income)
       : null;
-    srSub = modelSR ? `Model assumes ${Math.round(modelSR*100)}%` : `${series.length} months avg`;
+    srSub = yrsStr ? `≈ ${yrsStr} yrs to FIRE at this rate` : (modelSR ? `Model assumes ${Math.round(modelSR*100)}%` : `${series.length} months avg`);
     srColor = modelSR ? (sr >= modelSR-0.02 ? '#059669' : '#F59E0B') : '#059669';
   }
   set('dashSR', srStr, srSub, srColor);
@@ -11724,7 +11823,6 @@ function _dashStats(){
   let tmStr = thisNet!=null ? (thisNet>=0?'+':'')+fmtDollar(thisNet) : '—';
   let tmSub = '', tmColor = '#A8A4A0';
   if(thisNet!=null && modelMoTarget>0){
-    const delta = thisNet - modelMoTarget;
     tmSub = `Target ${fmtDollar(modelMoTarget)}/mo`;
     tmColor = thisNet >= modelMoTarget ? '#059669' : '#F59E0B';
   } else if(thisNet!=null){
@@ -11760,25 +11858,15 @@ function _dashNWChart_render(){
   const totals = months.map(m=>assets.reduce((s,a)=>s+(monthly[m][a.id]||0),0)
     + (state.property_list||[]).reduce((s,p)=>s+propertySummary(p).equity,0));
 
-  // FIRE target line from model projections
-  const targetLine = [];
-  if(_fireProjectionsCache && state.lastResult){
-    months.forEach(m=>{
-      const year = Number(m.split('-')[0]);
-      const tgt  = fireModelTargetForYear(year, _fireProjectionsCache);
-      // Rough cumulative: just show the model's FIRE NW at that year if available
-      targetLine.push(null); // placeholder — better to overlay FIRE number
-    });
-  }
-
   if(_dashNWChart){ _dashNWChart.destroy(); _dashNWChart=null; }
-  const sum = state.lastResult ? _extractModelSummary() : null;
-  const fireNW = sum?.fire_nw ?? null;
+  // Dashed line = FIRE number in today's dollars (lifestyle income / SWR) —
+  // same definition as the FIRE Progress card above, so the two agree.
+  const fireNumber = _dashFireNumber();
   const datasets = [
-    { label:'Net Worth', data:totals, borderColor:'#059669', backgroundColor:'rgba(29,158,117,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#059669', borderWidth:2.5 },
+    { label:'Net Worth', data:totals, borderColor:'#059669', backgroundColor:'rgba(5,150,105,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#059669', borderWidth:2.5 },
   ];
-  if(fireNW){
-    datasets.push({ label:'FIRE Target', data:Array(months.length).fill(fireNW), borderColor:'#F59E0B', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
+  if(fireNumber){
+    datasets.push({ label:'FIRE Number', data:Array(months.length).fill(fireNumber), borderColor:'#F59E0B', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
   }
   _dashNWChart = new Chart(ctx, {
     type:'line', data:{ labels, datasets },
