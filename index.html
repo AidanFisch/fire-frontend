@@ -3702,11 +3702,17 @@ select.exp-input { cursor:pointer; }
             function valueAt(t){ return TARGET * Math.pow(t, VALUE_POWER); }
             function savingsValueAt(t){ return SAVE_TARGET * t; }
             function axisMaxAt(t){ return FLOOR_AXIS + (PEAK_AXIS - FLOOR_AXIS) * Math.pow(t, AXIS_POWER); }
-            function yFor(v, axisMax){ return BASELINE_Y - (v / axisMax) * (BASELINE_Y - TOP_Y); }
+            // Keep every plotted point inside the chart box: never below the $0
+            // baseline, never above the reserved top headroom.
+            function clampY(y){ return Math.max(TOP_Y, Math.min(BASELINE_Y, y)); }
+            function yFor(v, axisMax){ return clampY(BASELINE_Y - (v / axisMax) * (BASELINE_Y - TOP_Y)); }
             // Deterministic small wiggle (function of t, not random per-frame) so the
             // curve has market-chart texture without jittering differently each frame.
+            // Faded in over the first slice of the curve (0 at t=0) so the line
+            // starts exactly on the baseline instead of a pixel below the axis.
             function noiseAt(t, seedMul){
-              return Math.sin(t * 41.3 * seedMul) * 2.0 + Math.sin(t * 97.1 * seedMul + 1.7) * 1.1;
+              var ramp = Math.min(t / 0.04, 1);   // 0 at the origin, full by t≈0.04
+              return ramp * (Math.sin(t * 41.3 * seedMul) * 2.0 + Math.sin(t * 97.1 * seedMul + 1.7) * 1.1);
             }
             function fmtDollar(v){ return '$' + Math.round(v).toLocaleString(); }
             function fmtAxis(v){
@@ -3755,16 +3761,16 @@ select.exp-input { cursor:pointer; }
               for (var i = 0; i <= n; i++){
                 var t = drawT * (i / n);
                 var x = X0 + (X1 - X0) * t;
-                var y  = yFor(valueAt(t), curAxisMax) + noiseAt(t, 1);
-                var y2 = yFor(savingsValueAt(t), curAxisMax) + noiseAt(t, 1.6);
+                var y  = clampY(yFor(valueAt(t), curAxisMax) + noiseAt(t, 1));
+                var y2 = clampY(yFor(savingsValueAt(t), curAxisMax) + noiseAt(t, 1.6));
                 d  += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
                 d2 += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y2.toFixed(1) + ' ';
               }
               linePath.setAttribute('d', d.trim());
               savePath.setAttribute('d', d2.trim());
               var tipX = X0 + (X1 - X0) * drawT;
-              var tipY = yFor(curValue, curAxisMax) + noiseAt(drawT, 1);
-              var saveTipY = yFor(savingsValueAt(drawT), curAxisMax) + noiseAt(drawT, 1.6);
+              var tipY = clampY(yFor(curValue, curAxisMax) + noiseAt(drawT, 1));
+              var saveTipY = clampY(yFor(savingsValueAt(drawT), curAxisMax) + noiseAt(drawT, 1.6));
               fillPath.setAttribute('d', d.trim() + ' L ' + tipX.toFixed(1) + ' ' + BASELINE_Y + ' L ' + X0 + ' ' + BASELINE_Y + ' Z');
               tipDot.setAttribute('cx', tipX.toFixed(1));
               tipDot.setAttribute('cy', tipY.toFixed(1));
