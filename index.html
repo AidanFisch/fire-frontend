@@ -3,18 +3,29 @@
 <head>
 <!-- added for SEO-->
 	
-<title>FIRE Calculator – Financial Independence & Retirement Tool</title>
-<meta name="description" content="Use the WealthModel FIRE calculator to project your wealth, plan early retirement, and understand your financial independence timeline.">
+<title>FIRE Calculator Australia – Free Financial Independence Planner | WealthModel</title>
+<meta name="description" content="Free Australian FIRE calculator with superannuation, negative gearing, CGT and property modelling. See exactly when you can retire early — no signup required.">
 
 <!-- Keywords (optional but fine) -->
-<meta name="keywords" content="FIRE calculator, financial independence calculator, wealth model, retirement tool, FIRE number, retirement savings projection">
+<meta name="keywords" content="FIRE calculator Australia, financial independence calculator, superannuation FIRE, retire early Australia, FIRE number, negative gearing calculator, retirement savings projection">
+<meta name="theme-color" content="#0F3D2E">
 
 <!-- OpenGraph (for previews on LinkedIn / socials) -->
-<meta property="og:title" content="WealthModel – FIRE Calculator">
-<meta property="og:description" content="Project your wealth and plan your financial independence timeline.">
+<meta property="og:title" content="WealthModel – FIRE Calculator Australia">
+<meta property="og:description" content="Model income, expenses, property, super and tax to see exactly when you reach financial independence. Built for Australia.">
 <meta property="og:url" content="https://wealthmodel.io"> <!-- will be patched dynamically -->
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="WealthModel">
+<meta property="og:locale" content="en_AU">
 <meta property="og:image" content="https://wealthmodel.io/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WealthModel – FIRE Calculator Australia">
+<meta name="twitter:description" content="Free Australian FIRE calculator with super, property and tax modelling. No signup required.">
+<meta name="twitter:image" content="https://wealthmodel.io/og.png">
+
+<!-- Performance: warm up third-party origins before their requests fire -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -45,6 +56,40 @@
 }
 </script>
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is FIRE?",
+      "acceptedAnswer": { "@type": "Answer", "text": "FIRE stands for Financial Independence, Retire Early — building enough invested wealth that the income it generates covers your living costs, making work optional. Your FIRE age is the age your plan first becomes self-funding." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is my FIRE age calculated?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A monthly simulation projects your salary, Australian tax, expenses, mortgages, rent, shares and superannuation forward. You reach FIRE in the first month where net rent, a safe stock drawdown, and super (once accessible) cover your target lifestyle income after tax and loan payments." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it handle superannuation and negative gearing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — WealthModel is built for Australia. Super Guarantee contributions, contributions tax, preservation age, negative gearing, CGT including the July 2027 indexation reform, offset accounts, and the PPOR six-year rule are all modelled." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data private?",
+      "acceptedAnswer": { "@type": "Answer", "text": "You can use the calculator without creating an account — your inputs stay in your browser. If you sign up, data is stored securely in Google Firebase so you can sync across devices. We never sell your data." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is WealthModel free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The free plan includes the full model with one property, one scenario and five model runs per day. Pro removes the limits." }
+    }
+  ]
+}
+</script>
+
 <link rel="canonical" href="https://wealthmodel.io/"><!-- will be patched dynamically -->
 
 <!-- Dynamic canonical + OG + JSON-LD URL so both wealthmodel.io and github.io work -->
@@ -72,8 +117,8 @@
   })();
 </script>
 	
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js (deferred — nothing draws a chart before DOMContentLoaded) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Firebase (module — exposes helpers to window, dispatches fbAuthChange events) -->
   <script type="module">
@@ -222,17 +267,17 @@
 /* ── Light theme (active default) ── */
 :root, :root[data-theme="light"] {
   color-scheme: light;
-  --bg0:      #F2F0EA;
-  --bg1:      #F2F0EA;
+  --bg0:      #F7F7F5;
+  --bg1:      #F7F7F5;
   --surface:  #FFFFFF;
   --surface2: #EAE7E0;
   --input-bg: #FFFFFF;
   --overlay:  rgba(242,240,234,.97);
-  --stroke:   #D8D4CC;
+  --stroke:   #D6D9DD;
   --stroke2:  #C8C4BC;
-  --txt:      #1C1C1A;
-  --muted:    #5C5955;
-  --muted2:   #8A8582;
+  --txt:      #151816;
+  --muted:    #5A625D;
+  --muted2:   #828A85;
   --good:     #059669;
   --accent:   #059669;
   --shadow:   0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
@@ -242,17 +287,17 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: light;
-    --bg0:      #F2F0EA;
-    --bg1:      #F2F0EA;
+    --bg0:      #F7F7F5;
+    --bg1:      #F7F7F5;
     --surface:  #FFFFFF;
     --surface2: #EAE7E0;
     --input-bg: #FFFFFF;
     --overlay:  rgba(242,240,234,.97);
-    --stroke:   #D8D4CC;
+    --stroke:   #D6D9DD;
     --stroke2:  #C8C4BC;
-    --txt:      #1C1C1A;
-    --muted:    #5C5955;
-    --muted2:   #8A8582;
+    --txt:      #151816;
+    --muted:    #5A625D;
+    --muted2:   #828A85;
     --good:     #059669;
     --accent:   #059669;
     --shadow:   0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
@@ -264,7 +309,7 @@
       margin:0;
       font-family: var(--sans);
       color: var(--txt);
-      background: #F2F0EA;
+      background: #F7F7F5;
       min-height:100vh;
     }
     a{color:inherit}
@@ -768,7 +813,7 @@ th{
 	  /* --- Property cards --- */
 	  .propCard {
 		background: #FFFFFF !important;
-		border: 1px solid #D8D4CC !important;
+		border: 1px solid #D6D9DD !important;
 		border-radius: 10px !important;
 		padding: 16px 20px !important;
 		box-shadow: none !important;
@@ -800,7 +845,7 @@ th{
 	  .propCardName {
 		font-size: 15px;
 		font-weight: 700;
-		color: #1C1C1A;
+		color: #151816;
 	  }
 
 	  .propTypeBadge {
@@ -808,7 +853,7 @@ th{
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		background: #F0EDE8;
-		color: #5C5955;
+		color: #5A625D;
 		border-radius: 20px;
 		padding: 3px 10px;
 		flex-shrink: 0;
@@ -822,18 +867,18 @@ th{
 
 	  /* ---- Life events ---- */
 	  .life-event-card {
-		border: 1px solid #E8E4DE; border-radius: 8px;
+		border: 1px solid #E5E7EB; border-radius: 8px;
 		padding: 10px 12px; margin-bottom: 8px; background: white;
 	  }
 	  .life-event-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-	  .life-event-name { font-weight: 700; font-size: 13px; color: #1C1C1A; }
+	  .life-event-name { font-weight: 700; font-size: 13px; color: #151816; }
 	  .life-event-actions { margin-left: auto; display: flex; gap: 4px; }
-	  .life-event-meta { font-size: 11.5px; color: #5C5955; margin-top: 4px; }
+	  .life-event-meta { font-size: 11.5px; color: #5A625D; margin-top: 4px; }
 
 	  /* ---- Additional stock contributions ---- */
 	  .stock-override-panel {
-		border: 1px solid #E8E4DE; border-radius: 7px;
-		background: #F8F7F4; padding: 6px 10px; margin-bottom: 14px;
+		border: 1px solid #E5E7EB; border-radius: 7px;
+		background: #F9FAF9; padding: 6px 10px; margin-bottom: 14px;
 	  }
 	  .stock-override-toggle.prop-toggle { padding: 2px 0; gap: 7px; }
 	  .stock-override-toggle .prop-toggle-track { width: 28px; height: 16px; }
@@ -845,7 +890,7 @@ th{
 		font-size: 12px; font-weight: 700; color: #92400E;
 	  }
 	  .stock-override-hint {
-		font-size: 11px; color: #5C5955; margin-top: 5px; line-height: 1.4;
+		font-size: 11px; color: #5A625D; margin-top: 5px; line-height: 1.4;
 	  }
 	  /* The add/edit form lives in the ~560px-wide Inputs drawer, much
 	     narrower than where .prop-history-form-grid's default 4 columns were
@@ -858,35 +903,35 @@ th{
 	  .month-picker { position: relative; }
 	  .month-picker-btn {
 		width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between;
-		background: #FAFAF8; border: 1px solid #D8D4CC; border-radius: 7px;
-		padding: 6px 10px; font-size: 13px; color: #1C1C1A; cursor: pointer;
+		background: #FAFAF8; border: 1px solid #D6D9DD; border-radius: 7px;
+		padding: 6px 10px; font-size: 13px; color: #151816; cursor: pointer;
 	  }
 	  .month-picker-btn:hover { border-color: #B8B4AC; }
-	  .month-picker-caret { color: #8A8582; font-size: 10px; margin-left: 6px; }
+	  .month-picker-caret { color: #828A85; font-size: 10px; margin-left: 6px; }
 	  .month-picker-pop {
 		display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
-		width: 220px; background: white; border: 1px solid #D8D4CC; border-radius: 10px;
+		width: 220px; background: white; border: 1px solid #D6D9DD; border-radius: 10px;
 		box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 10px;
 	  }
 	  .month-picker-pop.open { display: block; }
 	  .month-picker-yearnav {
 		display: flex; align-items: center; justify-content: space-between;
-		font-size: 13px; font-weight: 700; color: #1C1C1A; margin-bottom: 8px;
+		font-size: 13px; font-weight: 700; color: #151816; margin-bottom: 8px;
 	  }
 	  .month-picker-yearnav button {
 		width: 24px; height: 24px; border: none; background: #F0EDE8; border-radius: 6px;
-		color: #5C5955; cursor: pointer; font-size: 14px; line-height: 1;
+		color: #5A625D; cursor: pointer; font-size: 14px; line-height: 1;
 	  }
 	  .month-picker-yearnav button:hover { background: #E2DED7; color: #059669; }
 	  .month-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 	  .month-picker-cell {
-		border: none; background: #F8F7F4; border-radius: 6px; padding: 6px 0;
+		border: none; background: #F9FAF9; border-radius: 6px; padding: 6px 0;
 		font-size: 12px; color: #3C3C3A; cursor: pointer;
 	  }
 	  .month-picker-cell:hover { background: #E6F7F2; color: #059669; }
 	  .month-picker-cell.selected { background: #059669; color: white; font-weight: 700; }
 	  .month-picker-clear {
-		width: 100%; margin-top: 8px; border: none; background: none; color: #8A8582;
+		width: 100%; margin-top: 8px; border: none; background: none; color: #828A85;
 		font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 2px 0;
 	  }
 	  .month-picker-clear:hover { color: #059669; }
@@ -895,13 +940,13 @@ th{
 	     discounted by the property's own growth rate — future prices are
 	     hard to reason about on their own. */
 	  .prop-field-hint {
-		font-size: 11px; color: #8A8582; margin-top: 5px; line-height: 1.4;
+		font-size: 11px; color: #828A85; margin-top: 5px; line-height: 1.4;
 	  }
 	  .btn-estimate-rent {
 		display: inline-flex; align-items: center; gap: 4px;
 		margin-top: 5px; padding: 3px 9px; font-size: 11px; font-weight: 600;
 		background: #F0FDF4; border: 1px solid #D8F0E4; border-radius: 14px;
-		color: #5C5955; cursor: pointer;
+		color: #5A625D; cursor: pointer;
 	  }
 	  .btn-estimate-rent:hover { background: #E6F7F2; color: #059669; }
 
@@ -909,7 +954,7 @@ th{
 		font-size: 11px;
 		letter-spacing: 0.02em;
 		background: #E8F5EF;
-		color: #1D9E75;
+		color: #059669;
 		border-radius: 20px;
 		padding: 3px 10px;
 		flex-shrink: 0;
@@ -932,13 +977,13 @@ th{
 
 	  .propStatLabel {
 		font-size: 11px;
-		color: #5C5955;
+		color: #5A625D;
 	  }
 
 	  .propStatValue {
 		font-size: 13px;
 		font-weight: 600;
-		color: #1C1C1A;
+		color: #151816;
 	  }
 	  .propStatValue.negative { color: #E11D48; }
 	  .propStatValue.positive { color: #059669; }
@@ -950,9 +995,9 @@ th{
 		align-items: center;
 		justify-content: center;
 		background: #F7F5F0;
-		border: 1px solid #D8D4CC;
+		border: 1px solid #D6D9DD;
 		border-radius: 6px;
-		color: #5C5955;
+		color: #5A625D;
 		font-size: 11px;
 		flex-shrink: 0;
 	  }
@@ -993,17 +1038,17 @@ th{
 
 	  .propCard .fieldgrid > div > label {
 		font-size: 11.5px;
-		color: #5C5955;
+		color: #5A625D;
 		margin-bottom: 3px;
 	  }
 
 	  .propCard input:not([type="checkbox"]) {
 		background: #FAFAF8 !important;
-		border: 1px solid #D8D4CC !important;
+		border: 1px solid #D6D9DD !important;
 		border-radius: 7px !important;
 		padding: 6px 10px !important;
 		font-size: 13px !important;
-		color: #1C1C1A !important;
+		color: #151816 !important;
 		box-shadow: none !important;
 	  }
 	  .propCard input:not([type="checkbox"]):focus {
@@ -1029,7 +1074,7 @@ th{
 	  .prop-toggle-track {
 		width: 36px;
 		height: 20px;
-		background: #D8D4CC;
+		background: #D6D9DD;
 		border-radius: 999px;
 		position: relative;
 		transition: background 150ms ease;
@@ -1054,7 +1099,7 @@ th{
 	  }
 	  .prop-toggle-label {
 		font-size: 13px;
-		color: #1C1C1A;
+		color: #151816;
 	  }
 
 	  .prop-toggle-row {
@@ -1078,8 +1123,8 @@ th{
 	  /* ---- PPOR timeline ---- */
 	  .prop-ppor-section { margin-top: 0; }
 	  .ppor-timeline-panel {
-		background: #F8F7F4;
-		border: 1px solid #E8E4DE;
+		background: #F9FAF9;
+		border: 1px solid #E5E7EB;
 		border-radius: 8px;
 		padding: 8px 12px 10px;
 		margin-top: 6px;
@@ -1089,7 +1134,7 @@ th{
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: .06em;
-		color: #8A8582;
+		color: #828A85;
 		margin-bottom: 6px;
 	  }
 	  /* Single horizontal row: [from] → [to] [6yr chip] [✕] */
@@ -1103,14 +1148,14 @@ th{
 		flex-wrap: wrap;
 	  }
 	  .ppor-row:last-child { border-bottom: none; }
-	  .ppor-arrow { color: #8A8582; font-size: 13px; flex-shrink: 0; }
+	  .ppor-arrow { color: #828A85; font-size: 13px; flex-shrink: 0; }
 	  .ppor-input {
 		font-size: 12px;
 		padding: 4px 7px;
-		border: 1px solid #D8D4CC;
+		border: 1px solid #D6D9DD;
 		border-radius: 6px;
 		background: white;
-		color: #1C1C1A;
+		color: #151816;
 		width: 126px;
 	  }
 	  .ppor-input.ppor-to::placeholder { color: #B0ABA6; font-style: italic; }
@@ -1125,7 +1170,7 @@ th{
 		background: #F0FDF8;
 		font-size: 11px;
 		font-weight: 500;
-		color: #1D9E75;
+		color: #059669;
 		cursor: pointer;
 		user-select: none;
 		transition: background .12s, border-color .12s;
@@ -1135,15 +1180,15 @@ th{
 		width: 12px; height: 12px;
 		margin: 0; padding: 0;
 		cursor: pointer;
-		accent-color: #1D9E75;
+		accent-color: #059669;
 	  }
 	  .ppor-sixyr-chip:hover { background: #DCFCE7; border-color: #6EE7B7; }
 	  .ppor-sixyr-chip.chip-disabled {
 		opacity: .45;
 		pointer-events: none;
-		border-color: #D8D4CC;
+		border-color: #D6D9DD;
 		background: #F4F2EE;
-		color: #8A8582;
+		color: #828A85;
 	  }
 	  .ppor-remove-btn {
 		font-size: 11px !important;
@@ -1178,25 +1223,25 @@ th{
 		display: inline-block;
 		width: 4px;
 		border-radius: 2px;
-		background: #1D9E75;
+		background: #059669;
 		flex-shrink: 0;
 	  }
 	  .panel-head:not(.panel-head-stack) .panel-accent { height: 22px; }
 	  .panel-title {
 		font-size: 15px;
 		font-weight: 700;
-		color: #1C1C1A;
+		color: #151816;
 		letter-spacing: -0.01em;
 	  }
 	  .panel-meta {
 		font-size: 11px;
-		color: #8A8582;
+		color: #828A85;
 		font-weight: 500;
 		margin-left: 2px;
 	  }
 	  .panel-desc {
 		font-size: 12px;
-		color: #8A8582;
+		color: #828A85;
 		margin-top: 3px;
 		line-height: 1.5;
 	  }
@@ -1209,52 +1254,52 @@ th{
 	  }
 	  .prop-sale-sub {
 		font-size: 10.5px;
-		color: #8A8582;
+		color: #828A85;
 		margin: 4px 2px 8px;
 		line-height: 1.5;
 	  }
 	  .prop-history-section {
 		margin-top: 14px;
 		padding: 12px;
-		background: #F8F7F4;
-		border: 1px solid #E8E4DE;
+		background: #F9FAF9;
+		border: 1px solid #E5E7EB;
 		border-radius: 8px;
 	  }
 	  .prop-history-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 	  .prop-history-body { margin-top: 10px; }
-	  .prop-history-chevron { color: #8A8582; font-size: 10px; width: 10px; display: inline-block; }
+	  .prop-history-chevron { color: #828A85; font-size: 10px; width: 10px; display: inline-block; }
 	  .prop-history-count {
-		background: #E8E4DE; color: #5C5955; font-size: 10px; font-weight: 700;
+		background: #E5E7EB; color: #5A625D; font-size: 10px; font-weight: 700;
 		border-radius: 999px; padding: 1px 7px; line-height: 1.5;
 	  }
 	  .prop-history-list { display: flex; flex-direction: column; gap: 6px; }
-	  .prop-history-empty { font-size: 11.5px; color: #8A8582; line-height: 1.5; padding: 8px 0; }
+	  .prop-history-empty { font-size: 11.5px; color: #828A85; line-height: 1.5; padding: 8px 0; }
 	  .prop-history-row {
 		display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-		border: 1px solid #E8E4DE; border-radius: 8px; padding: 7px 10px; font-size: 11.5px;
+		border: 1px solid #E5E7EB; border-radius: 8px; padding: 7px 10px; font-size: 11.5px;
 		background: white;
 	  }
-	  .prop-history-date { font-weight: 700; color: #1C1C1A; min-width: 88px; }
-	  .prop-history-stat { color: #5C5955; }
-	  .prop-history-stat strong { color: #1C1C1A; }
-	  .prop-history-edit { background: none; border: none; color: #8A8582; cursor: pointer; font-size: 12px; margin-left: auto; padding: 0 2px; }
+	  .prop-history-date { font-weight: 700; color: #151816; min-width: 88px; }
+	  .prop-history-stat { color: #5A625D; }
+	  .prop-history-stat strong { color: #151816; }
+	  .prop-history-edit { background: none; border: none; color: #828A85; cursor: pointer; font-size: 12px; margin-left: auto; padding: 0 2px; }
 	  .prop-history-edit:hover { color: #059669; }
 	  .prop-history-del { background: none; border: none; color: #C4B5B0; cursor: pointer; font-size: 12px; padding: 0 2px; }
 	  .prop-history-del:hover { color: #E11D48; }
 
 	  .prop-history-form {
-		background: white; border: 1px solid #E8E4DE; border-radius: 8px;
+		background: white; border: 1px solid #E5E7EB; border-radius: 8px;
 		padding: 10px 12px; margin-bottom: 10px;
 	  }
 	  .prop-history-form-title {
 		font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-		color: #8A8582; margin-bottom: 8px;
+		color: #828A85; margin-bottom: 8px;
 	  }
 	  .prop-history-form-grid {
 		display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
 	  }
 	  .prop-history-form-grid label {
-		font-size: 11px; color: #5C5955; display: block; margin-bottom: 4px;
+		font-size: 11px; color: #5A625D; display: block; margin-bottom: 4px;
 	  }
 	  .prop-history-form-actions {
 		display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;
@@ -1268,47 +1313,47 @@ th{
 		font-size: 12px;
 	  }
 	  .cgt-info { display: flex; flex-direction: column; gap: 3px; }
-	  .cgt-regime { font-weight: 600; color: #1D9E75; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+	  .cgt-regime { font-weight: 600; color: #059669; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 	  .cgt-breakdown { display:flex; flex-direction:column; gap:2px; }
 	  .cgt-row { display:flex; justify-content:space-between; font-size:12px; color:#3C3A36; }
 	  .cgt-row.total { font-weight:700; border-top:1px solid #A7F3D0; margin-top:4px; padding-top:4px; }
 	  .cgt-row.net { font-weight:700; color:#059669; border-top:1px solid #A7F3D0; margin-top:2px; padding-top:4px; }
 	  .cgt-row.sub { color:#6A6660; font-size:11px; padding-left:12px; }
-	  .cgt-note { font-size:10px; color:#8A8582; margin-top:4px; }
+	  .cgt-note { font-size:10px; color:#828A85; margin-top:4px; }
 
 	  /* ---- Stamp duty estimate panel ---- */
 	  .stamp-estimate {
 		background:#FFFBF0; border:1px solid #FCD34D; border-radius:6px;
 		padding:10px 12px; font-size:12px; margin-top:6px;
 	  }
-	  .stamp-header { font-weight:700; color:#1C1C1A; margin-bottom:6px; font-size:12px; }
+	  .stamp-header { font-weight:700; color:#151816; margin-bottom:6px; font-size:12px; }
 	  .stamp-row { display:flex; justify-content:space-between; padding:2px 0; color:#3C3A36; }
 	  .stamp-row.lmi { color:#B45309; }
 	  .stamp-total { display:flex; justify-content:space-between; font-weight:700; border-top:1px solid #FCD34D; margin-top:4px; padding-top:4px; }
-	  .stamp-note { font-size:10px; color:#8A8582; margin-top:4px; }
+	  .stamp-note { font-size:10px; color:#828A85; margin-top:4px; }
 	  .stamp-btn-row { display:flex; gap:6px; margin-top:8px; }
-  .btn-event-toggle { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid #1C1C1A; background:#1C1C1A; color:#fff; cursor:pointer; font-weight:500; white-space:nowrap; }
-  .btn-event-toggle.off { background:white; color:#5C5955; border-color:#D8D4CC; }
+  .btn-event-toggle { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid #151816; background:#151816; color:#fff; cursor:pointer; font-weight:500; white-space:nowrap; }
+  .btn-event-toggle.off { background:white; color:#5A625D; border-color:#D6D9DD; }
   .scen-compare-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 0; border-bottom:1px solid #F0EDE8; margin-bottom:8px; }
-  .scen-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px 4px 7px; border-radius:20px; border:1px solid #D8D4CC; background:white; cursor:pointer; font-size:12px; font-weight:500; color:#3C3A36; white-space:nowrap; transition:all .15s; }
-  .scen-chip:hover { background:#F5F2EE; }
+  .scen-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px 4px 7px; border-radius:20px; border:1px solid #D6D9DD; background:white; cursor:pointer; font-size:12px; font-weight:500; color:#3C3A36; white-space:nowrap; transition:all .15s; }
+  .scen-chip:hover { background:#F3F4F2; }
   .scen-chip.pinned { border-color:var(--chip-color,#888); background:var(--chip-bg,#F0FDF4); }
   .scen-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .scen-chip-meta { color:#8A8582; font-size:11px; font-weight:400; }
+  .scen-chip-meta { color:#828A85; font-size:11px; font-weight:400; }
 
 	  /* ---- State selector ---- */
 	  .prop-state-row { display:flex; align-items:center; gap:8px; grid-column:1/-1; flex-wrap:wrap; margin-top:2px; }
-	  .prop-state-row > label { width:auto; margin-bottom:0; font-size:12px; color:#5C5955; white-space:nowrap; }
+	  .prop-state-row > label { width:auto; margin-bottom:0; font-size:12px; color:#5A625D; white-space:nowrap; }
 	  .prop-state-select {
 		width:auto !important; flex:0 0 84px;
-		font-size:12.5px !important; padding:6px 8px !important; border:1px solid #D8D4CC; border-radius:7px;
-		background:white; color:#1C1C1A; cursor:pointer;
+		font-size:12.5px !important; padding:6px 8px !important; border:1px solid #D6D9DD; border-radius:7px;
+		background:white; color:#151816; cursor:pointer;
 	  }
 	  .btn-estimate {
-		font-size:12px; padding:5px 10px; border:1px solid #D8D4CC; border-radius:7px;
-		background:white; color:#5C5955; cursor:pointer; white-space:nowrap;
+		font-size:12px; padding:5px 10px; border:1px solid #D6D9DD; border-radius:7px;
+		background:white; color:#5A625D; cursor:pointer; white-space:nowrap;
 	  }
-	  .btn-estimate:hover { background:#F5F2EE; }
+	  .btn-estimate:hover { background:#F3F4F2; }
 
 	  /* ---- Info tooltips ---- */
 	  .info-tip {
@@ -1340,7 +1385,7 @@ th{
 	     text into an unreadable 14px dot, so this resets the sizing. */
 	  .info-tip.info-tip-link {
 		display: inline; width: auto; height: auto; border-radius: 0;
-		background: none; color: #5C5955; font-size: inherit; font-weight: 600;
+		background: none; color: #5A625D; font-size: inherit; font-weight: 600;
 		text-decoration: underline; text-transform: none; letter-spacing: normal;
 		top: 0; padding: 0;
 	  }
@@ -1350,8 +1395,8 @@ th{
 	  #infoTooltip {
 		position: absolute;
 		z-index: 9999;
-		background: #1C1C1A;
-		color: #F8F7F4;
+		background: #151816;
+		color: #F9FAF9;
 		border-radius: 10px;
 		padding: 12px 14px;
 		width: 280px;
@@ -1388,9 +1433,9 @@ th{
 		width: 28px !important;
 		height: 28px !important;
 		background: #F7F5F0 !important;
-		border: 1px solid #D8D4CC !important;
+		border: 1px solid #D6D9DD !important;
 		border-radius: 6px !important;
-		color: #5C5955 !important;
+		color: #5A625D !important;
 		font-size: 11px !important;
 	  }
 
@@ -1495,7 +1540,7 @@ th{
   display: inline-flex; align-items: center; gap: 8px;
   background: #F0FDF4; border: 1px solid #A7DFD0; border-radius: 20px;
   padding: 6px 16px 6px 12px; margin-bottom: 18px;
-  font-size: 13.5px; font-weight: 700; color: #1C1C1A; letter-spacing: -.01em;
+  font-size: 13.5px; font-weight: 700; color: #151816; letter-spacing: -.01em;
 }
 .hero-brand-dot{
   width: 9px; height: 9px; border-radius: 50%;
@@ -1522,10 +1567,10 @@ th{
 }
 .hero-logo-text{ display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
 .hero-logo-word{ font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
-.hero-logo-word-a{ color: #1C1C1A; }
+.hero-logo-word-a{ color: #151816; }
 .hero-logo-word-b{ color: #059669; }
 .hero-logo-tagline{
-  font-size: 12.5px; font-weight: 600; color: #8A8582;
+  font-size: 12.5px; font-weight: 600; color: #828A85;
   letter-spacing: .03em; margin-top: 2px;
 }
 @keyframes heroLogoIn{
@@ -1551,7 +1596,7 @@ th{
 .hero-pills{ display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
 .hero-pill{
   font-size: 11.5px; font-weight: 600; color: #059669;
-  background: #fff; border: 1px solid #D8D4CC; border-radius: 14px; padding: 5px 12px;
+  background: #fff; border: 1px solid #D6D9DD; border-radius: 14px; padding: 5px 12px;
 }
 
 .hero-grid{
@@ -1564,14 +1609,14 @@ th{
 
 /* ── Animated hero chart ── */
 .hero-chart-card {
-  background: #fff; border: 1px solid #D8D4CC; border-radius: 16px;
+  background: #fff; border: 1px solid #D6D9DD; border-radius: 16px;
   padding: 22px 22px 18px; box-shadow: 0 8px 28px rgba(0,0,0,.06);
   position: relative; overflow: hidden;
 }
 @media (max-width: 980px){ .hero-chart-card{ margin-top: 8px; } }
-.hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #8A8582; }
-.hero-chart-caption { font-size: 11.5px; color: #8A8582; margin-top: 2px; line-height: 1.4; max-width: 300px; }
-.hero-chart-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 10.5px; color: #5C5955; }
+.hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #828A85; }
+.hero-chart-caption { font-size: 11.5px; color: #828A85; margin-top: 2px; line-height: 1.4; max-width: 300px; }
+.hero-chart-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 10.5px; color: #5A625D; }
 .hero-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .hcl-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 .hero-chart-svg { width: 100%; height: auto; display: block; margin-top: 10px; position: relative; z-index: 1; }
@@ -1622,7 +1667,7 @@ th{
   padding: 6px 12px; text-align: right;
 }
 .hero-stat-chip .hsc-label { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; color: #059669; text-transform: uppercase; }
-.hero-stat-chip .hsc-val { font-size: 16px; font-weight: 800; color: #1C1C1A; font-variant-numeric: tabular-nums; }
+.hero-stat-chip .hsc-val { font-size: 16px; font-weight: 800; color: #151816; font-variant-numeric: tabular-nums; }
 
 .hero-particle {
   position: absolute; font-size: 6px; color: #059669; opacity: .3; z-index: 0;
@@ -1744,12 +1789,12 @@ th{
 
 /* ── Feature showcase (auto-rotating, replaces the old 3-card grid) ── */
 .feat-showcase {
-  background: #fff; border: 1px solid #D8D4CC; border-radius: 16px;
+  background: #fff; border: 1px solid #D6D9DD; border-radius: 16px;
   padding: 20px 22px 16px; box-shadow: 0 8px 28px rgba(0,0,0,.06);
   display: flex; flex-direction: column; height: 100%;
 }
-.feat-showcase-title { font-size: 15px; font-weight: 800; color: #1C1C1A; letter-spacing: -.01em; }
-.feat-showcase-sub { font-size: 12px; color: #8A8582; margin-top: 2px; }
+.feat-showcase-title { font-size: 15px; font-weight: 800; color: #151816; letter-spacing: -.01em; }
+.feat-showcase-sub { font-size: 12px; color: #828A85; margin-top: 2px; }
 .feat-showcase-stage { position: relative; min-height: 152px; margin-top: 14px; flex: 1; display: flex; align-items: center; }
 .feat-showcase-stage .feat-scene { display: flex; flex-direction: column; justify-content: flex-start; }
 .feat-scene {
@@ -1760,7 +1805,7 @@ th{
 .feat-scene.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .feat-showcase-dots { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
 .feat-dot {
-  width: 7px; height: 7px; border-radius: 50%; border: none; background: #E8E4DE;
+  width: 7px; height: 7px; border-radius: 50%; border: none; background: #E5E7EB;
   cursor: pointer; padding: 0; transition: background .2s ease, transform .2s ease;
 }
 .feat-dot.active { background: #059669; transform: scale(1.3); }
@@ -1768,14 +1813,14 @@ th{
 /* Budget scene */
 .fs-budget { font-size: 12.5px; }
 .fs-budget-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 6px; padding: 6px 0; border-bottom: 1px solid #F0EDE8; }
-.fs-budget-row.fs-head { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #B0ABA6; border-bottom: 1px solid #E8E4DE; }
-.fs-budget-row.fs-total { border-bottom: none; font-weight: 700; color: #1C1C1A; padding-top: 8px; }
+.fs-budget-row.fs-head { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #B0ABA6; border-bottom: 1px solid #E5E7EB; }
+.fs-budget-row.fs-total { border-bottom: none; font-weight: 700; color: #151816; padding-top: 8px; }
 .fs-budget-row span:nth-child(2), .fs-budget-row span:nth-child(3) { text-align: right; }
 .fs-pos { color: #059669; font-weight: 700; }
 .fs-warn { color: #D97706; font-weight: 700; }
 
 /* Property scene */
-.fs-property-card { border: 1px solid #E8E4DE; border-left: 3px solid #D8D4CC; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #FAFAF8; }
+.fs-property-card { border: 1px solid #E5E7EB; border-left: 3px solid #D6D9DD; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #FAFAF8; }
 .fs-prop-investment { border-left-color: #059669; }
 .fs-prop-home { border-left-color: #0891B2; }
 .fs-prop-icon { font-size: 13px; }
@@ -1788,7 +1833,7 @@ th{
 .fs-prop-total {
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 4px; padding: 9px 12px; border-radius: 10px;
-  background: #F0FDF4; font-size: 11.5px; color: #5C5955;
+  background: #F0FDF4; font-size: 11.5px; color: #5A625D;
 }
 .fs-prop-total strong { font-size: 14px; color: #059669; }
 
@@ -1796,21 +1841,21 @@ th{
 .fs-holdings { font-size: 12.5px; }
 .fs-hold-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #F0EDE8; }
 .fs-hold-row span:nth-child(2) { flex: 1; }
-.fs-hold-row.fs-total { font-weight: 700; color: #1C1C1A; border-bottom: none; }
+.fs-hold-row.fs-total { font-weight: 700; color: #151816; border-bottom: none; }
 .fs-hold-row.fs-total span:first-child { flex: 1; }
 .fs-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .fs-hold-spark-row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
 .fs-mini-chart-wrap { flex: 1; }
-.fs-mini-chart { display: flex; align-items: flex-end; gap: 5px; height: 56px; border-bottom: 1.5px solid #E8E4DE; padding-bottom: 1px; }
+.fs-mini-chart { display: flex; align-items: flex-end; gap: 5px; height: 56px; border-bottom: 1.5px solid #E5E7EB; padding-bottom: 1px; }
 .fs-bar { flex: 1; min-height: 4px; background: linear-gradient(180deg, #6EE7B7, #059669); border-radius: 3px 3px 0 0; }
 .fs-bar:last-child { background: linear-gradient(180deg, #34D399, #047857); box-shadow: 0 2px 8px rgba(5,150,105,.35); }
 .fs-mini-chart-labels { display: flex; gap: 5px; margin-top: 4px; }
 .fs-mini-chart-labels span { flex: 1; text-align: center; font-size: 9px; color: #B0ABA6; }
 .fs-hold-spark { font-size: 12px; font-weight: 700; color: #059669; line-height: 1.3; white-space: nowrap; }
-.fs-hold-spark span { font-size: 10px; font-weight: 600; color: #8A8582; }
+.fs-hold-spark span { font-size: 10px; font-weight: 600; color: #828A85; }
 
 /* Scenario scene */
-.fs-scen-caption { font-size: 11px; color: #8A8582; margin-bottom: 6px; }
+.fs-scen-caption { font-size: 11px; color: #828A85; margin-bottom: 6px; }
 .fs-scen-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F0EDE8; font-size: 12.5px; }
 .fs-scen-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px; border: 1.5px solid; background: #fff; }
 
@@ -1925,7 +1970,7 @@ th{
 
 	  /* === PAGE BACKGROUND === */
 html, body {
-  background: #F2F0EA !important;
+  background: #F7F7F5 !important;
   min-height: 100vh;
   color: var(--txt);
 }
@@ -1955,7 +2000,7 @@ body.landing .landing-hero { border-radius: 0 !important; }
 .topbar {
   background: #FFFFFF !important;
   border: none !important;
-  border-bottom: 1px solid #D8D4CC !important;
+  border-bottom: 1px solid #D6D9DD !important;
   border-radius: 0 !important;
   position: static !important;
   box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
@@ -1993,22 +2038,22 @@ body.landing .topbar { display: none; }
 /* ── Nav tabs ── */
 .nav {
   background: #F0EDE8 !important;
-  border: 1px solid #D8D4CC !important;
+  border: 1px solid #D6D9DD !important;
   gap: 4px !important;
 }
-.nav button { color: #5C5955 !important; font-size: 13px !important; }
+.nav button { color: #5A625D !important; font-size: 13px !important; }
 .nav button.active {
-  background: #1C1C1A !important;
+  background: #151816 !important;
   border-color: transparent !important;
   color: #FFFFFF !important;
 }
 .subnav {
   background: #F0EDE8 !important;
-  border: 1px solid #D8D4CC !important;
+  border: 1px solid #D6D9DD !important;
 }
-.subnav button { color: #5C5955 !important; font-size: 13px !important; }
+.subnav button { color: #5A625D !important; font-size: 13px !important; }
 .subnav button.active {
-  background: #1C1C1A !important;
+  background: #151816 !important;
   border-color: transparent !important;
   color: #FFFFFF !important;
 }
@@ -2020,26 +2065,26 @@ body.landing .topbar { display: none; }
   font-weight: 500 !important;
 }
 .btn.primary {
-  background: #1C1C1A !important;
-  border-color: #1C1C1A !important;
+  background: #151816 !important;
+  border-color: #151816 !important;
   color: #FFFFFF !important;
   box-shadow: none !important;
 }
 .btn.primary:hover { background: #333330 !important; filter: none !important; }
-.btn.ghost { background: transparent !important; border-color: #D8D4CC !important; color: #5C5955 !important; }
+.btn.ghost { background: transparent !important; border-color: #D6D9DD !important; color: #5A625D !important; }
 .btn.danger { border-color: rgba(220,60,60,.3) !important; background: rgba(220,60,60,.06) !important; }
 
 /* ── Cards / sections ── */
 .card, .section {
   border-radius: 10px !important;
-  border: 1px solid #D8D4CC !important;
+  border: 1px solid #D6D9DD !important;
   box-shadow: none !important;
 }
 .card { padding: 20px 24px !important; }
 .sectionHeader { padding: 16px 20px !important; }
-.sectionBody { padding: 4px 20px 20px !important; border-top: 1px solid #D8D4CC !important; }
-.sectionHeader h2 { font-size: 14px !important; font-weight: 600 !important; color: #1C1C1A !important; }
-.results-section-header .title { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .07em !important; text-transform: uppercase !important; color: #5C5955 !important; }
+.sectionBody { padding: 4px 20px 20px !important; border-top: 1px solid #D6D9DD !important; }
+.sectionHeader h2 { font-size: 14px !important; font-weight: 600 !important; color: #151816 !important; }
+.results-section-header .title { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .07em !important; text-transform: uppercase !important; color: #5A625D !important; }
 
 /* ── FIRE banner ── */
 .fire-banner {
@@ -2057,10 +2102,10 @@ body.landing .topbar { display: none; }
   background: none !important;
   -webkit-background-clip: unset !important;
   background-clip: unset !important;
-  color: #1C1C1A !important;
+  color: #151816 !important;
 }
-.fire-banner.not-achieved { background: #FFFFFF !important; border-color: #D8D4CC !important; }
-.fire-banner.not-achieved .fire-banner-age { color: #5C5955 !important; font-size: 18px !important; }
+.fire-banner.not-achieved { background: #FFFFFF !important; border-color: #D6D9DD !important; }
+.fire-banner.not-achieved .fire-banner-age { color: #5A625D !important; font-size: 18px !important; }
 
 /* ── Milestones ── */
 .ms-grid {
@@ -2073,24 +2118,24 @@ body.landing .topbar { display: none; }
 }
 .ms-col {
   background: #FFFFFF !important;
-  border: 1px solid #D8D4CC !important;
+  border: 1px solid #D6D9DD !important;
   border-radius: 10px !important;
   padding: 18px 20px !important;
   gap: 6px !important;
 }
-.ms-col + .ms-col { border-left: 1px solid #D8D4CC !important; }
+.ms-col + .ms-col { border-left: 1px solid #D6D9DD !important; }
 .ms-col.fire { border-left: 3px solid #059669 !important; background: #F5FBF9 !important; }
 .ms-col-label {
   font-size: 10px !important;
   letter-spacing: .1em !important;
-  color: #5C5955 !important;
+  color: #5A625D !important;
   border-bottom: 1px solid #F0EDE8 !important;
   padding-bottom: 10px !important;
   margin-bottom: 4px !important;
 }
 .ms-col.fire .ms-col-label { color: #059669 !important; }
-.ms-label { font-size: 12px !important; color: #5C5955 !important; }
-.ms-value { font-size: 13px !important; font-weight: 500 !important; color: #1C1C1A !important; }
+.ms-label { font-size: 12px !important; color: #5A625D !important; }
+.ms-value { font-size: 13px !important; font-weight: 500 !important; color: #151816 !important; }
 .ms-col .ms-row:last-child {
   border-top: 1px solid #F0EDE8 !important;
   padding-top: 8px !important;
@@ -2105,7 +2150,7 @@ body.landing .topbar { display: none; }
 /* ── Chart area ── */
 #chartSection {
   background: #FFFFFF !important;
-  border: 1px solid #D8D4CC !important;
+  border: 1px solid #D6D9DD !important;
   border-radius: 10px !important;
   padding: 20px !important;
 }
@@ -2113,14 +2158,18 @@ body.landing .topbar { display: none; }
 /* ── Chart filter chips ── */
 .chips-bar { margin-bottom: 0 !important; gap: 16px !important; }
 .chips-group { gap: 8px !important; }
-.chips-label { font-size: 10px !important; letter-spacing: .1em !important; color: #5C5955 !important; }
-.chips-label--sub { font-size: 9px !important; color: #8A8582 !important; font-weight: 500 !important; letter-spacing: .05em !important; text-transform: none !important; }
-.chips-group--indent { margin-left: 10px; padding-left: 10px; border-left: 2px solid #E8E4DE; }
+.chips-label { font-size: 10px !important; letter-spacing: .1em !important; color: #5A625D !important; }
+.chips-label--sub { font-size: 9px !important; color: #828A85 !important; font-weight: 500 !important; letter-spacing: .05em !important; text-transform: none !important; }
+.chips-group--indent { margin-left: 10px; padding-left: 10px; border-left: 2px solid #E5E7EB; }
+
+/* Range-guide hints under assumption inputs */
+.input-hint { font-size: 10.5px; color: #828A85; margin-top: 3px; line-height: 1.35; }
+input.input-warn { border-color: #F59E0B !important; background: #FFFBEB !important; }
 .chips { gap: 6px !important; }
 .chip {
   background: #F0EDE8 !important;
   border: none !important;
-  color: #5C5955 !important;
+  color: #5A625D !important;
   border-radius: 20px !important;
   padding: 4px 12px !important;
   font-size: 12px !important;
@@ -2135,44 +2184,44 @@ body.landing .topbar { display: none; }
 .chip.active .chip-dot { box-shadow: 0 0 0 1.5px rgba(255,255,255,.5) !important; }
 
 /* ── Tables ── */
-.tablewrap, .data-table-wrap { background: #FFFFFF !important; border-color: #D8D4CC !important; border-radius: 10px !important; }
-th { background: #F2F0EA !important; color: #5C5955 !important; font-size: 11px !important; border-bottom: 1px solid #D8D4CC !important; }
-td { border-bottom: 1px solid #F0EDE8 !important; color: #1C1C1A !important; font-size: 13px !important; }
-tbody tr:nth-child(even) td { background: #F8F7F4 !important; }
+.tablewrap, .data-table-wrap { background: #FFFFFF !important; border-color: #D6D9DD !important; border-radius: 10px !important; }
+th { background: #F7F7F5 !important; color: #5A625D !important; font-size: 11px !important; border-bottom: 1px solid #D6D9DD !important; }
+td { border-bottom: 1px solid #F0EDE8 !important; color: #151816 !important; font-size: 13px !important; }
+tbody tr:nth-child(even) td { background: #F9FAF9 !important; }
 tbody tr:nth-child(odd) td { background: #FFFFFF !important; }
 
 /* ── Inputs ── */
 input, select, textarea {
-  border-color: #D8D4CC !important;
+  border-color: #D6D9DD !important;
   background: #FFFFFF !important;
-  color: #1C1C1A !important;
+  color: #151816 !important;
   border-radius: 8px !important;
 }
 input:focus, select:focus, textarea:focus {
   border-color: #059669 !important;
   box-shadow: 0 0 0 3px rgba(5,150,105,.12) !important;
 }
-label { color: #5C5955 !important; }
+label { color: #5A625D !important; }
 
 /* ── Badges ── */
-.badge { background: #FFFFFF !important; border-color: #D8D4CC !important; border-radius: 6px !important; color: #5C5955 !important; }
+.badge { background: #FFFFFF !important; border-color: #D6D9DD !important; border-radius: 6px !important; color: #5A625D !important; }
 .badge .ok { background: #059669 !important; }
 .badge .no { background: var(--bad) !important; }
 
 /* ── Property components ── */
 .chev {
   background: #F0EDE8 !important;
-  border-color: #D8D4CC !important;
-  color: #5C5955 !important;
+  border-color: #D6D9DD !important;
+  color: #5A625D !important;
 }
 
 /* ── Drawer ── */
-.drawer { background: #FFFFFF !important; border-color: #D8D4CC !important; }
-.drawer-head { background: #F8F7F4 !important; border-color: #D8D4CC !important; }
+.drawer { background: #FFFFFF !important; border-color: #D6D9DD !important; }
+.drawer-head { background: #F9FAF9 !important; border-color: #D6D9DD !important; }
 
 /* ── Toast ── */
-.toast { background: #FFFFFF !important; border-color: #D8D4CC !important; box-shadow: 0 4px 16px rgba(0,0,0,.1) !important; }
-.toast .x { background: #F0EDE8 !important; border-color: #D8D4CC !important; color: #5C5955 !important; }
+.toast { background: #FFFFFF !important; border-color: #D6D9DD !important; box-shadow: 0 4px 16px rgba(0,0,0,.1) !important; }
+.toast .x { background: #F0EDE8 !important; border-color: #D6D9DD !important; color: #5A625D !important; }
 
 /* ── Remove remaining purple from inline styles ── */
 .hero-title span[style] {
@@ -2182,20 +2231,20 @@ label { color: #5C5955 !important; }
 }
 
 /* ── Landing page ── */
-.feature-card { background: #FFFFFF !important; border-color: #D8D4CC !important; }
+.feature-card { background: #FFFFFF !important; border-color: #D6D9DD !important; }
 .feature-card:hover { border-color: #059669 !important; box-shadow: 0 4px 16px rgba(5,150,105,.1) !important; }
-.kicker { background: #FFFFFF !important; border-color: #D8D4CC !important; color: #5C5955 !important; }
-.hero-lede { color: #5C5955 !important; }
-.step { background: #FFFFFF !important; border-color: #D8D4CC !important; }
-.step .n { color: #5C5955 !important; }
-.step .d { color: #5C5955 !important; }
-.preview { background: #FFFFFF !important; border-color: #D8D4CC !important; }
-.miniTag { background: #F0EDE8 !important; border-color: #D8D4CC !important; color: #5C5955 !important; }
-.sparkline { background: #F2F0EA !important; border-color: #D8D4CC !important; }
-.kpi { background: #FFFFFF !important; border-color: #D8D4CC !important; }
+.kicker { background: #FFFFFF !important; border-color: #D6D9DD !important; color: #5A625D !important; }
+.hero-lede { color: #5A625D !important; }
+.step { background: #FFFFFF !important; border-color: #D6D9DD !important; }
+.step .n { color: #5A625D !important; }
+.step .d { color: #5A625D !important; }
+.preview { background: #FFFFFF !important; border-color: #D6D9DD !important; }
+.miniTag { background: #F0EDE8 !important; border-color: #D6D9DD !important; color: #5A625D !important; }
+.sparkline { background: #F7F7F5 !important; border-color: #D6D9DD !important; }
+.kpi { background: #FFFFFF !important; border-color: #D6D9DD !important; }
 
 /* ── HR / dividers ── */
-.hr { background: #D8D4CC !important; }
+.hr { background: #D6D9DD !important; }
 
 /* ══════════════════════════════════════
    BUDGET TAB
@@ -2211,21 +2260,21 @@ label { color: #5C5955 !important; }
    ══════════════════════════════════════ */
 .port-summary-strip {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
-  background: #F8F7F4; border: 1px solid #E8E4DE; border-radius: 8px;
+  background: #F9FAF9; border: 1px solid #E5E7EB; border-radius: 8px;
   padding: 12px 16px;
 }
 .port-summary-item { flex: 1; min-width: 80px; text-align: center; }
 .port-summary-total { min-width: 110px; }
-.port-summary-sep { width: 1px; background: #E8E4DE; flex-shrink: 0; margin: 0 4px; align-self: stretch; min-height: 36px; }
-.psi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #8A8582; }
-.psi-val   { font-size: 18px; font-weight: 700; color: #1C1C1A; margin-top: 3px; }
+.port-summary-sep { width: 1px; background: #E5E7EB; flex-shrink: 0; margin: 0 4px; align-self: stretch; min-height: 36px; }
+.psi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #828A85; }
+.psi-val   { font-size: 18px; font-weight: 700; color: #151816; margin-top: 3px; }
 .psi-secondary { font-size: 14px; color: #3C3C3A; }
 
 /* Holdings year picker — a quiet, low-emphasis control (year switching is
    rare) rather than the heavier pill-button stepper used for Budget months. */
 .port-year-picker {
   display: flex; align-items: center; gap: 4px;
-  font-size: 13px; font-weight: 600; color: #5C5955;
+  font-size: 13px; font-weight: 600; color: #5A625D;
   margin-top: 2px; flex-shrink: 0;
 }
 .port-year-step {
@@ -2235,7 +2284,7 @@ label { color: #5C5955 !important; }
 }
 .port-year-step:hover { color: #059669; background: #F0F7F3; }
 .port-year-step:active { transform: scale(.9); }
-#portYearLabel { min-width: 34px; text-align: center; color: #1C1C1A; }
+#portYearLabel { min-width: 34px; text-align: center; color: #151816; }
 
 /* Portfolio year table */
 .port-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -2251,14 +2300,14 @@ label { color: #5C5955 !important; }
 .port-th-future  { color:#C8C4BC !important; }
 .port-cell-future { background:#FAFAF7; }
 .port-cell-locked .port-cell-input,
-.port-cell-input.port-cell-locked { background:#F2F0EA !important; color:#9A9692 !important; cursor:pointer; }
+.port-cell-input.port-cell-locked { background:#F7F7F5 !important; color:#9A9692 !important; cursor:pointer; }
 .port-lock-icon { font-size:10px; cursor:pointer; opacity:.5; margin-left:3px; vertical-align:middle; }
 .port-lock-icon:hover { opacity:1; }
 .port-lock-open { opacity:.75; color:#059669; }
-.port-totals-row td { background:#F8F7F4 !important; border-top:2px solid #E8E4DE; padding:5px 5px; font-size:11px; font-weight:600; }
+.port-totals-row td { background:#F9FAF9 !important; border-top:2px solid #E5E7EB; padding:5px 5px; font-size:11px; font-weight:600; }
 .port-cell-input { width:100%; border:none !important; background:transparent !important; text-align:right; font-size:12px; padding:3px 2px; box-sizing:border-box; }
-.port-cell-input:focus { background:#fff !important; border:1px solid #1D9E75 !important; border-radius:3px; outline:none; box-shadow:0 0 0 2px rgba(29,158,117,.15); }
-.port-cell-hint { font-size:9.5px; color:#8A8582; text-align:right; line-height:1.2; padding:0 2px; white-space:nowrap; }
+.port-cell-input:focus { background:#fff !important; border:1px solid #059669 !important; border-radius:3px; outline:none; box-shadow:0 0 0 2px rgba(29,158,117,.15); }
+.port-cell-hint { font-size:9.5px; color:#828A85; text-align:right; line-height:1.2; padding:0 2px; white-space:nowrap; }
 /* Name/type inputs inside fixed-width cells */
 .port-year-table td:first-child .exp-input,
 .port-year-table td:nth-child(2) .exp-input { width:100%; box-sizing:border-box; }
@@ -2270,24 +2319,24 @@ label { color: #5C5955 !important; }
 .sync-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid #F0EDE8; }
 .sync-row:last-child { border-bottom:none; }
 .sync-field-lbl { font-size:12px; color:#3C3C3A; font-weight:500; }
-.sync-field-val { font-size:11px; color:#8A8582; text-align:right; white-space:nowrap; min-width:80px; }
+.sync-field-val { font-size:11px; color:#828A85; text-align:right; white-space:nowrap; min-width:80px; }
 .sync-pills { display:flex; gap:3px; }
-.sync-pill { font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid #D8D4CC; background:#fff; color:#5C5955; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.sync-pill:hover { border-color:#8A8582; }
-.sync-pill.active { background:#1C1C1A; color:#fff; border-color:#1C1C1A; }
+.sync-pill { font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid #D6D9DD; background:#fff; color:#5A625D; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.sync-pill:hover { border-color:#828A85; }
+.sync-pill.active { background:#151816; color:#fff; border-color:#151816; }
 .sync-pill:disabled { opacity:.4; cursor:default; }
 
 /* Portfolio sub-tab pills */
 .port-sub-pills { display:flex; gap:8px; margin-bottom:4px; }
-.port-sub-pill { font-size:14px; font-weight:600; padding:9px 22px; border-radius:22px; border:1px solid #D8D4CC; background:#fff; color:#5C5955; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.port-sub-pill:hover { border-color:#8A8582; background:#F5F2EE; color:#1C1C1A; }
-.port-sub-pill.active { background:#1C1C1A; color:#fff; border-color:#1C1C1A; }
+.port-sub-pill { font-size:14px; font-weight:600; padding:9px 22px; border-radius:22px; border:1px solid #D6D9DD; background:#fff; color:#5A625D; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.port-sub-pill:hover { border-color:#828A85; background:#F3F4F2; color:#151816; }
+.port-sub-pill.active { background:#151816; color:#fff; border-color:#151816; }
 
 /* Portfolio nav dropdown */
 .nav-port-wrap { position:relative; }
 .nav-port-dropdown {
   display:none; position:absolute; top:calc(100% + 6px); left:50%;
-  transform:translateX(-50%); background:#fff; border:1px solid #D8D4CC;
+  transform:translateX(-50%); background:#fff; border:1px solid #D6D9DD;
   border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:130px;
   padding:4px 0; z-index:300;
 }
@@ -2298,15 +2347,15 @@ label { color: #5C5955 !important; }
   background:none !important; border:none !important; cursor:pointer !important;
   border-radius:0 !important; font-weight:500 !important;
 }
-.nav-drop-item:hover { background:#F5F2EE !important; color:#1C1C1A !important; }
+.nav-drop-item:hover { background:#F3F4F2 !important; color:#151816 !important; }
 
 /* Input locked by sync */
-.input-synced { background:#F2F0EA !important; color:#5C5955 !important; pointer-events:none; }
+.input-synced { background:#F7F7F5 !important; color:#5A625D !important; pointer-events:none; }
 
 /* Model actions sub-bar */
 #modelActionsBar {
   background: #FFFFFF;
-  border-bottom: 1px solid #D8D4CC;
+  border-bottom: 1px solid #D6D9DD;
   padding: 8px 20px;
   display: flex;
   align-items: center;
@@ -2328,11 +2377,11 @@ body.landing #modelActionsBar { display: none !important; }
   margin-left: auto;
 }
 #modelActionsBar .bar-divider {
-  width: 1px; height: 22px; background: #D8D4CC; margin: 0 4px;
+  width: 1px; height: 22px; background: #D6D9DD; margin: 0 4px;
 }
 .btn.bar-primary {
-  background: #1C1C1A !important;
-  border-color: #1C1C1A !important;
+  background: #151816 !important;
+  border-color: #151816 !important;
   color: #fff !important;
   font-size: 13px !important;
   font-weight: 600 !important;
@@ -2349,15 +2398,15 @@ body.landing #modelActionsBar { display: none !important; }
 .btn.bar-primary.run-btn:disabled { background: #6B7280 !important; border-color: #6B7280 !important; opacity: .8; }
 .btn.bar-secondary {
   background: transparent !important;
-  border: 1px solid #D8D4CC !important;
-  color: #5C5955 !important;
+  border: 1px solid #D6D9DD !important;
+  color: #5A625D !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   padding: 6px 11px !important;
   border-radius: 7px !important;
   display: flex; align-items: center; gap: 4px;
 }
-.btn.bar-secondary:hover { background: #F5F2EE !important; color: #1C1C1A !important; border-color: #B8B4AC !important; }
+.btn.bar-secondary:hover { background: #F3F4F2 !important; color: #151816 !important; border-color: #B8B4AC !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Budget section labels & summary strip — same green-accent-bar treatment
@@ -2374,13 +2423,13 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .budget-summary-strip {
   display:flex; align-items:center; gap:0; margin:14px 0;
-  padding:12px 16px; background:#F8F7F4; border-radius:8px; border:1px solid #E8E4DE;
+  padding:12px 16px; background:#F9FAF9; border-radius:8px; border:1px solid #E5E7EB;
   flex-wrap:wrap;
 }
 .budget-summary-item { flex:1; text-align:center; min-width:70px; }
 .budget-summary-sep  { font-size:16px; color:#C8C4BC; padding:0 6px; flex-shrink:0; font-weight:300; }
-.bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#8A8582; }
-.bsi-val   { font-size:16px; font-weight:700; color:#1C1C1A; margin-top:3px; }
+.bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#828A85; }
+.bsi-val   { font-size:16px; font-weight:700; color:#151816; margin-top:3px; }
 .bsi-sub   { font-size:14px; font-weight:600; color:#2563EB; margin-top:3px; min-height:17px; }
 .bsi-pos   { color:#059669 !important; }
 .bsi-neg   { color:#E11D48 !important; }
@@ -2388,29 +2437,29 @@ body.landing #modelActionsBar { display: none !important; }
 /* Budget month editor — card head */
 .budget-card-head {
   display:flex; align-items:center; gap:16px; flex-wrap:wrap;
-  margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #E8E4DE;
+  margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #E5E7EB;
 }
 .budget-month-nav {
   display:flex; align-items:center; gap:2px; font-size:14px; font-weight:700;
-  background:#F8F7F4; border:1px solid #E8E4DE; border-radius:999px; padding:4px 6px;
+  background:#F9FAF9; border:1px solid #E5E7EB; border-radius:999px; padding:4px 6px;
   position:relative; /* anchors the month-picker-pop for the clickable label below */
 }
 .budget-month-nav .btn {
   width:28px; height:28px; padding:0 !important;
   border-radius:50% !important; display:inline-flex; align-items:center; justify-content:center;
   font-size:17px !important; font-weight:700 !important; line-height:1; flex-shrink:0;
-  border:none !important; background:transparent !important; color:#5C5955 !important;
+  border:none !important; background:transparent !important; color:#5A625D !important;
   transition: background .15s, color .15s, transform .1s, box-shadow .15s;
 }
 .budget-month-nav .btn.ghost:hover { background:#fff !important; color:#059669 !important; box-shadow:0 1px 3px rgba(0,0,0,.10); }
 .budget-month-nav .btn.ghost:active { transform:scale(.92); }
 #budgetMonthLabel {
-  min-width:108px; text-align:center; color:#1C1C1A; letter-spacing:-.01em; padding:2px 6px;
+  min-width:108px; text-align:center; color:#151816; letter-spacing:-.01em; padding:2px 6px;
   border-radius:999px; cursor:pointer; transition: background .15s, color .15s;
 }
 #budgetMonthLabel:hover { background:#fff; color:#059669; box-shadow:0 1px 3px rgba(0,0,0,.10); }
 
-.budget-save-status { font-size:11px; color:#8A8582; transition:color .3s; }
+.budget-save-status { font-size:11px; color:#828A85; transition:color .3s; }
 .budget-save-status.saved { color:#059669; }
 .budget-save-status.error { color:#dc2626; }
 
@@ -2429,31 +2478,31 @@ body.landing #modelActionsBar { display: none !important; }
 /* Budget year nav arrows */
 .budget-yr-nav { display:flex; align-items:center; gap:6px; }
 .budget-yr-nav .btn { padding:5px 10px !important; font-size:12px !important; }
-#budgetYearLabel { font-size:15px; font-weight:700; min-width:44px; text-align:center; color:#1C1C1A; }
+#budgetYearLabel { font-size:15px; font-weight:700; min-width:44px; text-align:center; color:#151816; }
 
 /* Year overview table */
 .budget-table { min-width:700px; border-collapse:collapse; }
 .budget-table thead tr th,
-.budget-table tbody tr td { border:1px solid #E8E4DE; }
+.budget-table tbody tr td { border:1px solid #E5E7EB; }
 .budget-month-th {
   cursor:pointer; text-align:center;
   font-size:11px !important; padding:8px 5px !important; min-width:54px;
-  transition:background .12s; background:#F8F7F4 !important;
+  transition:background .12s; background:#F9FAF9 !important;
 }
 .budget-month-th:hover { background:#F0EDE8 !important; }
 .budget-month-th.bm-logged { color:#059669 !important; }
 .budget-month-th.bm-future { color:#C8C4BC !important; }
-.budget-month-th.bm-past   { color:#5C5955 !important; }
+.budget-month-th.bm-past   { color:#5A625D !important; }
 .bm-dot { color:#059669; font-size:6px; vertical-align:3px; margin-left:2px; }
 .budget-row-th  { width:120px; min-width:120px; }
 .budget-row-lbl {
-  font-size:12px !important; color:#5C5955 !important; white-space:nowrap;
+  font-size:12px !important; color:#5A625D !important; white-space:nowrap;
   padding:8px 12px !important; background:#FAFAF8 !important;
 }
 .budget-sec-hdr {
   font-size:10px !important; font-weight:700 !important; letter-spacing:.08em !important;
-  text-transform:uppercase !important; color:#8A8582 !important;
-  background:#F2F0EA !important; padding:5px 12px !important;
+  text-transform:uppercase !important; color:#828A85 !important;
+  background:#F7F7F5 !important; padding:5px 12px !important;
 }
 .budget-cell {
   text-align:center !important; cursor:pointer;
@@ -2461,7 +2510,7 @@ body.landing #modelActionsBar { display: none !important; }
   transition:background .1s; min-width:54px; padding:7px 10px !important;
 }
 .budget-cell:hover { background:#F0EDE8 !important; }
-.budget-cell.bc-data  { color:#1C1C1A !important; }
+.budget-cell.bc-data  { color:#151816 !important; }
 .budget-cell.bc-empty { color:#C8C4BC !important; }
 .budget-cell.bc-pos   { color:#059669 !important; font-weight:600 !important; }
 .budget-cell.bc-neg   { color:#E11D48 !important; font-weight:600 !important; }
@@ -2495,15 +2544,15 @@ body.landing #modelActionsBar { display: none !important; }
 }
 @media(max-width:640px){ .fp-stat-grid { grid-template-columns:repeat(2,1fr); } }
 .fp-stat-box {
-  padding:10px 12px; background:#F8F7F4;
-  border:1px solid #E8E4DE; border-radius:8px;
+  padding:10px 12px; background:#F9FAF9;
+  border:1px solid #E5E7EB; border-radius:8px;
 }
 .fp-stat-label {
   font-size:9px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.07em; color:#8A8582; margin-bottom:4px;
+  letter-spacing:.07em; color:#828A85; margin-bottom:4px;
 }
 .fp-stat-val {
-  font-size:18px; font-weight:800; color:#1C1C1A; line-height:1.2;
+  font-size:18px; font-weight:800; color:#151816; line-height:1.2;
 }
 .fp-stat-sub { font-size:10px; color:#A8A4A0; margin-top:3px; }
 
@@ -2514,7 +2563,7 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .fp-chart-title {
   font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.07em; color:#8A8582;
+  letter-spacing:.07em; color:#828A85;
 }
 .fp-chart-wrap { height:230px; position:relative; }
 
@@ -2525,8 +2574,8 @@ body.landing #modelActionsBar { display: none !important; }
 .expense-table thead tr { background:#F5F3EF; }
 .expense-table th {
   font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  color:#8A8582; padding:5px 6px 6px; text-align:center;
-  border:1px solid #E8E4DE;
+  color:#828A85; padding:5px 6px 6px; text-align:center;
+  border:1px solid #E5E7EB;
 }
 .expense-table th:first-child { border-left:none; }
 .expense-table th:last-child  { border-right:none; }
@@ -2540,15 +2589,15 @@ body.landing #modelActionsBar { display: none !important; }
 .expense-table tbody tr:last-child td { border-bottom:none; }
 .expense-table tbody tr:hover td { background:#FAFAF7; }
 .exp-input {
-  width:100%; background:#FAFAF8; border:1px solid #E8E4DE; border-radius:5px;
-  padding:5px 7px; font-size:12px; color:#1C1C1A; font-family:inherit;
+  width:100%; background:#FAFAF8; border:1px solid #E5E7EB; border-radius:5px;
+  padding:5px 7px; font-size:12px; color:#151816; font-family:inherit;
   transition:background .15s, border-color .15s, box-shadow .15s;
   -webkit-appearance:auto; appearance:auto;
 }
 .exp-input:hover { border-color:#C8C4BC; }
 .exp-input:focus {
   background:#fff; outline:none;
-  border-color:#1D9E75; box-shadow:0 0 0 2px rgba(29,158,117,.18);
+  border-color:#059669; box-shadow:0 0 0 2px rgba(29,158,117,.18);
 }
 input.exp-input[type="number"] {
   text-align:center;
@@ -2561,14 +2610,14 @@ select.exp-input { cursor:pointer; }
 /* $ prefix wrapper for budget/actual cells */
 .dollar-wrap {
   display:flex; align-items:center;
-  background:#FAFAF8; border:1px solid #E8E4DE; border-radius:5px;
+  background:#FAFAF8; border:1px solid #E5E7EB; border-radius:5px;
   transition:border-color .15s, box-shadow .15s;
 }
 .dollar-wrap:hover { border-color:#C8C4BC; }
 .dollar-wrap:focus-within {
-  border-color:#1D9E75; box-shadow:0 0 0 2px rgba(29,158,117,.18);
+  border-color:#059669; box-shadow:0 0 0 2px rgba(29,158,117,.18);
 }
-.inp-dollar { font-size:11px; color:#8A8582; padding:0 1px 0 5px; flex-shrink:0; user-select:none; }
+.inp-dollar { font-size:11px; color:#828A85; padding:0 1px 0 5px; flex-shrink:0; user-select:none; }
 .dollar-wrap .exp-input {
   border:none !important; background:transparent !important;
   border-radius:0 !important; box-shadow:none !important;
@@ -2586,8 +2635,8 @@ select.exp-input { cursor:pointer; }
 .inc-mode-sel {
   font-size:11px; font-weight:600;
   padding:2px 2px 2px 4px;
-  border:1px solid #D8D4CC; border-radius:4px;
-  background:#FAFAF8; color:#5C5955;
+  border:1px solid #D6D9DD; border-radius:4px;
+  background:#FAFAF8; color:#5A625D;
   cursor:pointer; width:100%;
   appearance:auto;
 }
@@ -2597,7 +2646,7 @@ select.exp-input { cursor:pointer; }
   display:flex; align-items:center; justify-content:center;
   border-radius:4px; transition:all .18s; margin:0 auto;
 }
-.inc-expand-btn:hover { background:#F0EDE8; color:#5C5955; }
+.inc-expand-btn:hover { background:#F0EDE8; color:#5A625D; }
 .inc-expand-btn.open { transform:rotate(90deg); }
 
 /* Income breakdown sub-rows */
@@ -2606,11 +2655,11 @@ select.exp-input { cursor:pointer; }
   border-top:none !important; border-right:none !important; font-size:11px;
 }
 .inc-sub-lbl {
-  color:#8A8582 !important; padding-left:24px !important;
+  color:#828A85 !important; padding-left:24px !important;
   font-size:11px; white-space:nowrap;
 }
 .inc-sub-auto {
-  text-align:center; color:#5C5955; font-size:11px;
+  text-align:center; color:#5A625D; font-size:11px;
   font-variant-numeric:tabular-nums; padding:3px 4px;
 }
 .inc-sub-net {
@@ -2618,10 +2667,10 @@ select.exp-input { cursor:pointer; }
   font-size:12px; font-variant-numeric:tabular-nums; padding:3px 4px;
 }
 .inc-sub-empty { border:none !important; background:#FAFAF8 !important; }
-.income-sub-row:last-child > td { border-bottom:1px solid #E8E4DE !important; }
+.income-sub-row:last-child > td { border-bottom:1px solid #E5E7EB !important; }
 
 /* Summary strip gross note */
-.bsi-gross { font-size:11px; color:#8A8582; margin-top:1px; }
+.bsi-gross { font-size:11px; color:#828A85; margin-top:1px; }
 
 /* Budget past-month lock */
 .budget-lock-banner {
@@ -2637,7 +2686,7 @@ select.exp-input { cursor:pointer; }
 }
 .budget-lock-btn:hover { background:#FEFCE8; }
 .budget-editor-locked .exp-input {
-  background:#F2F0EA !important; color:#9A9692 !important;
+  background:#F7F7F5 !important; color:#9A9692 !important;
   pointer-events:none; cursor:default !important;
 }
 .budget-editor-locked .exp-del,
@@ -2645,7 +2694,7 @@ select.exp-input { cursor:pointer; }
 
 /* ── Tax & Super settings page ──────────────────────── */
 .ts-card {
-  background:#fff; border:1px solid #E8E4DE; border-radius:8px;
+  background:#fff; border:1px solid #E5E7EB; border-radius:8px;
   overflow:hidden; margin-bottom:8px;
 }
 .ts-field {
@@ -2653,36 +2702,36 @@ select.exp-input { cursor:pointer; }
   border-bottom:1px solid #F0EDE8; gap:10px;
 }
 .ts-field:last-child { border-bottom:none; }
-.ts-field label { flex:1; font-size:12px; font-weight:600; color:#1C1C1A; }
-.ts-field span  { font-size:11px; color:#8A8582; }
+.ts-field label { flex:1; font-size:12px; font-weight:600; color:#151816; }
+.ts-field span  { font-size:11px; color:#828A85; }
 .ts-select {
-  font-size:12px; border:1px solid #E8E4DE; border-radius:6px;
-  padding:4px 26px 4px 8px; background:#FAFAF8; color:#1C1C1A;
+  font-size:12px; border:1px solid #E5E7EB; border-radius:6px;
+  padding:4px 26px 4px 8px; background:#FAFAF8; color:#151816;
   cursor:pointer; outline:none; appearance:auto;
 }
-.ts-select:focus { border-color:#1D9E75; }
+.ts-select:focus { border-color:#059669; }
 .ts-num {
   width:58px; text-align:center; font-size:12px;
-  border:1px solid #E8E4DE; border-radius:6px;
-  padding:4px 6px; background:#FAFAF8; color:#1C1C1A; outline:none;
+  border:1px solid #E5E7EB; border-radius:6px;
+  padding:4px 6px; background:#FAFAF8; color:#151816; outline:none;
   -moz-appearance:textfield; appearance:textfield;
 }
-.ts-num:focus { border-color:#1D9E75; }
+.ts-num:focus { border-color:#059669; }
 .ts-num::-webkit-outer-spin-button,
 .ts-num::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-.ts-unit { font-size:12px; color:#8A8582; }
+.ts-unit { font-size:12px; color:#828A85; }
 .ts-row {
   display:flex; align-items:center; gap:12px;
   padding:11px 14px; border-bottom:1px solid #F0EDE8;
 }
 .ts-row:last-child { border-bottom:none; }
 .ts-row-label { flex:1; }
-.ts-row-label strong { display:block; font-size:12px; font-weight:600; color:#1C1C1A; }
-.ts-row-label span   { font-size:11px; color:#8A8582; }
+.ts-row-label strong { display:block; font-size:12px; font-weight:600; color:#151816; }
+.ts-row-label span   { font-size:11px; color:#828A85; }
 .ts-bracket-toggle {
   display:flex; align-items:center; justify-content:space-between;
   padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600;
-  color:#5C5955; border-bottom:1px solid #F0EDE8; user-select:none;
+  color:#5A625D; border-bottom:1px solid #F0EDE8; user-select:none;
   transition:background .12s;
 }
 .ts-bracket-toggle:hover { background:#FAFAF8; }
@@ -2693,9 +2742,9 @@ select.exp-input { cursor:pointer; }
 .ts-bracket-body.open { display:block; }
 .ts-bracket-table { width:100%; border-collapse:collapse; font-size:11px; }
 .ts-bracket-table th {
-  padding:6px 14px; text-align:left; background:#F8F7F4;
+  padding:6px 14px; text-align:left; background:#F9FAF9;
   font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.05em; color:#8A8582;
+  letter-spacing:.05em; color:#828A85;
 }
 .ts-bracket-table th:last-child { text-align:right; }
 .ts-bracket-table td { padding:7px 14px; border-top:1px solid #F8F6F3; color:#3C3C3A; }
@@ -2709,28 +2758,28 @@ select.exp-input { cursor:pointer; }
 }
 .settings-panel {
   width:380px; max-width:96vw; height:100vh;
-  background:#FAFAF8; border-left:1px solid #D8D4CC;
+  background:#FAFAF8; border-left:1px solid #D6D9DD;
   display:flex; flex-direction:column;
   box-shadow:-4px 0 24px rgba(0,0,0,.12);
 }
 /* Shared header */
 .settings-head {
   display:flex; align-items:center; gap:10px;
-  padding:16px 18px 13px; border-bottom:1px solid #E8E4DE; flex-shrink:0;
+  padding:16px 18px 13px; border-bottom:1px solid #E5E7EB; flex-shrink:0;
 }
-.settings-head h2 { font-size:14px; font-weight:700; color:#1C1C1A; margin:0; flex:1; }
+.settings-head h2 { font-size:14px; font-weight:700; color:#151816; margin:0; flex:1; }
 .settings-close {
   width:26px; height:26px; border:none; background:transparent; cursor:pointer;
-  border-radius:6px; font-size:17px; color:#8A8582;
+  border-radius:6px; font-size:17px; color:#828A85;
   display:flex; align-items:center; justify-content:center; transition:background .15s;
 }
-.settings-close:hover { background:#F0EDE8; color:#1C1C1A; }
+.settings-close:hover { background:#F0EDE8; color:#151816; }
 .settings-back {
   width:26px; height:26px; border:none; background:transparent; cursor:pointer;
-  border-radius:6px; font-size:17px; color:#8A8582; display:none;
+  border-radius:6px; font-size:17px; color:#828A85; display:none;
   align-items:center; justify-content:center; transition:background .15s;
 }
-.settings-back:hover { background:#F0EDE8; color:#1C1C1A; }
+.settings-back:hover { background:#F0EDE8; color:#151816; }
 .settings-body { flex:1; overflow-y:auto; }
 
 /* Home — nav cards */
@@ -2739,11 +2788,11 @@ select.exp-input { cursor:pointer; }
   border-bottom:1px solid #F0EDE8; cursor:pointer; transition:background .12s;
   gap:12px;
 }
-.settings-nav-card:hover { background:#F2F0EA; }
+.settings-nav-card:hover { background:#F7F7F5; }
 .settings-nav-icon { font-size:18px; width:28px; text-align:center; flex-shrink:0; }
 .settings-nav-label { flex:1; }
-.settings-nav-label strong { display:block; font-size:13px; font-weight:600; color:#1C1C1A; }
-.settings-nav-label span   { font-size:11px; color:#8A8582; }
+.settings-nav-label strong { display:block; font-size:13px; font-weight:600; color:#151816; }
+.settings-nav-label span   { font-size:11px; color:#828A85; }
 .settings-nav-arrow { color:#C8C4BC; font-size:14px; }
 
 /* Sub-page */
@@ -2752,7 +2801,7 @@ select.exp-input { cursor:pointer; }
 .settings-page-body { flex:1; overflow-y:auto; padding:14px 16px 20px; }
 
 /* Toggle rows */
-.scat-group { margin-bottom:6px; border:1px solid #E8E4DE; border-radius:8px; overflow:hidden; background:#fff; }
+.scat-group { margin-bottom:6px; border:1px solid #E5E7EB; border-radius:8px; overflow:hidden; background:#fff; }
 .scat-group-row {
   display:flex; align-items:center; gap:10px; padding:9px 12px;
   cursor:pointer; user-select:none; transition:background .12s;
@@ -2763,12 +2812,12 @@ select.exp-input { cursor:pointer; }
 .scat-expand.open { transform:rotate(90deg); }
 .scat-group-name { flex:1; }
 .scat-group-name input {
-  width:100%; font-size:12px; font-weight:700; color:#1C1C1A;
+  width:100%; font-size:12px; font-weight:700; color:#151816;
   border:1px solid transparent; border-radius:4px; background:transparent;
   padding:2px 4px; outline:none; transition:border-color .15s, background .15s;
 }
-.scat-group-name input:hover { border-color:#E8E4DE; }
-.scat-group-name input:focus { border-color:#1D9E75; background:#fff; }
+.scat-group-name input:hover { border-color:#E5E7EB; }
+.scat-group-name input:focus { border-color:#059669; background:#fff; }
 .scat-subcats { border-top:1px solid #F0EDE8; padding:4px 0; display:none; }
 .scat-subcats.open { display:block; }
 .scat-sub-row {
@@ -2783,8 +2832,8 @@ select.exp-input { cursor:pointer; }
   border:1px solid transparent; border-radius:4px; background:transparent;
   padding:2px 4px; outline:none; transition:border-color .15s, background .15s;
 }
-.scat-sub-name input:hover { border-color:#E8E4DE; }
-.scat-sub-name input:focus { border-color:#1D9E75; background:#fff; }
+.scat-sub-name input:hover { border-color:#E5E7EB; }
+.scat-sub-name input:focus { border-color:#059669; background:#fff; }
 .scat-sub-actions { display:flex; align-items:center; gap:4px; }
 
 /* Toggle switch */
@@ -2793,10 +2842,10 @@ select.exp-input { cursor:pointer; }
 }
 .tog input { opacity:0; width:0; height:0; position:absolute; }
 .tog-track {
-  position:absolute; inset:0; border-radius:20px; background:#D8D4CC;
+  position:absolute; inset:0; border-radius:20px; background:#D6D9DD;
   transition:background .2s;
 }
-.tog input:checked + .tog-track { background:#1D9E75; }
+.tog input:checked + .tog-track { background:#059669; }
 .tog-thumb {
   position:absolute; top:3px; left:3px; width:14px; height:14px;
   border-radius:50%; background:#fff; transition:left .2s;
@@ -2812,42 +2861,42 @@ select.exp-input { cursor:pointer; }
 }
 .scat-del:hover { background:#FEE2E2; color:#dc2626; }
 .scat-add-sub {
-  font-size:11px; color:#1D9E75; background:none; border:none; cursor:pointer;
+  font-size:11px; color:#059669; background:none; border:none; cursor:pointer;
   padding:6px 12px 6px 34px; font-weight:600; display:block; transition:color .15s;
 }
 .scat-add-sub:hover { color:#059669; }
 .scat-add-group {
-  width:100%; padding:10px; border:1px dashed #D8D4CC; border-radius:8px;
-  background:transparent; color:#5C5955; font-size:12px; font-weight:600;
+  width:100%; padding:10px; border:1px dashed #D6D9DD; border-radius:8px;
+  background:transparent; color:#5A625D; font-size:12px; font-weight:600;
   cursor:pointer; transition:border-color .15s, color .15s; margin-top:8px;
 }
-.scat-add-group:hover { border-color:#1D9E75; color:#1D9E75; }
+.scat-add-group:hover { border-color:#059669; color:#059669; }
 
 /* Header gear button */
 .btn-settings-icon {
   width:32px; height:32px; padding:0; background:transparent;
-  border:1px solid #D8D4CC; border-radius:7px; color:#5C5955;
+  border:1px solid #D6D9DD; border-radius:7px; color:#5A625D;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
   font-size:16px; transition:background .15s, border-color .15s, color .15s; flex-shrink:0;
 }
-.btn-settings-icon:hover { background:#F0EDE8; border-color:#C8C4BC; color:#1C1C1A; }
+.btn-settings-icon:hover { background:#F0EDE8; border-color:#C8C4BC; color:#151816; }
 
 /* ── Dashboard ──────────────────────────────────────── */
 .dash-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 @media(max-width:640px){ .dash-stats-row { grid-template-columns:repeat(2,1fr); } }
 .dash-stat-card { padding:14px 16px !important; }
-.dash-stat-sub { font-size:11px; color:#8A8582; margin-top:3px; }
+.dash-stat-sub { font-size:11px; color:#828A85; margin-top:3px; }
 .dash-progress-track { height:10px; background:#F0EDE8; border-radius:99px; overflow:hidden; margin-top:6px; }
-.dash-progress-fill  { height:100%; border-radius:99px; background:#1D9E75; transition:width .6s ease; }
+.dash-progress-fill  { height:100%; border-radius:99px; background:#059669; transition:width .6s ease; }
 .dash-fire-header { display:flex; align-items:flex-start; justify-content:space-between; }
-.dash-fire-label { font-size:20px; font-weight:700; color:#1C1C1A; }
-.dash-fire-sub   { font-size:12px; color:#8A8582; margin-top:3px; }
+.dash-fire-label { font-size:20px; font-weight:700; color:#151816; }
+.dash-fire-sub   { font-size:12px; color:#828A85; margin-top:3px; }
 .dash-fire-pct   { font-size:28px; font-weight:800; color:#059669; line-height:1; }
 .dash-no-data    { font-size:12px; color:#A8A4A0; padding:4px 0; }
 
 /* ── Scenarios table ───────────────────────────────── */
 .scen-table { width:100%; border-collapse:collapse; font-size:12px; }
-.scen-table th { text-align:left; padding:6px 10px; font-size:11px; color:#8A8582; border-bottom:2px solid #E8E4DE; white-space:nowrap; font-weight:600; }
+.scen-table th { text-align:left; padding:6px 10px; font-size:11px; color:#828A85; border-bottom:2px solid #E5E7EB; white-space:nowrap; font-weight:600; }
 .scen-table th.scen-th-r { text-align:right; }
 .scen-table td { padding:8px 10px; border-bottom:1px solid #F0EDE8; vertical-align:middle; }
 .scen-table tr:last-child td { border-bottom:none; }
@@ -2865,11 +2914,11 @@ select.exp-input { cursor:pointer; }
   .site-footer {
     max-width: 1180px; margin: 8px auto 0; padding: 18px 18px 30px;
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 10px; font-size: 12px; color: #8A8582; border-top: 1px solid #E8E4DE;
+    gap: 10px; font-size: 12px; color: #828A85; border-top: 1px solid #E5E7EB;
   }
   .site-footer-links { display: flex; gap: 14px; flex-wrap: wrap; }
-  .site-footer a { color: #5C5955; text-decoration: none; cursor: pointer; }
-  .site-footer a:hover { text-decoration: underline; color: #1C1C1A; }
+  .site-footer a { color: #5A625D; text-decoration: none; cursor: pointer; }
+  .site-footer a:hover { text-decoration: underline; color: #151816; }
 
   /* ---- Legal modal (Privacy / Terms / Contact) ---- */
   .legal-box {
@@ -2881,19 +2930,19 @@ select.exp-input { cursor:pointer; }
   }
   .legal-close {
     position: absolute; top: 16px; right: 18px; background: none; border: none;
-    font-size: 22px; color: #8A8582; cursor: pointer; line-height: 1;
+    font-size: 22px; color: #828A85; cursor: pointer; line-height: 1;
   }
-  .legal-close:hover { color: #1C1C1A; }
+  .legal-close:hover { color: #151816; }
   .legal-tabs { display: flex; gap: 4px; border-bottom: 2px solid #F0EDE8; margin-bottom: 18px; flex-wrap: wrap; }
   .legal-tab {
     border: none; background: none; padding: 8px 4px; margin-right: 18px;
-    font-size: 13px; font-weight: 600; color: #8A8582; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: #828A85; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -2px;
   }
-  .legal-tab.active { color: #1C1C1A; border-color: #1C1C1A; }
-  .legal-panel h3 { font-size: 17px; margin: 0 0 4px; color: #1C1C1A; }
-  .legal-panel .legal-updated { font-size: 12px; color: #8A8582; margin-bottom: 16px; }
-  .legal-panel h4 { font-size: 13.5px; margin: 20px 0 6px; color: #1C1C1A; }
+  .legal-tab.active { color: #151816; border-color: #151816; }
+  .legal-panel h3 { font-size: 17px; margin: 0 0 4px; color: #151816; }
+  .legal-panel .legal-updated { font-size: 12px; color: #828A85; margin-bottom: 16px; }
+  .legal-panel h4 { font-size: 13.5px; margin: 20px 0 6px; color: #151816; }
   .legal-panel p, .legal-panel li { font-size: 13px; line-height: 1.6; color: #3C3A36; }
   .legal-panel ul { margin: 4px 0 4px 18px; padding: 0; }
   .legal-panel a { color: #059669; }
@@ -2914,33 +2963,33 @@ select.exp-input { cursor:pointer; }
   .auth-close {
     position: absolute; top: 14px; right: 14px;
     width: 28px; height: 28px; border-radius: 50%;
-    border: none; background: #F0EDE8; color: #5C5955;
+    border: none; background: #F0EDE8; color: #5A625D;
     font-size: 14px; cursor: pointer; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
-  .auth-close:hover { background: #E2DED7; color: #1C1C1A; }
+  .auth-close:hover { background: #E2DED7; color: #151816; }
   .auth-skip {
     display: block; text-align: center; margin-top: 16px;
-    font-size: 12.5px; color: #8A8582; cursor: pointer; text-decoration: underline;
+    font-size: 12.5px; color: #828A85; cursor: pointer; text-decoration: underline;
   }
-  .auth-skip:hover { color: #5C5955; }
-  .auth-brand { font-size: 18px; font-weight: 800; color: #1C1C1A; letter-spacing: -.02em; }
-  .auth-tagline { font-size: 12px; color: #8A8582; margin: 3px 0 22px; }
+  .auth-skip:hover { color: #5A625D; }
+  .auth-brand { font-size: 18px; font-weight: 800; color: #151816; letter-spacing: -.02em; }
+  .auth-tagline { font-size: 12px; color: #828A85; margin: 3px 0 22px; }
   .auth-tabs {
     display: flex; border-bottom: 2px solid #F0EDE8; margin-bottom: 20px;
   }
   .auth-tab {
     background: none; border: none; font-size: 13px; font-weight: 600;
-    color: #8A8582; padding: 6px 14px 9px; cursor: pointer;
+    color: #828A85; padding: 6px 14px 9px; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -2px;
     transition: color .15s, border-color .15s;
   }
   .auth-tab.active { color: #059669; border-bottom-color: #059669; }
   .auth-field { margin-bottom: 11px; }
-  .auth-field label { display: block; font-size: 11px; font-weight: 600; color: #5C5955; margin-bottom: 4px; }
+  .auth-field label { display: block; font-size: 11px; font-weight: 600; color: #5A625D; margin-bottom: 4px; }
   .auth-field input {
-    width: 100%; padding: 9px 11px; border: 1px solid #D8D4CC;
-    border-radius: 8px; font-size: 14px; color: #1C1C1A;
+    width: 100%; padding: 9px 11px; border: 1px solid #D6D9DD;
+    border-radius: 8px; font-size: 14px; color: #151816;
     background: #FAFAF8; box-sizing: border-box; transition: border-color .15s;
   }
   .auth-field input:focus { outline: none; border-color: #059669; }
@@ -2961,16 +3010,16 @@ select.exp-input { cursor:pointer; }
     margin: 16px 0; font-size: 11px; color: #B0ABA6;
   }
   .auth-divider::before, .auth-divider::after {
-    content: ''; flex: 1; height: 1px; background: #E8E4DE;
+    content: ''; flex: 1; height: 1px; background: #E5E7EB;
   }
   .auth-google {
     width: 100%; padding: 10px; background: #fff;
-    border: 1px solid #D8D4CC; border-radius: 8px;
-    font-size: 14px; font-weight: 500; color: #1C1C1A;
+    border: 1px solid #D6D9DD; border-radius: 8px;
+    font-size: 14px; font-weight: 500; color: #151816;
     cursor: pointer; display: flex; align-items: center;
     justify-content: center; gap: 10px; transition: background .15s;
   }
-  .auth-google:hover { background: #F8F7F4; }
+  .auth-google:hover { background: #F9FAF9; }
 
   /* ---- User badge ---- */
   .user-badge { position: relative; display: flex; align-items: center; gap: 6px; }
@@ -2992,15 +3041,15 @@ select.exp-input { cursor:pointer; }
   @keyframes sdpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
   .user-menu {
     position: absolute; top: calc(100% + 8px); right: 0;
-    background: #fff; border: 1px solid #E8E4DE; border-radius: 12px;
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
     padding: 8px; min-width: 220px;
     box-shadow: 0 8px 28px rgba(0,0,0,.13); z-index: 9000;
   }
   .user-menu-email {
-    font-size: 12px; color: #5C5955; padding: 4px 8px 9px;
+    font-size: 12px; color: #5A625D; padding: 4px 8px 9px;
     border-bottom: 1px solid #F0EDE8; margin-bottom: 4px; word-break: break-all;
   }
-  .user-menu-sync { font-size: 11px; color: #8A8582; padding: 4px 8px; }
+  .user-menu-sync { font-size: 11px; color: #828A85; padding: 4px 8px; }
   .user-menu-signout {
     display: block; width: 100%; text-align: left;
     padding: 8px; border: none; background: none;
@@ -3020,16 +3069,16 @@ select.exp-input { cursor:pointer; }
     max-width:calc(100vw - 32px);box-shadow:0 24px 64px rgba(0,0,0,.2);
   }
   .onboard-step{display:none;} .onboard-step.active{display:block;}
-  .onboard-title{font-size:20px;font-weight:800;color:#1C1C1A;margin-bottom:4px;}
-  .onboard-sub{font-size:13px;color:#8A8582;margin-bottom:22px;line-height:1.5;}
+  .onboard-title{font-size:20px;font-weight:800;color:#151816;margin-bottom:4px;}
+  .onboard-sub{font-size:13px;color:#828A85;margin-bottom:22px;line-height:1.5;}
   .onboard-pip-row{display:flex;gap:5px;margin-bottom:22px;}
-  .onboard-pip{height:3px;border-radius:99px;background:#E8E4DE;flex:1;}
+  .onboard-pip{height:3px;border-radius:99px;background:#E5E7EB;flex:1;}
   .onboard-pip.done{background:#059669;}
   .onboard-field{margin-bottom:12px;}
-  .onboard-field label{display:block;font-size:11px;font-weight:600;color:#5C5955;margin-bottom:4px;}
+  .onboard-field label{display:block;font-size:11px;font-weight:600;color:#5A625D;margin-bottom:4px;}
   .onboard-field input,.onboard-field select{
-    width:100%;padding:9px 11px;border:1px solid #D8D4CC;border-radius:8px;
-    font-size:14px;color:#1C1C1A;background:#FAFAF8;box-sizing:border-box;transition:border-color .15s;
+    width:100%;padding:9px 11px;border:1px solid #D6D9DD;border-radius:8px;
+    font-size:14px;color:#151816;background:#FAFAF8;box-sizing:border-box;transition:border-color .15s;
   }
   .onboard-field input:focus,.onboard-field select:focus{outline:none;border-color:#059669;}
   .onboard-field .opt-label{font-size:11px;color:#B0ABA6;margin-left:4px;font-weight:400;}
@@ -3040,8 +3089,8 @@ select.exp-input { cursor:pointer; }
   }
   .onboard-primary:hover{background:#047857;}
   .onboard-skip{
-    padding:10px 16px;background:none;border:1px solid #D8D4CC;
-    border-radius:8px;font-size:13px;color:#8A8582;cursor:pointer;
+    padding:10px 16px;background:none;border:1px solid #D6D9DD;
+    border-radius:8px;font-size:13px;color:#828A85;cursor:pointer;
   }
 
   /* ---- Upgrade / Pricing modal ---- */
@@ -3053,8 +3102,8 @@ select.exp-input { cursor:pointer; }
     background:#fff;border-radius:16px;padding:32px;width:520px;
     max-width:calc(100vw - 32px);box-shadow:0 24px 64px rgba(0,0,0,.2);position:relative;
   }
-  .upgrade-title{font-size:20px;font-weight:800;color:#1C1C1A;margin-bottom:4px;}
-  .upgrade-sub{font-size:13px;color:#8A8582;margin-bottom:16px;}
+  .upgrade-title{font-size:20px;font-weight:800;color:#151816;margin-bottom:4px;}
+  .upgrade-sub{font-size:13px;color:#828A85;margin-bottom:16px;}
   .upgrade-reason{
     font-size:12px;color:#059669;font-weight:600;background:#EDFAF5;
     border-radius:6px;padding:6px 10px;margin-bottom:16px;
@@ -3065,29 +3114,29 @@ select.exp-input { cursor:pointer; }
   }
   .billing-opt{
     padding:5px 16px;border-radius:6px;border:none;background:none;
-    font-size:13px;color:#5C5955;cursor:pointer;font-weight:500;transition:background .15s,color .15s;
+    font-size:13px;color:#5A625D;cursor:pointer;font-weight:500;transition:background .15s,color .15s;
   }
-  .billing-opt.active{background:#fff;color:#1C1C1A;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .billing-opt.active{background:#fff;color:#151816;box-shadow:0 1px 3px rgba(0,0,0,.1);}
   .plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .plan-card{border:1.5px solid #E8E4DE;border-radius:12px;padding:20px;position:relative;}
+  .plan-card{border:1.5px solid #E5E7EB;border-radius:12px;padding:20px;position:relative;}
   .plan-card.pro-card{border-color:#059669;}
   .plan-badge-pill{
     position:absolute;top:-10px;left:50%;transform:translateX(-50%);
     background:#059669;color:#fff;font-size:10px;font-weight:700;
     padding:2px 10px;border-radius:99px;letter-spacing:.05em;white-space:nowrap;
   }
-  .plan-card-name{font-size:12px;font-weight:700;color:#8A8582;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
-  .plan-card-price{font-size:30px;font-weight:800;color:#1C1C1A;line-height:1;margin-bottom:3px;}
+  .plan-card-name{font-size:12px;font-weight:700;color:#828A85;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .plan-card-price{font-size:30px;font-weight:800;color:#151816;line-height:1;margin-bottom:3px;}
   .plan-card-price sup{font-size:16px;font-weight:600;vertical-align:super;}
-  .plan-card-per{font-size:12px;color:#8A8582;margin-bottom:14px;}
+  .plan-card-per{font-size:12px;color:#828A85;margin-bottom:14px;}
   .plan-card-features{list-style:none;padding:0;margin:0 0 16px;}
-  .plan-card-features li{font-size:12px;color:#5C5955;padding:3px 0;display:flex;align-items:baseline;gap:6px;}
+  .plan-card-features li{font-size:12px;color:#5A625D;padding:3px 0;display:flex;align-items:baseline;gap:6px;}
   .plan-card-features li::before{content:'✓';color:#059669;font-weight:700;flex-shrink:0;}
   .plan-card-features li.dim{color:#C8C4BE;}
-  .plan-card-features li.dim::before{content:'–';color:#D8D4CC;}
+  .plan-card-features li.dim::before{content:'–';color:#D6D9DD;}
   .plan-card-btn{
-    width:100%;padding:9px;border-radius:8px;border:1.5px solid #D8D4CC;
-    background:#fff;font-size:13px;font-weight:600;color:#5C5955;cursor:pointer;transition:all .15s;
+    width:100%;padding:9px;border-radius:8px;border:1.5px solid #D6D9DD;
+    background:#fff;font-size:13px;font-weight:600;color:#5A625D;cursor:pointer;transition:all .15s;
   }
   .plan-card-btn.pro-btn{background:#059669;border-color:#059669;color:#fff;}
   .plan-card-btn.pro-btn:hover{background:#047857;}
@@ -3095,13 +3144,13 @@ select.exp-input { cursor:pointer; }
     position:absolute;top:14px;right:16px;background:none;border:none;
     font-size:20px;color:#C8C4BE;cursor:pointer;line-height:1;
   }
-  .upgrade-close:hover{color:#1C1C1A;}
+  .upgrade-close:hover{color:#151816;}
   .upgrade-note{font-size:11px;color:#B0ABA6;text-align:center;margin-top:14px;}
 
   /* ---- Save prompt banner ---- */
   .save-prompt{
     position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-    background:#1C1C1A;color:#F8F7F4;border-radius:12px;
+    background:#151816;color:#F9FAF9;border-radius:12px;
     padding:14px 18px;display:flex;align-items:center;gap:14px;
     box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:8000;
     max-width:480px;width:calc(100vw - 32px);animation:spUp .3s ease;
@@ -3113,7 +3162,7 @@ select.exp-input { cursor:pointer; }
   .sp-btn{padding:7px 13px;border-radius:7px;border:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
   .sp-btn.primary{background:#059669;color:#fff;}
   .sp-btn.primary:hover{background:#047857;}
-  .sp-btn.ghost{background:rgba(255,255,255,.12);color:#F8F7F4;}
+  .sp-btn.ghost{background:rgba(255,255,255,.12);color:#F9FAF9;}
   .sp-btn.ghost:hover{background:rgba(255,255,255,.2);}
 
   /* ---- User menu plan section ---- */
@@ -3121,17 +3170,17 @@ select.exp-input { cursor:pointer; }
     padding:5px 8px 9px;border-bottom:1px solid #F0EDE8;margin-bottom:4px;
     display:flex;align-items:center;justify-content:space-between;
   }
-  .ump-tier{font-size:12px;font-weight:700;color:#1C1C1A;}
+  .ump-tier{font-size:12px;font-weight:700;color:#151816;}
   .ump-tier.pro{color:#059669;}
   .ump-upgrade{font-size:11px;color:#059669;cursor:pointer;font-weight:600;}
   .ump-upgrade:hover{text-decoration:underline;}
   .user-menu-profile {
     display:block; width:100%; text-align:left;
     padding:8px; border:none; background:none;
-    font-size:13px; color:#1C1C1A; cursor:pointer;
+    font-size:13px; color:#151816; cursor:pointer;
     border-radius:6px;
   }
-  .user-menu-profile:hover { background:#F5F2EE; }
+  .user-menu-profile:hover { background:#F3F4F2; }
 
   /* ---- Profile modal ---- */
   .profile-backdrop {
@@ -3143,30 +3192,30 @@ select.exp-input { cursor:pointer; }
     width:400px; max-width:calc(100vw - 32px);
     box-shadow:0 24px 64px rgba(0,0,0,.2); position:relative;
   }
-  .profile-title { font-size:20px; font-weight:700; color:#1C1C1A; margin-bottom:20px; }
+  .profile-title { font-size:20px; font-weight:700; color:#151816; margin-bottom:20px; }
   .profile-close {
     position:absolute; top:16px; right:16px;
-    background:none; border:none; font-size:22px; color:#8A8582; cursor:pointer; line-height:1;
+    background:none; border:none; font-size:22px; color:#828A85; cursor:pointer; line-height:1;
   }
-  .profile-close:hover { color:#1C1C1A; }
+  .profile-close:hover { color:#151816; }
   .profile-field { margin-bottom:14px; }
-  .profile-label { font-size:12px; font-weight:600; color:#5C5955; margin-bottom:4px; display:block; }
+  .profile-label { font-size:12px; font-weight:600; color:#5A625D; margin-bottom:4px; display:block; }
   .profile-input {
     width:100%; padding:9px 12px; border:1px solid #D8D4CE; border-radius:8px;
-    font-size:14px; color:#1C1C1A; background:#fff; box-sizing:border-box;
+    font-size:14px; color:#151816; background:#fff; box-sizing:border-box;
   }
-  .profile-input:focus { outline:none; border-color:#1C1C1A; }
-  .profile-input[readonly] { background:#F5F2EE; color:#8A8582; cursor:default; }
-  .profile-input-note { font-size:11px; color:#8A8582; margin-top:4px; }
+  .profile-input:focus { outline:none; border-color:#151816; }
+  .profile-input[readonly] { background:#F3F4F2; color:#828A85; cursor:default; }
+  .profile-input-note { font-size:11px; color:#828A85; margin-top:4px; }
   .profile-plan-row {
     display:flex; align-items:center; justify-content:space-between;
     background:#F8F6F3; border-radius:10px; padding:12px 16px; margin:18px 0;
   }
-  .profile-plan-label { font-size:11px; color:#8A8582; margin-bottom:2px; }
-  .profile-plan-value { font-size:14px; font-weight:700; color:#1C1C1A; }
+  .profile-plan-label { font-size:11px; color:#828A85; margin-bottom:2px; }
+  .profile-plan-value { font-size:14px; font-weight:700; color:#151816; }
   .profile-plan-value.pro { color:#059669; }
   .profile-save-btn {
-    width:100%; padding:11px; background:#1C1C1A; color:#fff;
+    width:100%; padding:11px; background:#151816; color:#fff;
     border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; margin-top:4px;
   }
   .profile-save-btn:hover { background:#333; }
@@ -3186,6 +3235,72 @@ select.exp-input { cursor:pointer; }
   }
   .profile-delete-link:hover { color:#E11D48; text-decoration:underline; }
 
+  /* ── Landing: how-it-works strip ── */
+  .hiw-strip {
+    display: flex; align-items: stretch; justify-content: center; gap: 14px;
+    max-width: 900px; margin: 26px auto 0; padding: 0 10px;
+  }
+  .hiw-step {
+    flex: 1; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px;
+    padding: 16px 18px; text-align: center;
+  }
+  .hiw-num {
+    width: 26px; height: 26px; margin: 0 auto 8px; border-radius: 50%;
+    background: #059669; color: #fff; font-weight: 800; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hiw-title { font-weight: 700; font-size: 14px; color: #111110; margin-bottom: 4px; }
+  .hiw-sub { font-size: 12px; color: #52504C; line-height: 1.45; }
+  .hiw-arrow { align-self: center; color: #059669; font-size: 20px; font-weight: 700; }
+  @media (max-width: 760px) {
+    .hiw-strip { flex-direction: column; }
+    .hiw-arrow { transform: rotate(90deg); }
+  }
+
+  /* ── Landing: 10-second teaser calculator ── */
+  .mini-calc {
+    max-width: 860px; margin: 22px auto 0; background: #ECFDF5;
+    border: 1px solid #A7F3D0; border-radius: 14px; padding: 18px 22px;
+  }
+  .mini-calc-head { text-align: center; margin-bottom: 12px; }
+  .mini-calc-title { font-weight: 800; font-size: 17px; color: #0F3D2E; }
+  .mini-calc-sub { font-size: 11.5px; color: #52504C; margin-top: 2px; }
+  .mini-calc-row {
+    display: flex; align-items: flex-end; justify-content: center; gap: 16px; flex-wrap: wrap;
+  }
+  .mini-calc-field { display: flex; flex-direction: column; gap: 4px; }
+  .mini-calc-field label { font-size: 11.5px; font-weight: 600; color: #3E4A3F; }
+  .mini-calc-field input[type="number"], .mini-calc-field input[type="text"] {
+    width: 120px; padding: 8px 10px; border: 1px solid #D1D5DB; border-radius: 8px;
+    font-size: 14px; background: #fff;
+  }
+  .mini-calc-slider { min-width: 190px; }
+  .mini-calc-slider input[type="range"] { accent-color: #059669; width: 100%; }
+  .mini-calc-result {
+    background: #0F3D2E; color: #fff; border-radius: 10px; padding: 8px 20px; text-align: center;
+    min-width: 130px;
+  }
+  .mini-calc-result-lbl { font-size: 10.5px; opacity: .75; letter-spacing: .04em; text-transform: uppercase; }
+  .mini-calc-result-age { font-size: 26px; font-weight: 800; color: #3FE0A5; line-height: 1.15; }
+
+  /* ── Landing: FAQ ── */
+  .landing-faq { max-width: 720px; margin: 30px auto 0; }
+  .faq-item {
+    background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+    padding: 0 16px; margin-bottom: 8px;
+  }
+  .faq-item summary {
+    cursor: pointer; font-weight: 600; font-size: 14px; color: #111110;
+    padding: 13px 0; list-style: none; position: relative;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+"; position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+    color: #059669; font-size: 18px; font-weight: 700;
+  }
+  .faq-item[open] summary::after { content: "−"; }
+  .faq-item p { font-size: 13px; color: #52504C; line-height: 1.55; margin: 0 0 14px; }
+
   </style>
 </head>
 
@@ -3204,7 +3319,7 @@ select.exp-input { cursor:pointer; }
           <!-- Wordmark: one tight word, "Wealth" charcoal + "Model" teal -->
           <text x="40" y="15" dominant-baseline="middle"
                 style="font-family:inherit; font-weight:800; font-size:17px; letter-spacing:-0.04em;">
-            <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#1D9E75">Model</tspan>
+            <tspan fill="#1a1a1a">Wealth</tspan><tspan fill="#059669">Model</tspan>
           </text>
         </svg>
         <span class="api-dot" id="apiStatusDot" onclick="pingAPI()" style="cursor:pointer;"></span>
@@ -3269,7 +3384,7 @@ select.exp-input { cursor:pointer; }
           <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h12M2 8h8M2 11h5"/></svg>
           Load Scenario ▾
         </button>
-        <div id="scenarioDropdown" style="display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:200; background:white; border:1px solid #D8D4CC; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.1); min-width:300px; padding:6px 0; max-height:320px; overflow-y:auto;">
+        <div id="scenarioDropdown" style="display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:200; background:white; border:1px solid #D6D9DD; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.1); min-width:300px; padding:6px 0; max-height:320px; overflow-y:auto;">
           <div id="scenariosList"></div>
         </div>
       </div>
@@ -3354,9 +3469,9 @@ select.exp-input { cursor:pointer; }
             Get Started Free
           </button>
           <div id="landingSignInRow" style="display:flex; align-items:center; gap:8px;">
-            <span style="color:#5C5955; font-size:13px;">Already have an account?</span>
+            <span style="color:#5A625D; font-size:13px;">Already have an account?</span>
             <button onclick="openAuthModal()"
-                    style="background:none; border:none; color:#1C1C1A; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0;">
+                    style="background:none; border:none; color:#151816; font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0;">
               Sign in
             </button>
           </div>
@@ -3433,7 +3548,7 @@ select.exp-input { cursor:pointer; }
 
               <div class="feat-scene" id="featScene3">
                 <div class="fs-scen-caption">Same income, different paths — same calculator.</div>
-                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#8A8582; color:#8A8582;">Stay Renting</span><span>FIRE: Age 58</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#828A85; color:#828A85;">Stay Renting</span><span>FIRE: Age 58</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#059669; color:#059669;">Buy a Home</span><span>FIRE: Age 52</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#0891B2; color:#0891B2;">Investment + Home</span><span>FIRE: Age 50</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#7C3AED; color:#7C3AED;">Rent &amp; Invest</span><span>FIRE: Age 49</span></div>
@@ -3510,19 +3625,19 @@ select.exp-input { cursor:pointer; }
               <path class="hero-chart-savings" id="heroSavingsPath" d="" />
               <path class="hero-chart-fill" id="heroFillPath" fill="url(#heroGrad)" stroke="none" d="" />
               <path class="hero-chart-line" id="heroLinePath" d="" />
-              <circle id="heroSaveTipDot" cx="10" cy="205" r="3.5" fill="#8A8582" />
+              <circle id="heroSaveTipDot" cx="10" cy="205" r="3.5" fill="#828A85" />
               <circle id="heroTipDot" cx="10" cy="205" r="4.5" fill="#059669" />
               <g id="heroInvestLabelAnchor" class="hero-tip-label">
                 <rect x="6" y="-21" width="92" height="16" rx="8" fill="#059669" />
                 <text x="52" y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Wealth Model</text>
               </g>
               <g id="heroSaveLabelAnchor" class="hero-tip-label">
-                <rect x="6" y="6" width="82" height="16" rx="8" fill="#8A8582" />
+                <rect x="6" y="6" width="82" height="16" rx="8" fill="#828A85" />
                 <text x="47" y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Just saving</text>
               </g>
               <g id="heroMilestoneAnchor">
                 <g class="hero-milestone-badge" id="heroMilestoneBadge">
-                  <rect x="-32" y="-10" width="64" height="20" rx="10" fill="#1C1C1A" />
+                  <rect x="-32" y="-10" width="64" height="20" rx="10" fill="#151816" />
                   <text x="0" y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" id="heroMilestoneText">$250K</text>
                 </g>
               </g>
@@ -3534,7 +3649,7 @@ select.exp-input { cursor:pointer; }
             <circle class="hero-chart-marker" cx="220" cy="69" r="7" fill="#059669" />
             <circle class="hero-chart-marker" cx="220" cy="69" r="3" fill="#fff" />
             <g class="hero-chart-tag">
-              <rect x="128" y="29" width="184" height="24" rx="12" fill="#1C1C1A" />
+              <rect x="128" y="29" width="184" height="24" rx="12" fill="#151816" />
               <text x="220" y="45" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">🔥 Financially independent — 47</text>
             </g>
             <defs>
@@ -3686,9 +3801,129 @@ select.exp-input { cursor:pointer; }
 
       </div><!-- /.hero-grid -->
 
-      <div class="small" style="text-align:center; margin-top:10px; color:#8A8582;">
+      <!-- How it works — 3 steps -->
+      <div class="hiw-strip">
+        <div class="hiw-step">
+          <div class="hiw-num">1</div>
+          <div class="hiw-title">Enter your numbers</div>
+          <div class="hiw-sub">Income, expenses, savings, property &amp; super — takes about 2 minutes.</div>
+        </div>
+        <div class="hiw-arrow">→</div>
+        <div class="hiw-step">
+          <div class="hiw-num">2</div>
+          <div class="hiw-title">See your FIRE age</div>
+          <div class="hiw-sub">A monthly engine projects tax, mortgages, rent and drawdowns to find the year your plan self-funds.</div>
+        </div>
+        <div class="hiw-arrow">→</div>
+        <div class="hiw-step">
+          <div class="hiw-num">3</div>
+          <div class="hiw-title">Test scenarios</div>
+          <div class="hiw-sub">Sell the house? Extra $5k into shares? Career break? Compare side by side.</div>
+        </div>
+      </div>
+
+      <!-- 10-second teaser calculator -->
+      <div class="mini-calc" id="miniCalc">
+        <div class="mini-calc-head">
+          <div class="mini-calc-title">Try it in 10 seconds</div>
+          <div class="mini-calc-sub">Rough estimate — the full model does tax, super, property and inflation properly.</div>
+        </div>
+        <div class="mini-calc-row">
+          <div class="mini-calc-field">
+            <label>Your age</label>
+            <input id="mcAge" type="number" inputmode="numeric" value="30" min="16" max="80"/>
+          </div>
+          <div class="mini-calc-field">
+            <label>Income (gross/yr)</label>
+            <input id="mcIncome" type="text" inputmode="decimal" value="$100,000"/>
+          </div>
+          <div class="mini-calc-field mini-calc-slider">
+            <label>You save <span id="mcRateLbl">30%</span> of take-home</label>
+            <input id="mcRate" type="range" min="5" max="75" value="30"/>
+          </div>
+          <div class="mini-calc-result" id="mcResult">
+            <div class="mini-calc-result-lbl">You could FIRE at</div>
+            <div class="mini-calc-result-age" id="mcResultAge">—</div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <button class="btn primary" onclick="beginFree()">Get the full picture →</button>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="landing-faq">
+        <h2 style="text-align:center; margin:0 0 14px;">Common questions</h2>
+        <details class="faq-item">
+          <summary>What is FIRE?</summary>
+          <p>FIRE stands for Financial Independence, Retire Early — building enough invested wealth that the income it generates covers your living costs, making work optional. Your "FIRE age" is the age your plan first becomes self-funding.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How is my FIRE age calculated?</summary>
+          <p>A monthly simulation projects your salary, tax (2025-26 Australian brackets + Medicare levy), expenses, mortgages, rent, shares and super forward. You reach FIRE in the first month where net rent, a safe stock drawdown, and super (once accessible) cover your target lifestyle income after tax and loan payments.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does it handle superannuation and negative gearing?</summary>
+          <p>Yes — it's built for Australia. Super Guarantee contributions (12%), contributions tax, preservation age, negative gearing offsets against your salary, CGT with the July 2027 indexation reform, offset accounts, and the PPOR six-year rule are all modelled.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is my data private?</summary>
+          <p>You can use the calculator without creating an account — your inputs stay in your browser. If you sign up, data is stored securely in Google Firebase so you can sync across devices. We never sell your data.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is it free?</summary>
+          <p>Yes. The free plan includes the full model with one property, one scenario and five model runs per day. Pro removes the limits.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is this financial advice?</summary>
+          <p>No — WealthModel is a general-information modelling tool. It doesn't consider your personal circumstances. Talk to a licensed financial adviser before making decisions.</p>
+        </details>
+      </div>
+
+      <div class="small" style="text-align:center; margin-top:10px; color:#828A85;">
         No signup required · General information only
       </div>
+
+      <script>
+        (function(){
+          // 10-second teaser: classic savings-rate FIRE math on take-home pay.
+          // Deliberately simple — the real model handles property/super/inflation.
+          function takeHome(gross){
+            var tax;
+            if (gross <= 18200) tax = 0;
+            else if (gross <= 45000) tax = (gross - 18200) * 0.16;
+            else if (gross <= 135000) tax = 4288 + (gross - 45000) * 0.30;
+            else if (gross <= 190000) tax = 31288 + (gross - 135000) * 0.37;
+            else tax = 51638 + (gross - 190000) * 0.45;
+            if (gross > 34027) tax += gross * 0.02;
+            else if (gross > 27222) tax += (gross - 27222) * 0.10;
+            return Math.max(gross - tax, 0);
+          }
+          function recalc(){
+            var age    = parseInt(document.getElementById('mcAge').value, 10) || 30;
+            var gross  = parseFloat(String(document.getElementById('mcIncome').value).replace(/[^0-9.]/g, '')) || 0;
+            var rate   = (parseInt(document.getElementById('mcRate').value, 10) || 30) / 100;
+            document.getElementById('mcRateLbl').textContent = Math.round(rate * 100) + '%';
+
+            var net      = takeHome(gross);
+            var saveYr   = net * rate;
+            var spendYr  = net - saveYr;
+            var target   = spendYr * 25;          // 4% rule
+            var r        = 0.05;                  // real (after-inflation) return
+            var out      = document.getElementById('mcResultAge');
+            if (saveYr <= 0 || gross <= 0) { out.textContent = '—'; return; }
+            // years n so that saveYr * ((1+r)^n - 1)/r >= target
+            var years = Math.log((target * r) / saveYr + 1) / Math.log(1 + r);
+            var fireAge = Math.round(age + years);
+            out.textContent = (years <= 0.5) ? 'now 🎉' : (fireAge > 90 ? '90+' : fireAge);
+          }
+          ['mcAge','mcIncome','mcRate'].forEach(function(id){
+            var el = document.getElementById(id);
+            if (el){ el.addEventListener('input', recalc); el.addEventListener('change', recalc); }
+          });
+          recalc();
+        })();
+      </script>
 
     </div>
 
@@ -3816,13 +4051,22 @@ select.exp-input { cursor:pointer; }
               </div>
             </div>
             <div class="sectionBody" id="inputsSectionBody">
+              <p class="budget-section-lbl" style="margin:10px 0 8px;">About You</p>
               <div class="fieldgrid coregrid">
                 <div><label>Current Age</label><input id="current_age" type="number" step="1"/></div>
-                <div><label>End Age</label><input id="end_age" type="number" step="1"/></div>
-                <div><label>Initial Savings</label><input id="initial_savings" type="number" step="1"/></div>
-                <div><label>Todays Lifestyle Income</label><input id="todays_lifestyle_income" type="number" step="1"/></div>
-                <div><label>Current Income</label><input id="current_income" type="number" step="1"/></div>
-                <div><label>Current Expenses</label><input id="current_expenses" type="number" step="1"/></div>
+                <div><label>Model To Age <span class="info-tip" data-tip="end_age">?</span></label><input id="end_age" type="number" step="1"/></div>
+              </div>
+              <p class="budget-section-lbl" style="margin:14px 0 8px;">Income &amp; Spending</p>
+              <div class="fieldgrid coregrid">
+                <div><label>Current Income</label><input id="current_income" type="number" step="1"/><div class="input-hint">Gross salary before tax</div></div>
+                <div><label>Current Expenses</label><input id="current_expenses" type="number" step="1"/><div class="input-hint">Annual living costs (excl. mortgages)</div></div>
+                <div><label>Target Lifestyle Income <span class="info-tip" data-tip="lifestyle_income">?</span></label><input id="todays_lifestyle_income" type="number" step="1"/><div class="input-hint">What you'd live on post-FIRE, in today's $</div></div>
+                <div><label>Initial Savings</label><input id="initial_savings" type="number" step="1"/><div class="input-hint">Cash/offset balance today</div></div>
+              </div>
+              <p class="budget-section-lbl" style="margin:14px 0 8px;">Economic Assumptions</p>
+              <div class="fieldgrid coregrid">
+                <div><label>Inflation <span class="info-tip" data-tip="inflation">?</span></label><input id="inflation" type="number" step="0.001"/><div class="input-hint">RBA target: 2–3% · long-run avg 2.5%</div></div>
+                <div><label>Salary Growth <span class="info-tip" data-tip="salary_growth">?</span></label><input id="average_salary_increase" type="number" step="0.001"/><div class="input-hint">Wage index: ~3–3.5%/yr; more if promotions likely</div></div>
               </div>
               <!-- Data Sources panel -->
               <div class="sync-panel" id="syncPanel">
@@ -3848,25 +4092,31 @@ select.exp-input { cursor:pointer; }
               <div class="row" style="gap:10px;"><div class="chev" id="stocksChev">▾</div></div>
             </div>
             <div class="sectionBody" id="stocksSectionBody">
+              <p class="budget-section-lbl" style="margin:10px 0 8px;">Stocks</p>
               <div class="fieldgrid">
-                <div><label>Inflation</label><input id="inflation" type="number" step="0.001"/></div>
-                <div><label>Average Salary Increase</label><input id="average_salary_increase" type="number" step="0.001"/></div>
-                <div><label>Stock Growth</label><input id="stock_growth" type="number" step="0.001"/></div>
-                <div><label>Stock Yearly Contribution</label><input id="stock_yearly_contribution" type="number" step="1"/></div>
                 <div><label>Starting Stock Value</label><input id="starting_stock_value" type="number" step="1"/></div>
-                <div><label>Stock Drawdown Per Year <span class="info-tip" data-tip="swr">?</span></label><input id="stock_swr" type="number" step="0.001"/></div>
-                <div><label>Super Drawdown Per Year <span class="info-tip" data-tip="swr">?</span></label><input id="super_swr" type="number" step="0.001"/></div>
-                <div><label>Super Access Age <span class="info-tip" data-tip="super_access">?</span></label><input id="super_access_age" type="number" step="1"/></div>
+                <div><label>Yearly Contribution</label><input id="stock_yearly_contribution" type="number" step="1"/><div class="input-hint">Grows with inflation each year</div></div>
+                <div><label>Stock Growth <span class="info-tip" data-tip="stock_growth">?</span></label><input id="stock_growth" type="number" step="0.001"/><div class="input-hint">Long-run 7–9% pre-tax · use 6–7% after tax/fees</div></div>
+                <div><label>Stock Drawdown Rate <span class="info-tip" data-tip="swr">?</span></label><input id="stock_swr" type="number" step="0.001"/><div class="input-hint">Safe rate: 3.5–4% · above 5% risks depletion</div></div>
+              </div>
+              <p class="budget-section-lbl" style="margin:14px 0 8px;">Super</p>
+              <div class="fieldgrid">
                 <div><label>Super Starting Balance</label><input id="super_starting_balance" type="number" step="1"/></div>
-                <div><label>Super Employee Contribution Rate</label><input id="super_sg_rate" type="number" step="0.001"/></div>
-                <div><label>Super Growth</label><input id="super_growth" type="number" step="0.001"/></div>
-                <div><label>Super Additional Contributions</label><input id="super_additional_annual" type="number" step="1"/></div>
+                <div><label>Employer Super (SG) Rate <span class="info-tip" data-tip="sg_rate">?</span></label><input id="super_sg_rate" type="number" step="0.001"/><div class="input-hint">Legislated 12% from 1 July 2025</div></div>
+                <div><label>Super Growth <span class="info-tip" data-tip="super_growth">?</span></label><input id="super_growth" type="number" step="0.001"/><div class="input-hint">Balanced fund after fees/taxes: 6–7%</div></div>
+                <div><label>Extra Contributions ($/yr)</label><input id="super_additional_annual" type="number" step="1"/><div class="input-hint">Voluntary after-tax top-up from cash</div></div>
+                <div><label>Super Access Age <span class="info-tip" data-tip="super_access">?</span></label><input id="super_access_age" type="number" step="1"/><div class="input-hint">Preservation age: 60 for most people</div></div>
+                <div><label>Super Drawdown Rate <span class="info-tip" data-tip="swr">?</span></label><input id="super_swr" type="number" step="0.001"/><div class="input-hint">Safe rate: 3.5–4%</div></div>
+              </div>
+              <p class="budget-section-lbl" style="margin:14px 0 8px;">Advanced</p>
+              <div class="fieldgrid">
                 <div>
                   <label style="display:flex; align-items:center; gap:5px;">
                     CPI Rate (for CGT)
                     <span class="info-tip" data-tip="cpi_rate">?</span>
                   </label>
                   <input id="cpi_rate" type="number" step="0.001"/>
+                  <div class="input-hint">Indexes property cost bases post-Jul-2027</div>
                 </div>
               </div>
               <div style="margin-top:10px;">
@@ -3876,7 +4126,7 @@ select.exp-input { cursor:pointer; }
                   <span>On income support / Age Pension (exempt from 30% CGT minimum)</span>
                 </label>
               </div>
-              <div style="margin-top:10px; display:flex; align-items:center; gap:6px; font-size:13px; color:#1C1C1A;">
+              <div style="margin-top:10px; display:flex; align-items:center; gap:6px; font-size:13px; color:#151816;">
                 Additional Stock Contributions by Year
                 <span class="info-tip" data-tip="stock_override">?</span>
               </div>
@@ -3890,7 +4140,7 @@ select.exp-input { cursor:pointer; }
             <h2 style="margin:0;">Properties</h2>
             <button class="btn ghost" style="font-size:12px;" onclick="closeInputsDrawer(); showPropertiesTab();">Open in Portfolio ↗</button>
           </div>
-          <div id="drawerPropSummary" style="font-size:12px; color:#5C5955;"></div>
+          <div id="drawerPropSummary" style="font-size:12px; color:#5A625D;"></div>
         </div>
 
         <!-- Life Events -->
@@ -4354,7 +4604,7 @@ select.exp-input { cursor:pointer; }
      onclick="if(event.target===this)closeHelpModal()">
   <div class="legal-box" style="width:680px;">
     <button class="legal-close" onclick="closeHelpModal()">×</button>
-    <h3 style="margin:0 0 4px; font-size:19px; color:#1C1C1A;">How WealthModel Works</h3>
+    <h3 style="margin:0 0 4px; font-size:19px; color:#151816;">How WealthModel Works</h3>
     <div class="legal-updated">A quick reference for every concept in the calculator</div>
     <div id="helpModalBody" class="legal-panel"></div>
   </div>
@@ -4770,7 +5020,7 @@ let state = {
 	super_swr: 0.04,
     super_access_age: 60,
     super_starting_balance: 120000,
-    super_sg_rate: 0.115,
+    super_sg_rate: 0.12,
     super_growth: 0.065,
     super_additional_annual: 0,
     cpi_rate: 0.025,
@@ -5027,6 +5277,8 @@ const PROP_FIELD_LABELS = {
   strata_quarterly: "Strata (Quarterly)",
   rates_quarterly: "Council Rates (Quarterly)",
   other_costs_monthly: "Other Costs (Monthly)",
+  vacancy_weeks: "Vacancy (Weeks/Year)",
+  mgmt_fee_rate: "Agent Management Fee",
 };
 
 
@@ -5076,10 +5328,12 @@ const PROP_FIELD_META = {
   interest_rate: { type: "percent" },
   property_growth: { type: "percent" },
   rental_growth: { type: "percent" },
+  mgmt_fee_rate: { type: "percent" },
 
   // integers
   year_bought: { type: "int" },
   loan_term_years: { type: "int" },
+  vacancy_weeks: { type: "int" },
 
   // text
   name: { type: "text" },
@@ -5239,6 +5493,12 @@ function loadState(){
         state.inputs = { ...state.inputs, ...parsed.inputs };
       }
 
+      // One-time migration: 11%/11.5% were the app's old SG defaults, not a
+      // user choice — the legislated rate is 12% from 1 July 2025.
+      if (state.inputs.super_sg_rate === 0.115 || state.inputs.super_sg_rate === 0.11) {
+        state.inputs.super_sg_rate = 0.12;
+      }
+
       if (Array.isArray(parsed.property_list)) {
         state.property_list = parsed.property_list.map(_migrateProperty);
       }
@@ -5365,7 +5625,7 @@ function _renderStockOverrideForm(year){
       <div class="prop-history-form-title">Additional contribution for ${year}</div>
       <div class="prop-history-form-grid" style="grid-template-columns:1fr;">
         <div>
-          <label>On top of the normal ${fmtMoney(baseAmt)}/yr <span style="font-size:10px;color:#8A8582;">(+ to add, − to reduce)</span></label>
+          <label>On top of the normal ${fmtMoney(baseAmt)}/yr <span style="font-size:10px;color:#828A85;">(+ to add, − to reduce)</span></label>
           <input type="text" inputmode="decimal" id="stockOverrideAmount" value="${additionalAmt ? fmtMoneyInput(additionalAmt) : ''}" placeholder="e.g. 5000 or -5000" />
         </div>
       </div>
@@ -5576,6 +5836,8 @@ function addProperty(){
     strata_quarterly: 0,
     rates_quarterly: 900,
     other_costs_monthly: 200,
+    vacancy_weeks: 0,
+    mgmt_fee_rate: 0,
     interest_rate: 0.055,
     property_growth: 0.03,
     rental_growth: 0.03,
@@ -5872,6 +6134,8 @@ function renderProperties(){
 	    ["strata_quarterly", "number", "Strata (Quarterly)"],
 	    ["rates_quarterly", "number", "Council Rates (Quarterly)"],
 	    ["other_costs_monthly", "number", "Other Costs (Monthly)"],
+	    ["vacancy_weeks", "number", "Vacancy (Weeks/Year)"],
+	    ["mgmt_fee_rate", "number", "Agent Mgmt Fee (% of Rent)"],
 	  ]},
 	];
 
@@ -5883,6 +6147,8 @@ function renderProperties(){
 	  sep.style.display = "flex"; sep.style.alignItems = "center"; sep.style.gap = "6px";
 	  sep.innerHTML = grp.label === "Value & Income"
 	    ? `${grp.label}<span class="info-tip" data-tip="negative_gearing">?</span>`
+	    : grp.label === "Running Costs"
+	    ? `${grp.label}<span class="info-tip" data-tip="vacancy_mgmt">?</span>`
 	    : grp.label;
 	  g.appendChild(sep);
 
@@ -5890,7 +6156,9 @@ function renderProperties(){
 	    const d = document.createElement("div");
 	    d.innerHTML = `<label>${label}</label><input id="p_${p.id}_${key}" type="${type}" />`
 	      + (key === "purchase_price" ? `<div class="prop-field-hint" id="p_${p.id}_todays_value_hint"></div>` : "")
-	      + (key === "monthly_rent" ? `<button type="button" class="btn-estimate-rent" onclick="event.stopPropagation(); estimatePropertyRent(${p.id})">🏷 Estimate from value</button>` : "");
+	      + (key === "monthly_rent" ? `<button type="button" class="btn-estimate-rent" onclick="event.stopPropagation(); estimatePropertyRent(${p.id})">🏷 Estimate from value</button>` : "")
+	      + (key === "vacancy_weeks" ? `<div class="input-hint">Typical: 1–3 weeks</div>` : "")
+	      + (key === "mgmt_fee_rate" ? `<div class="input-hint">Typical: 5–8% agent-managed · 0 self-managed</div>` : "");
 	    g.appendChild(d);
 	  });
 
@@ -5898,7 +6166,7 @@ function renderProperties(){
 	    // Purchase date (month precision)
 	    const pdWrap = document.createElement("div");
 	    pdWrap.innerHTML = `
-	      <label style="font-size:12px; color:#5C5955; display:block; margin-bottom:4px;">Purchase Date</label>
+	      <label style="font-size:12px; color:#5A625D; display:block; margin-bottom:4px;">Purchase Date</label>
 	      <div style="width:160px;">${monthPickerHTML(`p_${p.id}_purchase_date`, p.purchase_date || `${p.year_bought||2020}-01`, {
 	        onChange: (val) => updatePurchaseDate(p.id, val)
 	      })}</div>
@@ -5986,19 +6254,19 @@ function renderProperties(){
             })}
           </div>
           <div>
-            <label>Sale Price <span style="font-size:10px; color:#8A8582;">(blank = projected)</span></label>
+            <label>Sale Price <span style="font-size:10px; color:#828A85;">(blank = projected)</span></label>
             <input id="p_${p.id}_sale_price" type="text" inputmode="decimal"
                    value="${p.sale_price ? fmtMoneyInput(p.sale_price) : ''}" placeholder="Leave blank"
                    oninput="updateSaleField(${p.id},'sale_price',this.value)" />
           </div>
           <div>
-            <label>Agent commission <span style="font-size:10px;color:#8A8582;">(%)</span></label>
+            <label>Agent commission <span style="font-size:10px;color:#828A85;">(%)</span></label>
             <input id="p_${p.id}_sale_agent_rate" type="text" inputmode="decimal"
                    value="${((p.sale_agent_rate ?? 0.022)*100).toFixed(2)}"
                    oninput="updateSaleField(${p.id},'sale_agent_rate',this.value)" />
           </div>
           <div>
-            <label>Conveyancing <span style="font-size:10px;color:#8A8582;">($)</span></label>
+            <label>Conveyancing <span style="font-size:10px;color:#828A85;">($)</span></label>
             <input id="p_${p.id}_sale_conveyancing" type="text" inputmode="decimal"
                    value="${fmtMoneyInput(p.sale_conveyancing ?? 2500)}"
                    oninput="updateSaleField(${p.id},'sale_conveyancing',this.value)" />
@@ -6535,7 +6803,7 @@ function renderPporRows(id){
 
   wrap.innerHTML = '';
   if (!periods.length){
-    wrap.innerHTML = '<div style="font-size:12px; color:#8A8582; padding:4px 0;">No PPOR periods — property treated as investment throughout.</div>';
+    wrap.innerHTML = '<div style="font-size:12px; color:#828A85; padding:4px 0;">No PPOR periods — property treated as investment throughout.</div>';
     return;
   }
 
@@ -6707,6 +6975,38 @@ const INFO_TIPS = {
   cpi_rate: {
     title: 'CPI Assumption',
     body: 'Annual inflation rate used to index property cost bases from July 2027 onwards. The RBA targets 2–3% over the medium term. This only affects the CGT calculation on property sales after July 2027.'
+  },
+  end_age: {
+    title: 'Model To Age',
+    body: 'The age the projection runs to. Set it past your super access age (60) so the model can show super drawdowns — ending at 60 means super income barely appears.'
+  },
+  lifestyle_income: {
+    title: 'Target Lifestyle Income',
+    body: 'The annual income (in today\'s dollars) you want to live on after reaching FIRE. The model inflates it each year and declares FIRE when your passive cashflow — net rent, stock drawdown, and super (once accessible) — covers it after tax and loan principal payments. This is also what you\'re assumed to spend each year post-FIRE.'
+  },
+  inflation: {
+    title: 'Inflation',
+    body: 'Grows your expenses, lifestyle target, and stock contributions each year. The RBA targets 2–3%; Australia\'s long-run average is about 2.5%. Small changes compound heavily over 30+ years, so stay realistic.'
+  },
+  salary_growth: {
+    title: 'Salary Growth',
+    body: 'Annual growth in your gross income. The Wage Price Index has averaged ~3–3.5%/yr. Use a higher rate if you expect promotions, but remember it applies every single year of the projection.'
+  },
+  stock_growth: {
+    title: 'Stock Growth Rate',
+    body: 'Long-run total return on your share portfolio. Australian and global equities have returned roughly 7–9%/yr over long periods before tax. The model doesn\'t tax returns during accumulation, so entering an after-tax rate (6–7%) is more realistic.'
+  },
+  super_growth: {
+    title: 'Super Growth Rate',
+    body: 'Long-run return on your super after fund fees and the 15% earnings tax. Typical balanced funds have delivered 6–7%/yr after those drags; growth options a little more with more volatility.'
+  },
+  sg_rate: {
+    title: 'Employer Super Guarantee',
+    body: 'The compulsory percentage of your salary your employer pays into super — legislated at 12% from 1 July 2025. The model applies the 15% contributions tax, so 85% of the gross amount lands in your balance.'
+  },
+  vacancy_mgmt: {
+    title: 'Vacancy & Management Fees',
+    body: 'Realistic rentals aren\'t occupied 52 weeks a year — allowing 1–3 weeks of vacancy is standard. Agent-managed properties also pay a management fee, typically 5–8% of rent. Both reduce the effective rent used in the model. Leave at 0 to self-manage with no vacancy allowance.'
   }
 };
 
@@ -7154,7 +7454,7 @@ const fireMarkerPlugin = {
     // FIRE marker
     const fireIdx = pluginOptions?.index;
     const fireLabel = pluginOptions?.label || "FIRE";
-    drawMarker(fireIdx, fireLabel, "rgba(28,28,26,.25)", "#1C1C1A", [4,4], 0);
+    drawMarker(fireIdx, fireLabel, "rgba(28,28,26,.25)", "#151816", [4,4], 0);
 
     // Major event markers (property buy/sell, super access, age pension)
     if (_showEventMarkers) {
@@ -7409,7 +7709,7 @@ const fireIncomeWithCashSeries =
 
 	  // --- Properties combined (above per-property breakdown)
 	  ...(propPrefixes.length   ? [{ id:"propertyEquity",  label:"Total equity",   axis:"y",  data: equitySeries,        defaultOn:false, group:"props-combined", order:1, color:"#F97316" }] : []),
-	  ...(mortgageTotalSeries   ? [{ id:"totalMortgage",   label:"Total mortgage", axis:"y",  data: mortgageTotalSeries, defaultOn:false, group:"props-combined", order:2, color:"#FB923C" }] : []),
+	  ...(mortgageTotalSeries   ? [{ id:"totalMortgage",   label:"Total mortgage", axis:"y",  data: mortgageTotalSeries, defaultOn:false, group:"props-combined", order:2, color:"#C2410C" }] : []),
 	  ...(netRentSeries         ? [{ id:"netRent",         label:"Net rent",       axis:"y2", data: netRentSeries,       defaultOn:false, group:"props-combined", order:3, color:"#84CC16" }] : []),
 	];
 
@@ -7602,7 +7902,7 @@ propPrefixes.forEach((prefix, i) => {
         color: "rgba(28,28,26,.25)",
         dash: [4, 4],
         lineWidth: 1.5,
-        boxBg: "#1C1C1A",
+        boxBg: "#151816",
         events: propEventMarkers
       }
       },
@@ -7610,7 +7910,7 @@ propPrefixes.forEach((prefix, i) => {
         x: {
 			  position: "top",
 			  ticks: {
-				color: (c) => stockOverrideIdxSet.has(c.index) ? STOCK_OVERRIDE_COLOR : "#5C5955",
+				color: (c) => stockOverrideIdxSet.has(c.index) ? STOCK_OVERRIDE_COLOR : "#5A625D",
 				font: (c) => ({ size: 11, weight: stockOverrideIdxSet.has(c.index) ? '700' : '400' })
 			  },
 			  grid: {
@@ -8151,10 +8451,31 @@ function parseFromUI(str, meta){
   return meta.type === "int" ? Math.round(n) : n;
 }
 
+/* Sensible ranges for assumption fields — values outside get a soft amber
+   highlight (guidance only, never blocks input). Decimal form (0.025 = 2.5%). */
+const RANGE_GUIDES = {
+  inflation:               [0.015, 0.04],
+  average_salary_increase: [0.02,  0.055],
+  stock_growth:            [0.04,  0.10],
+  stock_swr:               [0.025, 0.05],
+  super_swr:               [0.025, 0.05],
+  super_growth:            [0.04,  0.09],
+  super_sg_rate:           [0.10,  0.13],
+  cpi_rate:                [0.015, 0.035],
+};
+
+function applyRangeGuide(el, value){
+  const range = RANGE_GUIDES[el.id];
+  if (!range) return;
+  const n = Number(value);
+  el.classList.toggle("input-warn", Number.isFinite(n) && (n < range[0] || n > range[1]));
+}
+
 function attachUnitInputBehavior(el, meta, getVal, setVal){
   if (!el) return;
 
   el.value = formatForUI(getVal(), meta);
+  applyRangeGuide(el, getVal());
 
   el.addEventListener("focus", () => {
     const v = getVal();
@@ -8166,6 +8487,7 @@ function attachUnitInputBehavior(el, meta, getVal, setVal){
     const parsed = parseFromUI(el.value, meta);
     setVal(parsed);
     el.value = formatForUI(parsed, meta);
+    applyRangeGuide(el, parsed);
     saveState();
   };
 
@@ -9777,7 +10099,7 @@ async function renderFireProgress(){
         </div>
         <div class="fp-stat-box">
           <div class="fp-stat-label">Months On Target</div>
-          <div class="fp-stat-val">${onTrackCount}<span style="font-size:13px;font-weight:500;color:#8A8582"> / ${logged.length}</span></div>
+          <div class="fp-stat-val">${onTrackCount}<span style="font-size:13px;font-weight:500;color:#828A85"> / ${logged.length}</span></div>
           <div class="fp-stat-sub">last 12 months</div>
         </div>
       </div>
@@ -9789,7 +10111,7 @@ async function renderFireProgress(){
           <span class="fp-bar-pct" style="
             left:${pct >= 100 ? '50%' : pct + '%'};
             transform:translate(${pct >= 100 ? '-50%' : pct >= 20 ? 'calc(-100% - 8px)' : '8px'}, -50%);
-            color:${pct >= 20 ? '#fff' : '#5C5955'};
+            color:${pct >= 20 ? '#fff' : '#5A625D'};
           ">${Math.round(pct)}%</span>
         </div>
       </div>
@@ -9906,16 +10228,16 @@ function _renderFireChart(series, targets){
       },
       scales: {
         x: {
-          ticks: { font:{size:10}, color:'#5C5955' },
+          ticks: { font:{size:10}, color:'#5A625D' },
           grid:  { display:false }
         },
         y: {
           ticks: {
             callback: v => '$' + Math.round(v/1000) + 'k',
-            font:{size:10}, color:'#8A8582'
+            font:{size:10}, color:'#828A85'
           },
           grid:   { color:'#F0EDE8' },
-          border: { color:'#E8E4DE' }
+          border: { color:'#E5E7EB' }
         }
       }
     }
@@ -10293,19 +10615,19 @@ function renderExpenseChart(){
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position:'bottom', labels:{ font:{size:10}, boxWidth:10, padding:10, color:'#5C5955' } },
+        legend: { position:'bottom', labels:{ font:{size:10}, boxWidth:10, padding:10, color:'#5A625D' } },
         tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: $${Math.round(ctx.raw).toLocaleString()}` } }
       },
       scales: {
         x: {
           stacked: true,
-          ticks: { font:{size:10}, color:'#5C5955', maxRotation:30 },
+          ticks: { font:{size:10}, color:'#5A625D', maxRotation:30 },
           grid: { display:false }
         },
         y: {
           stacked: true,
-          ticks: { callback: v => '$' + Math.round(v).toLocaleString(), font:{size:10}, color:'#8A8582' },
-          grid: { color:'#F0EDE8' }, border:{ color:'#E8E4DE' }
+          ticks: { callback: v => '$' + Math.round(v).toLocaleString(), font:{size:10}, color:'#828A85' },
+          grid: { color:'#F0EDE8' }, border:{ color:'#E5E7EB' }
         }
       }
     }
@@ -10773,7 +11095,7 @@ function _renderLifeEventForm(form){
         </div>
         ${!isWindfall ? `
         <div>
-          <label>End <span style="font-size:10px;color:#8A8582;">(blank = ongoing)</span></label>
+          <label>End <span style="font-size:10px;color:#828A85;">(blank = ongoing)</span></label>
           ${monthPickerHTML('lev_end', form.end, { placeholder: 'Ongoing', allowClear: true, clearLabel: 'Ongoing' })}
         </div>
         <div>
@@ -11279,7 +11601,7 @@ function renderSyncPanel(){
     const valLabel = hasData ? fmtDollar(srcVal)+'/yr' : 'No data yet';
     return `<div class="sync-row">
       <span class="sync-field-lbl">${def.label}</span>
-      <span class="sync-field-val" style="color:${hasData?'#5C5955':'#C8C4BC'}">${valLabel}</span>
+      <span class="sync-field-val" style="color:${hasData?'#5A625D':'#C8C4BC'}">${valLabel}</span>
       <div class="sync-pills">
         <button class="sync-pill${mode==='manual'?' active':''}" onclick="setSyncMode('${def.key}','manual')">Manual</button>
         <button class="sync-pill${mode==='sync'?' active':''}"${!hasData?' disabled':''} onclick="setSyncMode('${def.key}','sync')">${def.sourceLabel}</button>
@@ -11323,7 +11645,7 @@ function _dashFireCard(){
 
   if(fireAge && fireNW){
     const pct = Math.min(100, Math.max(0, (currentNW/fireNW)*100));
-    const barColor = pct >= 100 ? '#059669' : pct >= 50 ? '#F59E0B' : '#1D9E75';
+    const barColor = pct >= 100 ? '#059669' : pct >= 50 ? '#F59E0B' : '#059669';
     el.innerHTML = `
       <div class="dash-fire-header">
         <div>
@@ -11447,7 +11769,7 @@ function _dashNWChart_render(){
   const sum = state.lastResult ? _extractModelSummary() : null;
   const fireNW = sum?.fire_nw ?? null;
   const datasets = [
-    { label:'Net Worth', data:totals, borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#1D9E75', borderWidth:2.5 },
+    { label:'Net Worth', data:totals, borderColor:'#059669', backgroundColor:'rgba(29,158,117,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#059669', borderWidth:2.5 },
   ];
   if(fireNW){
     datasets.push({ label:'FIRE Target', data:Array(months.length).fill(fireNW), borderColor:'#F59E0B', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 });
@@ -11587,7 +11909,7 @@ function renderScenCompareBar() {
   const list = _scenLoad();
   if (!list.length || !state.lastResult) { bar.style.display = 'none'; return; }
   bar.style.display = '';
-  bar.innerHTML = `<span style="font-size:11px;color:#8A8582;white-space:nowrap;">Compare:</span>` +
+  bar.innerHTML = `<span style="font-size:11px;color:#828A85;white-space:nowrap;">Compare:</span>` +
     list.map(s => {
       const pinned = _pinnedScenarios.has(s.id);
       const color  = s.color || '#888';
@@ -11763,8 +12085,8 @@ function renderScenarios(){
     return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #F0EDE8;" onmouseenter="this.style.background='#FAFAF8'" onmouseleave="this.style.background=''">
       <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:#1C1C1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(s.label)}">${escapeHtml(s.label)}</div>
-        <div style="font-size:11px;color:#8A8582;">${s.date} · FIRE ${fireAge || '—'}${fireDiff}${isBest?' 🏆':''}</div>
+        <div style="font-size:13px;font-weight:600;color:#151816;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(s.label)}">${escapeHtml(s.label)}</div>
+        <div style="font-size:11px;color:#828A85;">${s.date} · FIRE ${fireAge || '—'}${fireDiff}${isBest?' 🏆':''}</div>
       </div>
       <button class="btn ghost" style="padding:3px 10px;font-size:12px;white-space:nowrap;" onclick="loadScenario('${s.id}');toggleScenarioDropdown(false);">Load</button>
       <button style="background:none;border:none;color:#C4B5B0;cursor:pointer;font-size:14px;padding:0 2px;" onclick="deleteScenario('${s.id}')" title="Delete">✕</button>
@@ -11786,7 +12108,7 @@ function fillTestData(){
     stock_growth: 0.07, stock_yearly_contribution: 15000,
     starting_stock_value: 45000, stock_swr: 0.04,
     super_swr: 0.04, super_access_age: 60,
-    super_starting_balance: 95000, super_sg_rate: 0.115,
+    super_starting_balance: 95000, super_sg_rate: 0.12,
     super_growth: 0.065, super_additional_annual: 5000,
   };
   Object.entries(testInputs).forEach(([k,v]) => {
@@ -11879,7 +12201,7 @@ window.addEventListener('load', ()=>{
   const btn = document.createElement('button');
   btn.id = 'devFillBtn';
   btn.textContent = '🧪 Fill test data';
-  btn.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:9999;background:#1C1C1A;color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;opacity:.85;';
+  btn.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:9999;background:#151816;color:#fff;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;opacity:.85;';
   btn.onclick = fillTestData;
   document.body.appendChild(btn);
 });
