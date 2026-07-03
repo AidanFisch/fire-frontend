@@ -1945,8 +1945,10 @@ html, body {
 /* Page layout */
 .wrap { padding: 24px 24px 56px; padding-top: calc(var(--topbar-height, 85px) + 24px); }
 body.has-action-bar .wrap { padding-top: calc(var(--topbar-height, 85px) + var(--bar-height, 50px) + 24px); }
-body.landing .wrap { padding-top: 0; }
+body.landing .wrap { padding: 0 !important; }
 body.landing #tab-landing { margin-top: 0 !important; }
+body.landing #tab-landing > .grid { gap: 0 !important; }
+body.landing .landing-hero { border-radius: 0 !important; }
 .grid { gap: 20px; }
 
 /* ── Topbar ── */
