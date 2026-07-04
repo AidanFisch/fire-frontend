@@ -4426,6 +4426,7 @@ select.exp-input { cursor:pointer; }
             <div class="bsi-label">Net savings</div>
             <div class="bsi-val" id="bsiNet">—</div>
             <div class="bsi-sub" id="bsiNetA"></div>
+            <div class="bsi-sub" id="bsiNetTarget"></div>
           </div>
           <div class="budget-summary-item">
             <div class="bsi-label">Savings rate <span class="info-tip" data-tip="savings_rate">?</span></div>
@@ -7750,6 +7751,16 @@ const fireIncomeWithCashSeries =
 	  ? seriesFromKey(withdrawalsKey).map(v => (withdrawalsKey === "Withdrawals_Total" ? v / 12 : v))
 	  : null;
 
+	// Wealth needed for FIRE at each point: inflation-adjusted annual target / SWR
+	const _swr = toNumber(state.inputs.stock_swr) || 0.04;
+	const fireNumberSeries = (fireTargetSeries && _swr > 0)
+	  ? fireTargetSeries.map(v => (v * 12) / _swr)
+	  : null;
+
+	// Flat line at today's actual net worth (equity + holdings) for context
+	const _todayNW = _dashCurrentNW();
+	const todayNWLineSeries = _todayNW > 0 ? rows.map(() => _todayNW) : null;
+
 
   // Registry of possible chart datasets
 	// Registry of possible chart datasets
@@ -7767,6 +7778,13 @@ const fireIncomeWithCashSeries =
 	  ...(withdrawalsSeries     ? [{ id:"withdrawals",        label:"Withdrawals",        axis:"y2", data: withdrawalsSeries,      defaultOn:false, group:"cashflow", order:5, color:"#FB923C" }] : []),
 	  ...(taxSeries             ? [{ id:"taxPaid",            label:"Tax paid",           axis:"y2", data: taxSeries,             defaultOn:false, group:"cashflow", order:6, color:"#94A3B8" }] : []),
 	  ...(cashDrawSeries        ? [{ id:"cashDrawdown",       label:"Cash drawdown",      axis:"y2", data: cashDrawSeries,        defaultOn:false, group:"cashflow", order:7, color:"#EC4899" }] : []),
+
+	  // --- Reference lines (left axis)
+	  // FIRE Number = wealth needed at each point in time: the inflation-
+	  // adjusted lifestyle target divided by the stock drawdown rate. Where
+	  // Net worth crosses this line ≈ wealth-based FIRE.
+	  ...(fireNumberSeries      ? [{ id:"fireNumberLine",  label:"FIRE Number (wealth needed)", axis:"y", data: fireNumberSeries, defaultOn:true,  group:"balances", order:6, color:"#DC2626", borderDash:[7,4], borderWidth:1.5 }] : []),
+	  ...(todayNWLineSeries     ? [{ id:"todayNWLine",     label:"Today's net worth",           axis:"y", data: todayNWLineSeries, defaultOn:false, group:"balances", order:7, color:"#828A85", borderDash:[3,3], borderWidth:1.5 }] : []),
 
 	  // --- Properties combined (above per-property breakdown)
 	  ...(propPrefixes.length   ? [{ id:"propertyEquity",  label:"Total equity",   axis:"y",  data: equitySeries,        defaultOn:false, group:"props-combined", order:1, color:"#F97316" }] : []),
@@ -9968,16 +9986,21 @@ function renderBudgetYearTable(data){
     return past ? 'bm-past' : 'bm-future';
   };
 
-  // Header row
+  // Header row (+ year Total column)
   let thead = `<tr><th class="budget-row-th"></th>`;
   months.forEach((_, i) => {
     const cls = mCls(i);
     const dot = cls === 'bm-logged' ? '<span class="bm-dot">●</span>' : '';
     thead += `<th class="budget-month-th ${cls}" onclick="loadBudgetMonth('${mStr(i)}')">${MONTH_LABELS[i]}${dot}</th>`;
   });
-  thead += '</tr>';
+  thead += `<th class="budget-month-th" style="border-left:2px solid #E5E7EB;">Total</th></tr>`;
 
-  // Data row helper
+  const sumOf = valFn => {
+    const vals = months.map(valFn).filter(v => v !== null);
+    return vals.length ? vals.reduce((s,v)=>s+v, 0) : null;
+  };
+
+  // Data row helper — trailing cell is the year total
   const mkRow = (label, valFn, colorFn) => {
     let r = `<tr><td class="budget-row-lbl">${label}</td>`;
     months.forEach((m, i) => {
@@ -9985,10 +10008,23 @@ function renderBudgetYearTable(data){
       const cls = v === null ? 'bc-empty' : colorFn(v);
       r += `<td class="budget-cell ${cls}" onclick="loadBudgetMonth('${mStr(i)}')">${fmtDollar(v)}</td>`;
     });
-    return r + '</tr>';
+    const tot = sumOf(valFn);
+    const totCls = tot === null ? 'bc-empty' : colorFn(tot);
+    return r + `<td class="budget-cell ${totCls}" style="border-left:2px solid #E5E7EB;font-weight:700;">${fmtDollar(tot)}</td></tr>`;
   };
   const secHdr = lbl =>
-    `<tr><td class="budget-sec-hdr" colspan="13">${lbl}</td></tr>`;
+    `<tr><td class="budget-sec-hdr" colspan="14">${lbl}</td></tr>`;
+
+  // Savings-rate row (% of income kept, actuals)
+  const rateFor = (inc, net) => (inc !== null && inc > 0 && net !== null) ? net / inc : null;
+  let rateRow = `<tr><td class="budget-row-lbl">Rate</td>`;
+  months.forEach((m, i) => {
+    const rt = rateFor(m.income_actual, m.net_actual);
+    const cls = rt === null ? 'bc-empty' : rt >= 0 ? 'bc-pos' : 'bc-neg';
+    rateRow += `<td class="budget-cell ${cls}" onclick="loadBudgetMonth('${mStr(i)}')">${rt === null ? '—' : Math.round(rt*100)+'%'}</td>`;
+  });
+  const totRate = rateFor(sumOf(m=>m.income_actual), sumOf(m=>m.net_actual));
+  rateRow += `<td class="budget-cell ${totRate===null?'bc-empty':totRate>=0?'bc-pos':'bc-neg'}" style="border-left:2px solid #E5E7EB;font-weight:700;">${totRate===null?'—':Math.round(totRate*100)+'%'}</td></tr>`;
 
   const html = `
     <div class="data-table-wrap"><div class="tablewrap">
@@ -10001,6 +10037,8 @@ function renderBudgetYearTable(data){
           ${mkRow('Actual', m => m.expense_actual, () => 'bc-data')}
           ${secHdr('NET SAVINGS')}
           ${mkRow('Actual', m => m.net_actual, v => v >= 0 ? 'bc-pos' : 'bc-neg')}
+          ${secHdr('SAVINGS RATE')}
+          ${rateRow}
         </tbody>
       </table>
     </div></div>`;
@@ -10634,6 +10672,21 @@ function updateBudgetSummary(){
   setEl('bsiNet',  fmt(netP), netCls);
   const netActualCls = (hasIncA || hasExpA) ? (netA < 0 ? 'bsi-sub bsi-neg' : 'bsi-sub') : 'bsi-sub';
   setEl('bsiNetA', (hasIncA || hasExpA) ? `Actual ${fmt(netA)}` : '', netActualCls);
+
+  // How this month compares to the model's assumed monthly savings —
+  // same traffic-light thresholds as the Overview chart.
+  const tgtEl = document.getElementById('bsiNetTarget');
+  if (tgtEl){
+    const target = fireModelTargetMonthly() || null;
+    const liveNet = (hasIncA || hasExpA) ? netA : netP;
+    if (target && target > 0 && liveNet !== null && (incP || incA)){
+      const col = liveNet >= target ? '#059669' : liveNet >= target * 0.5 ? '#F59E0B' : '#DC2626';
+      tgtEl.textContent = `Target ${fmt(target)}/mo`;
+      tgtEl.style.color = col;
+    } else {
+      tgtEl.textContent = '';
+    }
+  }
 
   const rateCls = `bsi-val${rateP !== null && rateP > 0 ? ' bsi-pos' : rateP !== null && rateP < 0 ? ' bsi-neg' : ''}`;
   setEl('bsiRate',  rateP !== null ? fmtR(rateP) : '—', rateCls);
@@ -11594,7 +11647,7 @@ function renderPortHistoryChart(data){
         }
       },
       scales:{
-        y:{ stacked:true, ticks:{ callback: v => '$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
+        y:{ stacked:true, ticks:{ callback: v => '$'+moneyAxis(v) }, grid:{ color:'#F0EDE8' } },
         x:{ stacked:true, grid:{ display:false } }
       }
     }
@@ -11911,7 +11964,7 @@ function _dashNWChart_render(){
         tooltip:{ callbacks:{ label: c=>c.dataset.label+': '+fmtDollar(c.parsed.y) } }
       },
       scales:{
-        y:{ ticks:{ callback:v=>'$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' } },
+        y:{ ticks:{ callback:v=>'$'+moneyAxis(v) }, grid:{ color:'#F0EDE8' } },
         x:{ grid:{ display:false } }
       }
     }
@@ -11936,7 +11989,21 @@ function _dashBudgetChart_render(){
   const ctx = wrap.querySelector('#dashBudgetCanvas').getContext('2d');
   const labels = series.map(m=>{ const [y,mo]=m.month.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short'}); });
   const actuals = series.map(m=>m.net_actual);
-  const targets = series.map(m=>{ const yr=Number(m.month.split('-')[0]); return fireModelTargetMonthly() || null; });
+  const target = fireModelTargetMonthly() || null;
+  const targets = series.map(()=>target);
+
+  // Traffic-light bars: green = on target, orange = below but over half,
+  // red = under half the target (or negative). No target: green/red by sign.
+  const barColorFor = v => {
+    if (v == null) return 'transparent';
+    if (target && target > 0){
+      if (v >= target)       return '#059669';
+      if (v >= target * 0.5) return '#F59E0B';
+      return '#DC2626';
+    }
+    return v >= 0 ? '#059669' : '#DC2626';
+  };
+
   if(_dashBudgetChart){ _dashBudgetChart.destroy(); _dashBudgetChart=null; }
   _dashBudgetChart = new Chart(ctx, {
     type:'bar',
@@ -11944,20 +12011,32 @@ function _dashBudgetChart_render(){
       labels,
       datasets:[
         { label:'Actual net savings', data:actuals,
-          backgroundColor: actuals.map(v=>v==null?'transparent':v>=0?'rgba(29,158,117,.7)':'rgba(225,29,72,.65)'),
+          backgroundColor: actuals.map(barColorFor),
           borderRadius:3, borderSkipped:false },
-        { label:'Model target', data:targets, type:'line',
-          borderColor:'#F59E0B', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }
+        ...(target ? [{ label:'Target', data:targets, type:'line',
+          borderColor:'#3B82F6', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }] : [])
       ]
     },
     options:{
       responsive:true,
       plugins:{
-        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        legend:{
+          position:'top',
+          onClick: () => {},   // status-key entries, nothing to toggle
+          labels:{
+            boxWidth:12, font:{size:11}, usePointStyle:true,
+            generateLabels: () => [
+              ...(target ? [{ text:'Target', fontColor:'#3E4A3F', fillStyle:'#3B82F6', strokeStyle:'#3B82F6', pointStyle:'line', lineDash:[5,4], lineWidth:2 }] : []),
+              { text:'On target',             fontColor:'#3E4A3F', fillStyle:'#059669', strokeStyle:'#059669', pointStyle:'rectRounded', lineWidth:0 },
+              { text:'Below target',          fontColor:'#3E4A3F', fillStyle:'#F59E0B', strokeStyle:'#F59E0B', pointStyle:'rectRounded', lineWidth:0 },
+              { text:'Under half / negative', fontColor:'#3E4A3F', fillStyle:'#DC2626', strokeStyle:'#DC2626', pointStyle:'rectRounded', lineWidth:0 },
+            ]
+          }
+        },
         tooltip:{ callbacks:{ label: c=>c.dataset.label+': '+fmtDollar(c.parsed.y) } }
       },
       scales:{
-        y:{ ticks:{ callback:v=>'$'+Math.round(v/1000)+'k' }, grid:{ color:'#F0EDE8' }, beginAtZero:false },
+        y:{ ticks:{ callback:v=>'$'+moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:false },
         x:{ grid:{ display:false } }
       }
     }
