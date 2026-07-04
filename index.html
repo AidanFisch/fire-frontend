@@ -5837,6 +5837,17 @@ function propertySummary(p){
   return { value, loan, equity, lvr, netMo };
 }
 
+/* Is this property owned TODAY (purchase date not in the future)? Planned
+   future purchases must not count toward current equity/net worth — a 2041
+   apartment isn't wealth you have now. */
+function propertyOwnedNow(p){
+  const pd = p.purchase_date || (p.year_bought ? `${p.year_bought}-01` : null);
+  if (!pd) return true; // no date info — assume owned
+  const now = new Date();
+  const nowStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  return String(pd).slice(0,7) <= nowStr;
+}
+
 
 function setExpandedProperty(id){
   state.expandedPropertyId = (Number(state.expandedPropertyId) === Number(id)) ? null : Number(id);
@@ -6709,11 +6720,16 @@ function showPropertiesTab(){
 
 function updatePropSummaryStrip(){
   const props = state.property_list || [];
-  const totValue  = props.reduce((s,p) => s + toNumber(p.current_value), 0);
-  const totDebt   = props.reduce((s,p) => s + toNumber(p.loan_balance_current ?? p.original_loan ?? 0), 0);
+  // Totals reflect what you own TODAY — planned future purchases are shown
+  // on their own cards but excluded here so equity/net worth aren't inflated
+  // by wealth that doesn't exist yet.
+  const owned = props.filter(propertyOwnedNow);
+  const planned = props.length - owned.length;
+  const totValue  = owned.reduce((s,p) => s + toNumber(p.current_value), 0);
+  const totDebt   = owned.reduce((s,p) => s + toNumber(p.loan_balance_current ?? p.original_loan ?? 0), 0);
   const totEquity = Math.max(totValue - totDebt, 0);
   const avgLvr    = totValue > 0 ? (totDebt / totValue) : 0;
-  const totNet    = props.reduce((s,p) => s + calcNetMonthlyForProperty(p), 0);
+  const totNet    = owned.reduce((s,p) => s + calcNetMonthlyForProperty(p), 0);
   const fmt = v => v > 0 ? fmtMoney(v) : (v < 0 ? '-'+fmtMoney(-v) : '—');
   const s = id => document.getElementById(id);
   if(s('propSIValue'))  s('propSIValue').textContent = fmtMoney(totValue);
@@ -6735,7 +6751,9 @@ function updatePropSummaryStrip(){
       dps.innerHTML = `${props.length} propert${props.length!==1?'ies':'y'}`
         + (ppor ? ` &nbsp;·&nbsp; ${ppor} PPOR` : '')
         + (inv  ? ` &nbsp;·&nbsp; ${inv} investment` : '')
+        + (planned ? ` &nbsp;·&nbsp; ${planned} planned` : '')
         + `<br>Total equity <strong>${fmtMoney(totEquity)}</strong>`
+        + (planned ? ` <span style="color:#828A85;">(owned today — excludes planned)</span>` : '')
         + ` &nbsp;·&nbsp; Net/mo <strong style="color:${totNet>=0?'#059669':'#E11D48'}">${totNet>=0?'+':''}${fmtMoney(totNet)}</strong>`;
     }
   }
@@ -11222,10 +11240,12 @@ const PORT_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep',
 
 /** Live total of current_value across property model cards (Properties sub-tab). */
 function propModelTotal(){
-  // EQUITY (value − loan), not gross value — this feeds the Holdings
-  // "Property" row and net-worth cards, where counting the bank's share
-  // of the house as your wealth would overstate everything.
-  return (state.property_list || []).reduce((s,p) => s + propertySummary(p).equity, 0);
+  // EQUITY (value − loan) of properties owned TODAY — this feeds the
+  // Holdings "Property" row and net-worth cards. Gross value would count
+  // the bank's share as wealth; planned future purchases aren't wealth yet.
+  return (state.property_list || [])
+    .filter(propertyOwnedNow)
+    .reduce((s,p) => s + propertySummary(p).equity, 0);
 }
 
 let _portYear = new Date().getFullYear();
