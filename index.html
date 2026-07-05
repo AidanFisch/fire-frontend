@@ -4385,7 +4385,14 @@ select.exp-input { cursor:pointer; }
           <button class="btn ghost" onclick="budgetMonthStep(1)" aria-label="Next month">›</button>
           <div class="month-picker-pop" id="budgetMonthPop"></div>
         </div>
-        <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy Previous Month</button>
+        <div style="position:relative; display:inline-flex; align-items:center;">
+          <button class="budget-copy-btn" id="budgetCopyBtn" onclick="copyPrevMonth()">Copy Previous Month</button>
+          <button class="budget-copy-btn" style="margin-left:2px; padding-left:8px; padding-right:8px;"
+                  title="Copy from another month" onclick="toggleCopyFromDropdown(event)">▾</button>
+          <div id="copyFromDropdown" style="display:none; position:absolute; top:calc(100% + 4px); right:0; z-index:150;
+               background:#fff; border:1px solid #D6D9DD; border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.1);
+               min-width:170px; max-height:260px; overflow-y:auto; padding:4px 0;"></div>
+        </div>
         <span id="budgetSaveStatus" class="budget-save-status"></span>
       </div>
 
@@ -9750,7 +9757,15 @@ function budgGetSeries(fromMonth, toMonth){
 
 function copyPrevMonth(){
   if(!budgetMonthStr) return;
-  const prev = prevMonthStr(budgetMonthStr);
+  copyFromMonth(prevMonthStr(budgetMonthStr));
+}
+
+/** Copy any month's PLANNED budget into the currently open month.
+ *  Actuals are never copied — they belong to the source month. */
+function copyFromMonth(src){
+  if(!budgetMonthStr || !src || src === budgetMonthStr) return;
+  const [sy, sm] = src.split('-').map(Number);
+  const srcLbl = new Date(sy, sm-1, 1).toLocaleDateString('en-AU', {month:'long', year:'numeric'});
 
   // Check if current month already has meaningful planned data
   const hasPlanned =
@@ -9760,30 +9775,117 @@ function copyPrevMonth(){
       .some(r => r.querySelector('.exp-budget').value.trim());
 
   if(hasPlanned){
-    const [py, pm] = prev.split('-').map(Number);
-    const prevLbl = new Date(py, pm-1, 1).toLocaleDateString('en-AU', {month:'long', year:'numeric'});
-    if(!confirm(`Replace this month's budget with a copy of ${prevLbl}?`)) return;
+    if(!confirm(`Replace this month's budget with a copy of ${srcLbl}?`)) return;
   }
 
-  const data = budgGetMonth(prev);
+  const data = budgGetMonth(src);
   if(!data){
     const status = document.getElementById('budgetSaveStatus');
-    if(status){ status.textContent = 'No budget saved for previous month'; status.className = 'budget-save-status error'; }
+    if(status){ status.textContent = `No budget saved for ${srcLbl}`; status.className = 'budget-save-status error'; }
     return;
   }
 
-  // Copy planned amounts only — strip actuals (they belong to last month)
+  // Copy planned amounts only — strip actuals (they belong to the source month)
   if(data.income)     data.income.actual = null;
   if(data.categories) data.categories.forEach(c => { c.actual = null; });
 
-  // Use prev month's income breakdown from localStorage, strip actuals
-  const prevIncRows = loadIncomeRowsFromStorage(prev).map(r => ({...r, actual: ''}));
-  populateLogForm(data, prevIncRows.length ? prevIncRows : undefined);
+  // Use source month's income breakdown from localStorage, strip actuals
+  const srcIncRows = loadIncomeRowsFromStorage(src).map(r => ({...r, actual: ''}));
+  populateLogForm(data, srcIncRows.length ? srcIncRows : undefined);
 
   const status = document.getElementById('budgetSaveStatus');
-  if(status){ status.textContent = 'Copied — edit to save'; status.className = 'budget-save-status'; }
+  if(status){ status.textContent = `Copied ${srcLbl} — edit to save`; status.className = 'budget-save-status'; }
   updateBudgetSummary();
 }
+
+/* ── Budget template: your "standard month" saved once, applied anywhere ── */
+const _WM_BUDGET_TEMPLATE_KEY = 'wm_budget_template';
+
+function _budgTemplateLoad(){
+  try{ return JSON.parse(localStorage.getItem(_WM_BUDGET_TEMPLATE_KEY) || 'null'); } catch(_){ return null; }
+}
+
+/** Snapshot the currently open month's PLANNED figures as the template */
+function saveBudgetTemplate(){
+  const data = budgGetMonth(budgetMonthStr);
+  const incRows = loadIncomeRowsFromStorage(budgetMonthStr).map(r => ({...r, actual:''}));
+  if(!data && !incRows.length){
+    const status = document.getElementById('budgetSaveStatus');
+    if(status){ status.textContent = 'Nothing to save — fill in this month first'; status.className = 'budget-save-status error'; }
+    return;
+  }
+  const tpl = JSON.parse(JSON.stringify(data || {}));
+  if(tpl.income)     tpl.income.actual = null;
+  if(tpl.categories) tpl.categories.forEach(c => { c.actual = null; });
+  localStorage.setItem(_WM_BUDGET_TEMPLATE_KEY, JSON.stringify({ data: tpl, income_rows: incRows, savedFrom: budgetMonthStr }));
+  const status = document.getElementById('budgetSaveStatus');
+  if(status){ status.textContent = 'Template saved ✓'; status.className = 'budget-save-status saved'; }
+}
+
+/** Fill the open month from the saved template (planned only) */
+function applyBudgetTemplate(){
+  const tpl = _budgTemplateLoad();
+  if(!tpl){ return; }
+  const hasPlanned =
+    [...document.querySelectorAll('#incomeTableBody .income-row')]
+      .some(r => r.querySelector('.inc-budget').value.trim()) ||
+    [...document.querySelectorAll('#expenseTableBody .expense-row')]
+      .some(r => r.querySelector('.exp-budget').value.trim());
+  if(hasPlanned && !confirm(`Replace this month's budget with your saved template?`)) return;
+  populateLogForm(tpl.data || {}, (tpl.income_rows && tpl.income_rows.length) ? tpl.income_rows : undefined);
+  const status = document.getElementById('budgetSaveStatus');
+  if(status){ status.textContent = 'Template applied — edit to save'; status.className = 'budget-save-status'; }
+  updateBudgetSummary();
+}
+
+/** Small "▾" dropdown: template actions + pick any logged month to copy from */
+function toggleCopyFromDropdown(e){
+  e.stopPropagation();
+  const dd = document.getElementById('copyFromDropdown');
+  if(!dd) return;
+  if(dd.style.display !== 'none'){ dd.style.display = 'none'; return; }
+
+  const itemStyle = `display:block; width:100%; text-align:left; padding:7px 12px; font-size:12.5px;
+    background:none; border:none; cursor:pointer; color:#151816;`;
+  const hover = `onmouseover="this.style.background='#F3F4F2'" onmouseout="this.style.background='none'"`;
+  const closeThen = fn => `document.getElementById('copyFromDropdown').style.display='none'; ${fn}`;
+
+  const tpl = _budgTemplateLoad();
+  let tplNote = '';
+  if (tpl?.savedFrom){
+    const [ty, tm] = tpl.savedFrom.split('-').map(Number);
+    tplNote = ` <span style="color:#828A85;font-size:10.5px;">(from ${new Date(ty, tm-1, 1).toLocaleDateString('en-AU',{month:'short', year:'numeric'})})</span>`;
+  }
+  let html = `
+    <button style="${itemStyle}" ${hover} onclick="${closeThen('saveBudgetTemplate()')}">📌 Save this month as template</button>
+    ${tpl ? `<button style="${itemStyle}" ${hover} onclick="${closeThen('applyBudgetTemplate()')}">📋 Apply template${tplNote}</button>` : ''}
+    <div style="border-top:1px solid #E5E7EB; margin:4px 0;"></div>
+    <div style="padding:4px 12px 2px; font-size:10px; font-weight:700; letter-spacing:.06em; color:#828A85; text-transform:uppercase;">Copy from month</div>`;
+
+  const store = _budgLoad();
+  const months = Object.keys(store.months || {})
+    .filter(m => m !== budgetMonthStr)
+    .sort()
+    .reverse();
+
+  if(!months.length){
+    html += `<div style="padding:6px 12px 8px; font-size:12px; color:#828A85;">No other months logged yet</div>`;
+  } else {
+    html += months.map(m => {
+      const [y, mo] = m.split('-').map(Number);
+      const lbl = new Date(y, mo-1, 1).toLocaleDateString('en-AU', {month:'long', year:'numeric'});
+      return `<button style="${itemStyle}" ${hover} onclick="${closeThen(`copyFromMonth('${m}')`)}">${lbl}</button>`;
+    }).join('');
+  }
+  dd.innerHTML = html;
+  dd.style.display = '';
+}
+
+// Close the copy-from dropdown when clicking anywhere else
+document.addEventListener('click', e => {
+  const dd = document.getElementById('copyFromDropdown');
+  if(dd && dd.style.display !== 'none' && !dd.contains(e.target)) dd.style.display = 'none';
+});
 
 /** Enter Budget tab */
 function showBudgetTab(){
