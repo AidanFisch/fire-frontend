@@ -10422,7 +10422,7 @@ function addIncomeRow(data){
   tr.dataset.rowId = id;
   tr.dataset.isGross = isGross ? '1' : '0';
   tr.innerHTML = `
-    <td><select class="exp-input inc-source" onchange="incRowChanged(${id})">${srcOpts}</select></td>
+    <td><select class="exp-input inc-source" onchange="incSourceChanged(${id})">${srcOpts}</select></td>
     <td><input class="exp-input inc-desc" type="text" placeholder="Note (optional)"
                value="${descVal}" oninput="incRowChanged(${id})"></td>
     <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
@@ -10435,7 +10435,7 @@ function addIncomeRow(data){
     <td><select class="inc-mode-sel" onchange="setIncomeMode(${id}, this.value)">
           <option value="gross"${isGross?' selected':''}>Gross</option>
           <option value="net"${!isGross?' selected':''}>Net</option>
-        </select></td>
+        </select><span class="inc-mode-dash" style="display:none;color:#B0ABA6;font-size:12px;" title="Gross/net breakdown (PAYG tax + employer super) only applies to salary income — enter the cash amount you actually receive">—</span></td>
     <td><button class="inc-expand-btn" id="incExp_${id}" onclick="toggleIncomeExpand(${id})"
                 style="${isGross?'':'display:none'}" title="Show breakdown">&#9654;</button></td>
     <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove">×</button></td>`;
@@ -10473,10 +10473,40 @@ function addIncomeRow(data){
   tbody.appendChild(mkSub('vol',   'Voluntary super',       'inc-vol', { b: volB, a: volA }, false));
   tbody.appendChild(mkSub('net',   'Net cash',              null, null, true));
 
-  // Auto-expand if gross and has data
-  if(isGross && (budgVal !== '' || actVal !== '')){
+  // Gross/net only applies to salary-type income — sync visibility now
+  _syncIncModeUI(id);
+
+  // Auto-expand if gross and has data (salary rows only — others were just
+  // forced to net by the sync above)
+  if(tr.dataset.isGross === '1' && (budgVal !== '' || actVal !== '')){
     toggleIncomeExpand(id);
   }
+}
+
+/* Sources where a gross amount, PAYG withholding and employer super make
+   sense. Everything else (rent, dividends, interest, business…) is entered
+   as the cash you actually receive — no gross/net mode. */
+const _INC_SALARY_SOURCES = new Set(['Salary / Wages', 'Partner Salary / Wages', 'Bonus / Commission']);
+
+function _syncIncModeUI(id){
+  const row = document.querySelector(`#incomeTableBody [data-row-id="${id}"]`);
+  if(!row) return;
+  const isSalary = _INC_SALARY_SOURCES.has(row.querySelector('.inc-source')?.value || '');
+  const modeSel = row.querySelector('.inc-mode-sel');
+  const dash    = row.querySelector('.inc-mode-dash');
+  if(modeSel) modeSel.style.display = isSalary ? '' : 'none';
+  if(dash)    dash.style.display    = isSalary ? 'none' : '';
+  if(!isSalary && row.dataset.isGross === '1'){
+    // force net: amount = cash received; hides breakdown sub-rows
+    if(modeSel) modeSel.value = 'net';
+    setIncomeMode(id, 'net');
+  }
+}
+
+/** Source dropdown changed — re-evaluate whether gross/net applies */
+function incSourceChanged(id){
+  _syncIncModeUI(id);
+  incRowChanged(id);
 }
 
 /** Trigger summary + autosave when any income field changes */
