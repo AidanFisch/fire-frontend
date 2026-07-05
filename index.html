@@ -12589,14 +12589,14 @@ const TAX_DATA = {
   '2024-25': {
     label: '2024–25',
     brackets: [
-      { min:      0, rate: 0,     base:     0, label: '$0 – $18,200'         },
-      { min:  18200, rate: 0.19,  base:     0, label: '$18,201 – $45,000'    },
-      { min:  45000, rate: 0.325, base:  5092, label: '$45,001 – $120,000'   },
-      { min: 120000, rate: 0.37,  base: 29467, label: '$120,001 – $180,000'  },
-      { min: 180000, rate: 0.45,  base: 51667, label: '$180,001+'            },
+      { min:      0, rate: 0,    base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.16, base:     0, label: '$18,201 – $45,000'    },
+      { min:  45000, rate: 0.30, base:  4288, label: '$45,001 – $135,000'   },
+      { min: 135000, rate: 0.37, base: 31288, label: '$135,001 – $190,000'  },
+      { min: 190000, rate: 0.45, base: 51638, label: '$190,001+'            },
     ],
     lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
-    medicareRate: 0.02, medicareThreshold: 26000, medicarePhaseEnd: 32500,
+    medicareRate: 0.02, medicareThreshold: 27222, medicarePhaseEnd: 34028,
     mlsThreshold: 93000,
     mlsRates: [{ max: 108000, rate: 0.01 }, { max: 144000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
     hecsRates: [
@@ -12613,14 +12613,14 @@ const TAX_DATA = {
   '2025-26': {
     label: '2025–26',
     brackets: [
-      { min:      0, rate: 0,     base:     0, label: '$0 – $18,200'         },
-      { min:  18200, rate: 0.19,  base:     0, label: '$18,201 – $45,000'    },
-      { min:  45000, rate: 0.325, base:  5092, label: '$45,001 – $120,000'   },
-      { min: 120000, rate: 0.37,  base: 29467, label: '$120,001 – $180,000'  },
-      { min: 180000, rate: 0.45,  base: 51667, label: '$180,001+'            },
+      { min:      0, rate: 0,    base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.16, base:     0, label: '$18,201 – $45,000'    },
+      { min:  45000, rate: 0.30, base:  4288, label: '$45,001 – $135,000'   },
+      { min: 135000, rate: 0.37, base: 31288, label: '$135,001 – $190,000'  },
+      { min: 190000, rate: 0.45, base: 51638, label: '$190,001+'            },
     ],
     lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
-    medicareRate: 0.02, medicareThreshold: 26000, medicarePhaseEnd: 32500,
+    medicareRate: 0.02, medicareThreshold: 27222, medicarePhaseEnd: 34028,
     mlsThreshold: 93000,
     mlsRates: [{ max: 108000, rate: 0.01 }, { max: 144000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
     hecsRates: [
@@ -12705,11 +12705,19 @@ function calcTax(grossAnnual, settings){
 }
 
 /* ── Tax Settings state ── */
-const DEFAULT_TAX_SETTINGS = { fy:'2024-25', superRate:11.5, hasPHI:false, hasHECS:false, showCapWarning:true };
+const DEFAULT_TAX_SETTINGS = { fy:'2025-26', superRate:12, hasPHI:false, hasHECS:false, showCapWarning:true };
 let TAX_SETTINGS = (function(){
   try{
     const s = localStorage.getItem('fire_tax_settings_v1');
-    if(s) return { ...DEFAULT_TAX_SETTINGS, ...JSON.parse(s) };
+    if(s){
+      const merged = { ...DEFAULT_TAX_SETTINGS, ...JSON.parse(s) };
+      // Migrate stale app defaults (not user choices): SG is legislated 12%
+      // from 1 Jul 2025, and old builds defaulted the FY to 2024-25 with
+      // pre-Stage-3 brackets — move both forward.
+      if(merged.superRate === 11.5 || merged.superRate === 11) merged.superRate = 12;
+      if(merged.fy === '2024-25') merged.fy = '2025-26';
+      return merged;
+    }
   }catch(_){}
   return { ...DEFAULT_TAX_SETTINGS };
 })();
