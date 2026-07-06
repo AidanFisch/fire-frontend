@@ -3400,6 +3400,104 @@ select.exp-input { cursor:pointer; }
     /* Hero headline sizes */
     .hero-title { font-size: 28px !important; }
     .hero-lede { font-size: 14px !important; }
+
+    /* ═══ Phase 2: tables become mobile layouts ═══ */
+
+    /* ── Expense editor: each row becomes a stacked card ── */
+    #budgetExpenseWrap table, #incomeTableWrap table {
+      width: 100% !important; min-width: 0 !important; table-layout: auto !important;
+    }
+    #budgetExpenseWrap table, #budgetExpenseWrap tbody { display: block; }
+    #budgetExpenseWrap thead, #budgetExpenseWrap colgroup { display: none; }
+    #budgetExpenseWrap tr.expense-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "cat  sub"
+        "desc desc"
+        "bud  act"
+        "freq del";
+      gap: 8px;
+      position: relative;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #budgetExpenseWrap .expense-row td { display: block; padding: 0 !important; }
+    #budgetExpenseWrap .expense-row td:nth-child(1) { grid-area: cat; }
+    #budgetExpenseWrap .expense-row td:nth-child(2) { grid-area: sub; border-left: none !important; }
+    #budgetExpenseWrap .expense-row td:nth-child(3) { grid-area: desc; }
+    #budgetExpenseWrap .expense-row td:nth-child(4) { grid-area: bud; }
+    #budgetExpenseWrap .expense-row td:nth-child(5) { grid-area: act; }
+    #budgetExpenseWrap .expense-row td:nth-child(6) { grid-area: freq; }
+    #budgetExpenseWrap .expense-row td:nth-child(7) { grid-area: del; text-align: right; }
+    /* field labels replace the hidden table header */
+    #budgetExpenseWrap .expense-row td:nth-child(4)::before,
+    #budgetExpenseWrap .expense-row td:nth-child(5)::before {
+      display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: #828A85; margin-bottom: 2px;
+    }
+    #budgetExpenseWrap .expense-row td:nth-child(4)::before { content: "Budget"; }
+    #budgetExpenseWrap .expense-row td:nth-child(5)::before { content: "Actual"; }
+    #budgetExpenseWrap .exp-del { font-size: 18px; padding: 4px 10px; }
+
+    /* ── Income editor: same card treatment ── */
+    #incomeTableWrap table, #incomeTableWrap tbody { display: block; }
+    #incomeTableWrap thead, #incomeTableWrap colgroup { display: none; }
+    #incomeTableWrap tr.income-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "src  src"
+        "desc desc"
+        "bud  act"
+        "freq mode"
+        "exp  del";
+      gap: 8px;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px 10px 0 0;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    #incomeTableWrap .income-row td { display: block; padding: 0 !important; }
+    #incomeTableWrap .income-row td:nth-child(1) { grid-area: src; }
+    #incomeTableWrap .income-row td:nth-child(2) { grid-area: desc; }
+    #incomeTableWrap .income-row td:nth-child(3) { grid-area: bud; }
+    #incomeTableWrap .income-row td:nth-child(4) { grid-area: act; }
+    #incomeTableWrap .income-row td:nth-child(5) { grid-area: freq; }
+    #incomeTableWrap .income-row td:nth-child(6) { grid-area: mode; }
+    #incomeTableWrap .income-row td:nth-child(7) { grid-area: exp; }
+    #incomeTableWrap .income-row td:nth-child(8) { grid-area: del; text-align: right; }
+    #incomeTableWrap .income-row td:nth-child(3)::before,
+    #incomeTableWrap .income-row td:nth-child(4)::before {
+      display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: #828A85; margin-bottom: 2px;
+    }
+    #incomeTableWrap .income-row td:nth-child(3)::before { content: "Budget"; }
+    #incomeTableWrap .income-row td:nth-child(4)::before { content: "Actual"; }
+    #incomeTableWrap .inc-mode-sel { width: 100%; }
+    /* breakdown sub-rows attach under their card as simple label/value lines */
+    #incomeTableWrap tr.income-sub-row {
+      display: flex; align-items: center; gap: 8px;
+      border: 1px solid #E5E7EB; border-top: none;
+      padding: 6px 10px; margin: 0;
+      background: #FAFAF9;
+    }
+    #incomeTableWrap tr.income-sub-row[style*="display: none"] { display: none !important; }
+    #incomeTableWrap .income-sub-row td { display: block; padding: 0 !important; border: none !important; }
+    #incomeTableWrap .income-sub-row td.inc-sub-lbl { flex: 1; font-size: 11px; }
+    #incomeTableWrap .income-sub-row td:nth-child(2),
+    #incomeTableWrap .income-sub-row td:nth-child(3) { min-width: 84px; font-size: 12px; }
+    #incomeTableWrap .income-sub-row td.inc-sub-empty { display: none; }
+
+    /* ── Wide data grids: sticky first column while swiping ── */
+    .budget-table th:first-child, .budget-table td:first-child,
+    .port-year-table th:first-child, .port-year-table td:first-child {
+      position: sticky; left: 0; z-index: 3;
+      background: #FFFFFF !important;
+      box-shadow: 2px 0 4px rgba(0,0,0,.06);
+    }
   }
 
   /* Installed-PWA-only tweaks (launched from home screen) */
