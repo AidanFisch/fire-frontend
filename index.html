@@ -2189,6 +2189,9 @@ th { background: #F7F7F5 !important; color: #5A625D !important; font-size: 11px 
 td { border-bottom: 1px solid #F0EDE8 !important; color: #151816 !important; font-size: 13px !important; }
 tbody tr:nth-child(even) td { background: #F9FAF9 !important; }
 tbody tr:nth-child(odd) td { background: #FFFFFF !important; }
+/* Expense rows carry a per-category tint on the <tr> — the zebra striping
+   above would paint every cell over it, so make their cells transparent. */
+tbody tr.expense-row td { background: transparent !important; }
 
 /* ── Inputs ── */
 input, select, textarea {
@@ -11076,7 +11079,12 @@ function addExpenseRow(data){
     `<option value="${escapeHtml(g)}"${g===selGrp?' selected':''}>${escapeHtml(g)}</option>`
   ).join('');
 
-  const subVal  = data ? escapeHtml(data.subcategory || '') : '';
+  // Pass the RAW sub-category — getSubcatSelectOpts escapes exactly once.
+  // Pre-escaping here double-escaped "&" labels ("Travel &amp;amp; Holidays")
+  // and broke matching against the real label, compounding every save/load.
+  // The while-loop repairs values already corrupted by previous versions.
+  let subVal = data ? (data.subcategory || '') : '';
+  while (/&amp;/.test(subVal)) subVal = subVal.replace(/&amp;/g, '&');
   const expDescVal = data ? escapeHtml(data.description || '') : '';
   const budgVal = (data && data.budget  !== '' && data.budget  != null) ? data.budget  : '';
   const actVal  = (data && data.actual  !== '' && data.actual  != null) ? data.actual  : '';
