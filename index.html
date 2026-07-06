@@ -4439,7 +4439,6 @@ select.exp-input { cursor:pointer; }
             <div class="bsi-label">Savings rate <span class="info-tip" data-tip="savings_rate">?</span></div>
             <div class="bsi-val" id="bsiRate">—</div>
             <div class="bsi-sub" id="bsiRateA"></div>
-            <div class="bsi-sub" id="bsiRateYrs" style="color:#059669;"></div>
           </div>
         </div>
         <div id="expenseChartWrap" style="margin-top:18px; position:relative;"></div>
@@ -4466,17 +4465,6 @@ select.exp-input { cursor:pointer; }
       </div>
     </div>
 
-    <!-- FIRE progress card -->
-    <div class="card">
-      <div class="panel-head">
-        <span class="panel-accent"></span>
-        <span class="panel-title">Savings vs FIRE Target</span>
-        <span class="panel-meta">last 12 months</span>
-      </div>
-      <div id="fireProgressContent">
-        <div class="small muted">Log at least one month to see your savings rate vs target.</div>
-      </div>
-    </div>
 
   </div>
 </section>
@@ -9887,6 +9875,31 @@ document.addEventListener('click', e => {
   if(dd && dd.style.display !== 'none' && !dd.contains(e.target)) dd.style.display = 'none';
 });
 
+/* ── Maths in budget amount fields: type "1200+340-50" and it evaluates on
+   blur. Strictly sanitised to digits and + - * / ( ) . before evaluating. ── */
+function evalBudgetExpression(raw){
+  const s = String(raw ?? '').replace(/[$,\s]/g, '');
+  if (s === '') return null;
+  // Plain number (allowing one leading minus) — nothing to do
+  if (!/[+\-*/()]/.test(s.slice(1))) return null;
+  if (!/^[0-9+\-*/().]+$/.test(s)) return null;
+  try {
+    const v = Function(`"use strict"; return (${s});`)();
+    return (typeof v === 'number' && isFinite(v)) ? Math.round(v * 100) / 100 : null;
+  } catch(_) { return null; }
+}
+
+document.addEventListener('focusout', e => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('budget-amount')) return;
+  const v = evalBudgetExpression(el.value);
+  if (v !== null && String(v) !== el.value.trim()){
+    el.value = v;
+    // Re-run the row's oninput handler so totals/autosave pick up the result
+    el.dispatchEvent(new Event('input', { bubbles: false }));
+  }
+});
+
 /** Enter Budget tab */
 function showBudgetTab(){
   showTab('budget');
@@ -10528,11 +10541,11 @@ function addIncomeRow(data){
     <td><input class="exp-input inc-desc" type="text" placeholder="Note (optional)"
                value="${descVal}" oninput="incRowChanged(${id})"></td>
     <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
-        <input class="exp-input inc-budget" type="number" step="1" min="0" placeholder="0"
-               value="${budgVal}" oninput="incRowChanged(${id})"></div></td>
+        <input class="exp-input inc-budget budget-amount" type="text" inputmode="decimal" placeholder="0"
+               title="Maths OK: 1200+340-50" value="${budgVal}" oninput="incRowChanged(${id})"></div></td>
     <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
-        <input class="exp-input inc-actual" type="number" step="1" min="0" placeholder="—"
-               value="${actVal}" oninput="incRowChanged(${id})"></div></td>
+        <input class="exp-input inc-actual budget-amount" type="text" inputmode="decimal" placeholder="—"
+               title="Maths OK: 1200+340-50" value="${actVal}" oninput="incRowChanged(${id})"></div></td>
     <td><select class="exp-input inc-freq" onchange="incRowChanged(${id})">${freqOpts}</select></td>
     <td><select class="inc-mode-sel" onchange="setIncomeMode(${id}, this.value)">
           <option value="gross"${isGross?' selected':''}>Gross</option>
@@ -10554,10 +10567,10 @@ function addIncomeRow(data){
       sr.innerHTML = `
         <td class="inc-sub-lbl" colspan="2">${label}</td>
         <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
-            <input class="exp-input ${inputClass}_b" type="number" step="1" min="0" placeholder="0"
+            <input class="exp-input ${inputClass}_b budget-amount" type="text" inputmode="decimal" placeholder="0"
                    value="${inputVal?.b ?? ''}" oninput="incRowChanged(${id})"></div></td>
         <td><div class="dollar-wrap"><span class="inp-dollar">$</span>
-            <input class="exp-input ${inputClass}_a" type="number" step="1" min="0" placeholder="—"
+            <input class="exp-input ${inputClass}_a budget-amount" type="text" inputmode="decimal" placeholder="—"
                    value="${inputVal?.a ?? ''}" oninput="incRowChanged(${id})"></div></td>
         <td colspan="3" class="inc-sub-empty"></td>`;
     } else {
@@ -10571,9 +10584,9 @@ function addIncomeRow(data){
   };
 
   tbody.appendChild(mkSub('tax',   'Tax withheld (est.)',   null, null, false));
-  tbody.appendChild(mkSub('emp',   'Employer super (est.)', null, null, false));
+  tbody.appendChild(mkSub('emp',   'Employer super — paid on top (est.)', null, null, false));
   tbody.appendChild(mkSub('vol',   'Voluntary super',       'inc-vol', { b: volB, a: volA }, false));
-  tbody.appendChild(mkSub('net',   'Net cash',              null, null, true));
+  tbody.appendChild(mkSub('net',   'Net cash (take-home)',  null, null, true));
 
   // Gross/net only applies to salary-type income — sync visibility now
   _syncIncModeUI(id);
@@ -10673,11 +10686,13 @@ function updateIncomeBreakdown(id){
     const monthly    = parseFloat(rawVal) * mult;
     const annual     = monthly * 12;
     const tax        = calcTax(annual, TAX_SETTINGS);
-    const taxM       = tax.totalTax / 12;
+    // MLS isn't withheld by payroll — exclude it so this matches payslips.
+    const taxM       = (tax.totalTax - tax.mls) / 12;
     const superEmpM  = annual * (TAX_SETTINGS.superRate / 100) / 12;
     const volEl      = document.querySelector(volSelector);
     const volM       = parseFloat(volEl?.value || 0) || 0;
-    const netM       = monthly - taxM - superEmpM - volM;
+    // Employer super is paid ON TOP of salary — shown for info, not deducted.
+    const netM       = monthly - taxM - volM;
     return { taxM, superEmpM, netM: Math.max(0, netM) };
   };
 
@@ -10740,11 +10755,14 @@ function _calcIncRowNets(row){
     const monthly   = parseFloat(rawVal) * m;
     const annual    = monthly * 12;
     const tax       = calcTax(annual, TAX_SETTINGS);
-    const taxM      = tax.totalTax / 12;
-    const superEmpM = annual * (TAX_SETTINGS.superRate / 100) / 12;
+    // Withholding estimate: MLS isn't withheld by payroll (assessed at tax
+    // time), so exclude it — this matches real payslips.
+    const taxM      = (tax.totalTax - tax.mls) / 12;
     const volEl     = document.querySelector(volSelector);
     const volM      = parseFloat(volEl?.value || 0) || 0;
-    return Math.max(0, monthly - taxM - superEmpM - volM);
+    // Employer super is paid ON TOP of salary — it never reduces take-home.
+    // Only tax and voluntary (salary-sacrifice) contributions come out.
+    return Math.max(0, monthly - taxM - volM);
   };
 
   const budgetGross = bRaw !== '' ? parseFloat(bRaw) * m : null;
@@ -10805,16 +10823,26 @@ function updateBudgetSummary(){
   const netActualCls = (hasIncA || hasExpA) ? (netA < 0 ? 'bsi-sub bsi-neg' : 'bsi-sub') : 'bsi-sub';
   setEl('bsiNetA', (hasIncA || hasExpA) ? `Actual ${fmt(netA)}` : '', netActualCls);
 
-  // How this month compares to the model's assumed monthly savings —
-  // same traffic-light thresholds as the Overview chart.
+  // Wealth-linked FIRE readout: how this month's saving pace translates to
+  // your actual FIRE timeline (real current NW + FIRE number, 5% real
+  // return), and what slice of the remaining gap this month closes.
   const tgtEl = document.getElementById('bsiNetTarget');
   if (tgtEl){
-    const target = fireModelTargetMonthly() || null;
     const liveNet = (hasIncA || hasExpA) ? netA : netP;
-    if (target && target > 0 && liveNet !== null && (incP || incA)){
-      const col = liveNet >= target ? '#059669' : liveNet >= target * 0.5 ? '#F59E0B' : '#DC2626';
-      tgtEl.textContent = `Target ${fmt(target)}/mo`;
-      tgtEl.style.color = col;
+    const fireN = _dashFireNumber();
+    const nw = _dashCurrentNW();
+    tgtEl.style.color = '#059669';
+    if (fireN && liveNet !== null && liveNet > 0 && (incP || incA)){
+      if (nw >= fireN){
+        tgtEl.textContent = 'FIRE number reached 🎉';
+      } else {
+        const r = 0.05, c = liveNet * 12;
+        const yrs = Math.log((fireN * r + c) / (Math.max(nw, 0) * r + c)) / Math.log(1 + r);
+        const gapPct = (liveNet / (fireN - nw)) * 100;
+        const yrsStr = yrs < 1 ? '<1 yr' : `${Math.round(yrs)} yrs`;
+        const gapStr = gapPct >= 0.05 ? ` · closes ${gapPct < 1 ? gapPct.toFixed(1) : Math.round(gapPct)}% of your FIRE gap` : '';
+        tgtEl.textContent = `≈ ${yrsStr} to FIRE at this pace${gapStr}`;
+      }
     } else {
       tgtEl.textContent = '';
     }
@@ -10824,20 +10852,6 @@ function updateBudgetSummary(){
   setEl('bsiRate',  rateP !== null ? fmtR(rateP) : '—', rateCls);
   const rateActualCls = rateA !== null && rateA < 0 ? 'bsi-sub bsi-neg' : 'bsi-sub';
   setEl('bsiRateA', rateA !== null ? `Actual ${fmtR(rateA)}` : '', rateActualCls);
-
-  // Years-to-FIRE shorthand at this savings rate (5% real return, 4% rule,
-  // from zero — the "?" tip states the assumptions). Uses actual if logged.
-  const srLive = (rateA !== null ? rateA : rateP);
-  const yrsEl = document.getElementById('bsiRateYrs');
-  if (yrsEl){
-    if (srLive !== null && srLive > 0.01 && srLive < 1){
-      const r = 0.05;
-      const yrs = Math.log((25 * (1 - srLive) * r) / srLive + 1) / Math.log(1 + r);
-      yrsEl.textContent = `≈ ${yrs < 1 ? '<1' : Math.round(yrs)} yrs to FIRE at this rate`;
-    } else {
-      yrsEl.textContent = '';
-    }
-  }
 
   renderExpenseChart();
 }
@@ -11033,10 +11047,10 @@ function addExpenseRow(data){
         </select></td>
     <td><input  class="exp-input exp-desc" type="text" placeholder="Note (optional)"
                 value="${expDescVal}" oninput="expRowChanged(${id})"></td>
-    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-budget" type="number" step="1" min="0" placeholder="0"
-                value="${budgVal}" oninput="expRowChanged(${id})"></div></td>
-    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-actual" type="number" step="1" min="0" placeholder="—"
-                value="${actVal}" oninput="expRowChanged(${id})"></div></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-budget budget-amount" type="text" inputmode="decimal" placeholder="0"
+                title="Maths OK: 1200+340-50" value="${budgVal}" oninput="expRowChanged(${id})"></div></td>
+    <td><div class="dollar-wrap"><span class="inp-dollar">$</span><input class="exp-input exp-actual budget-amount" type="text" inputmode="decimal" placeholder="—"
+                title="Maths OK: 1200+340-50" value="${actVal}" oninput="expRowChanged(${id})"></div></td>
     <td><select class="exp-input exp-freq" onchange="expRowChanged(${id})">${freqOpts}</select></td>
     <td><button class="exp-del" onclick="deleteExpenseRow(${id})" title="Remove row">×</button></td>`;
 
