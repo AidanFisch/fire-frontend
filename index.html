@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 
 <link rel="icon" type="image/png" sizes="32x32" href="https://wealthmodel.io/favicon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="https://wealthmodel.io/icon-192.png">
@@ -3322,6 +3322,91 @@ select.exp-input { cursor:pointer; }
   .faq-item[open] summary::after { content: "−"; }
   .faq-item p { font-size: 13px; color: #52504C; line-height: 1.55; margin: 0 0 14px; }
 
+  /* ═══════════════════════════════════════════
+     MOBILE LAYER (≤640px only — desktop cannot match these rules)
+     ═══════════════════════════════════════════ */
+
+  /* Bottom tab bar — hidden by default (desktop) */
+  .mobile-tabbar { display: none; }
+
+  @media (max-width: 640px) {
+
+    /* ── Bottom tab bar ── */
+    .mobile-tabbar {
+      display: flex;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 89;
+      background: #FFFFFF;
+      border-top: 1px solid #E5E7EB;
+      box-shadow: 0 -2px 10px rgba(0,0,0,.06);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.landing .mobile-tabbar { display: none; }
+    .mtab {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: none; border: none; cursor: pointer;
+      padding: 8px 2px 6px;
+      color: #828A85;
+      font-size: 10px; font-weight: 600; font-family: inherit;
+      min-height: 52px;
+    }
+    .mtab svg { width: 22px; height: 22px; }
+    .mtab.active { color: #059669; }
+
+    /* Room for the tab bar at the page bottom */
+    body:not(.landing) .wrap { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    body:not(.landing) .site-footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+
+    /* ── Topbar: brand + account only, nav lives in the tab bar ── */
+    .topbar .nav { display: none !important; }
+    .topbar { padding: 10px 14px !important; }
+    .brand-lockup-svg { width: 132px; height: 25px; }
+    /* Header Run Model is redundant — the Model tab's action bar has it */
+    #btnRunModelHeader { display: none !important; }
+    /* Action bar can swipe sideways if it ever runs tight */
+    #modelActionsBar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── Global density ── */
+    .wrap { padding-left: 12px; padding-right: 12px; }
+    .card { padding: 14px !important; }
+    .grid { gap: 14px; }
+
+    /* Touch targets */
+    .btn { min-height: 40px; }
+    .chip { padding: 7px 12px; font-size: 12px; }
+    .info-tip { min-width: 18px; min-height: 18px; }
+
+    /* Stat cards stack 2-up instead of 4-up */
+    .dash-stats-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Model action bar: compact */
+    #modelActionsBar { padding: 6px 10px; gap: 6px; }
+    #modelActionsBar .bar-primary-group { gap: 5px; }
+    .btn.bar-primary { font-size: 12px !important; padding: 7px 10px !important; }
+    .btn.bar-secondary { font-size: 11px !important; padding: 6px 8px !important; }
+    #modelActionsBar .bar-divider { display: none; }
+
+    /* Summary strips wrap instead of squeezing */
+    .budget-summary-strip { flex-wrap: wrap; row-gap: 12px; }
+    .port-summary-strip { flex-wrap: wrap; row-gap: 10px; }
+
+    /* Dense data tables scroll sideways inside their card instead of
+       stretching the page */
+    .tablewrap, .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    #budgetExpenseWrap, #incomeTableWrap, #budgetYearTableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Hero headline sizes */
+    .hero-title { font-size: 28px !important; }
+    .hero-lede { font-size: 14px !important; }
+  }
+
+  /* Installed-PWA-only tweaks (launched from home screen) */
+  @media (display-mode: standalone) {
+    .topbar { padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important; }
+  }
+
   </style>
 </head>
 
@@ -4621,6 +4706,30 @@ select.exp-input { cursor:pointer; }
 </section>
 
 </div><!-- /.wrap -->
+
+<!-- Mobile bottom tab bar (shown under 640px only, hidden on landing) -->
+<nav class="mobile-tabbar" id="mobileTabbar" aria-label="Main">
+  <button class="mtab" data-mtab="dashboard" onclick="showDashboard()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+    <span>Overview</span>
+  </button>
+  <button class="mtab" data-mtab="budget" onclick="showBudgetTab()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+    <span>Budget</span>
+  </button>
+  <button class="mtab" data-mtab="holdings" onclick="showPortfolioTab()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 6.2"/></svg>
+    <span>Holdings</span>
+  </button>
+  <button class="mtab" data-mtab="properties" onclick="showPropertiesTab()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+    <span>Properties</span>
+  </button>
+  <button class="mtab" data-mtab="results" onclick="showTab('results')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-6 4 3 6-8"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
+    <span>Model</span>
+  </button>
+</nav>
 
 <!-- Site footer — always visible, landing + app -->
 <footer class="site-footer">
@@ -9508,10 +9617,23 @@ function ensureInputsAtHome(){
 }
 
 /* Wrap your original showTab to also restore the panel when leaving Results */
+/* Highlight the right bottom-tab for the current screen. Deferred a tick so
+   the portfolio sub-tab (_portSubTab) is already updated when we read it. */
+function _syncMobileTabbar(name){
+  setTimeout(() => {
+    let key = name;
+    if (name === 'portfolio') key = (typeof _portSubTab !== 'undefined' && _portSubTab === 'properties') ? 'properties' : 'holdings';
+    document.querySelectorAll('.mobile-tabbar .mtab').forEach(b => {
+      b.classList.toggle('active', b.dataset.mtab === key);
+    });
+  }, 0);
+}
+
 const _origShowTab = showTab;
 showTab = function(name){
   ensureInputsAtHome();
   _origShowTab(name);
+  _syncMobileTabbar(name);
   const modelActions = document.getElementById('modelActionsBar');
   const wrap = document.querySelector('.wrap');
   if(modelActions) {
