@@ -11004,6 +11004,47 @@ function initExpenseTable(){
 }
 
 /** Called when the category dropdown changes — repopulates the subcategory select */
+/* One colour per major category — used as a row accent so groups are
+   scannable at a glance (sub-categories share their group's colour). */
+const BUDGET_GROUP_COLORS = {
+  'Housing':       '#0EA5E9',
+  'Transport':     '#F59E0B',
+  'Food & Drink':  '#10B981',
+  'Utilities':     '#84CC16',
+  'Health':        '#EF4444',
+  'Insurance':     '#8B5CF6',
+  'Entertainment': '#EC4899',
+  'Personal':      '#14B8A6',
+  'Education':     '#6366F1',
+  'Financial':     '#0891B2',
+  'Other':         '#9CA3AF',
+};
+
+function _applyExpRowColor(row){
+  const g = row.querySelector('.exp-cat')?.value;
+  const c = BUDGET_GROUP_COLORS[g] || '#9CA3AF';
+  const firstTd = row.firstElementChild;
+  if (firstTd) firstTd.style.borderLeft = `3px solid ${c}`;
+  row.style.background = c + '0D';   // ~5% tint of the group colour
+}
+
+/** Reorder expense rows: category group order, then sub-category A→Z */
+function sortExpenseRows(){
+  const tbody = document.getElementById('expenseTableBody');
+  if(!tbody) return;
+  const groups = [...new Set(BUDGET_CATS.filter(c => c.enabled !== false).map(c => c.group))];
+  const rows = [...tbody.querySelectorAll('.expense-row')];
+  rows.sort((a, b) => {
+    const ga = groups.indexOf(a.querySelector('.exp-cat')?.value);
+    const gb = groups.indexOf(b.querySelector('.exp-cat')?.value);
+    if (ga !== gb) return ga - gb;
+    const sa = a.querySelector('.exp-subcat')?.value || '';
+    const sb = b.querySelector('.exp-subcat')?.value || '';
+    return sa.localeCompare(sb);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
 function expCatChanged(id){
   const tbody = document.getElementById('expenseTableBody');
   if(!tbody) return;
@@ -11012,6 +11053,8 @@ function expCatChanged(id){
   const group    = row.querySelector('.exp-cat').value;
   const subSel   = row.querySelector('.exp-subcat');
   if(subSel) subSel.innerHTML = getSubcatSelectOpts(group, '');
+  _applyExpRowColor(row);
+  sortExpenseRows();
   updateBudgetSummary();
   scheduleAutosave();
 }
@@ -11042,7 +11085,7 @@ function addExpenseRow(data){
   tr.dataset.rowId = id;
   tr.innerHTML = `
     <td><select class="exp-input exp-cat" onchange="expCatChanged(${id})">${grpOpts}</select></td>
-    <td><select class="exp-input exp-subcat" onchange="expRowChanged(${id})">
+    <td><select class="exp-input exp-subcat" onchange="expSubcatChanged(${id})">
           ${getSubcatSelectOpts(selGrp, subVal)}
         </select></td>
     <td><input  class="exp-input exp-desc" type="text" placeholder="Note (optional)"
@@ -11055,12 +11098,19 @@ function addExpenseRow(data){
     <td><button class="exp-del" onclick="deleteExpenseRow(${id})" title="Remove row">×</button></td>`;
 
   tbody.appendChild(tr);
+  _applyExpRowColor(tr);
 }
 
 /** Trigger summary + autosave when any expense field changes */
 function expRowChanged(id){
   updateBudgetSummary();
   scheduleAutosave();
+}
+
+/** Sub-category changed — re-sort within the group, then normal update */
+function expSubcatChanged(id){
+  sortExpenseRows();
+  expRowChanged(id);
 }
 
 /** Remove a row — always keeps at least one */
@@ -11113,6 +11163,7 @@ function populateLogForm(data, incomeOverride){
       });
     });
   }
+  sortExpenseRows();
   updateBudgetSummary();
 }
 
