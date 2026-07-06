@@ -2595,9 +2595,13 @@ body.landing #modelActionsBar { display: none !important; }
   -webkit-appearance:auto; appearance:auto;
 }
 .exp-input:hover { border-color:#C8C4BC; }
-.exp-input:focus {
+/* Expense rows carry a per-category tint (set as --row-tint inline) — let
+   the inputs inherit it so the whole row reads as one colour band. */
+.expense-row .exp-input { background: var(--row-tint, #FAFAF8); }
+.exp-input:focus,
+.expense-row .exp-input:focus {
   background:#fff; outline:none;
-  border-color:#059669; box-shadow:0 0 0 2px rgba(29,158,117,.18);
+  border-color:#059669; box-shadow:0 0 0 2px rgba(5,150,105,.18);
 }
 input.exp-input[type="number"] {
   text-align:center;
@@ -11025,7 +11029,8 @@ function _applyExpRowColor(row){
   const c = BUDGET_GROUP_COLORS[g] || '#9CA3AF';
   const firstTd = row.firstElementChild;
   if (firstTd) firstTd.style.borderLeft = `3px solid ${c}`;
-  row.style.background = c + '0D';   // ~5% tint of the group colour
+  row.style.background = c + '12';                    // ~7% tint across the row
+  row.style.setProperty('--row-tint', c + '0F');      // inputs pick this up too
 }
 
 /** Reorder expense rows: category group order, then sub-category A→Z */
