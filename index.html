@@ -3498,6 +3498,63 @@ select.exp-input { cursor:pointer; }
       background: #FFFFFF !important;
       box-shadow: 2px 0 4px rgba(0,0,0,.06);
     }
+
+    /* ═══ Phase 3: per-screen polish ═══ */
+
+    /* ── Model chart: taller (near-square) so a 35-yr projection is legible ── */
+    #chartMain { min-height: 300px; }
+
+    /* ── Milestones Now/FIRE/End: swipeable row instead of 3 cramped cols ── */
+    .ms-grid {
+      display: grid !important;
+      grid-auto-flow: column !important;
+      grid-auto-columns: 78% !important;
+      grid-template-columns: none !important;
+      gap: 10px !important;
+      overflow-x: auto !important;
+      scroll-snap-type: x mandatory !important;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px !important;
+      margin: 0 -4px !important;
+    }
+    .ms-col { scroll-snap-align: start; }
+    .ms-col + .ms-col { border-left: 1px solid #D6D9DD !important; }  /* keep card border, not divider */
+
+    /* ── Chip toggle rows: single swipeable line each, bigger tap targets ── */
+    .chips-group .chips {
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .chips-group .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; padding: 8px 13px !important; font-size: 12.5px !important; }
+    .chips-group--indent { margin-left: 0 !important; padding-left: 8px !important; }
+
+    /* ── Inputs drawer header: title on its own line, tabs swipe below ── */
+    .drawer-head { flex-wrap: wrap; padding: 10px 12px !important; }
+    .drawer-head > .row:first-child { flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
+    #inputsDrawer .subnav {
+      display: flex; flex-wrap: nowrap; overflow-x: auto; width: 100%;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    #inputsDrawer .subnav::-webkit-scrollbar { display: none; }
+    #inputsDrawer .subnav button { flex: 0 0 auto; padding: 8px 12px !important; }
+    .drawer-head > .row:last-child { position: absolute; top: 10px; right: 12px; }
+
+    /* ── Touch targets: month pickers, toggles, small buttons ── */
+    .month-picker span[onclick], #budgetMonthLabel { min-height: 40px; display: inline-flex; align-items: center; }
+    .budget-month-nav .btn, .budget-yr-nav .btn, .port-year-step { min-width: 40px; min-height: 40px; }
+    .btn-event-toggle { padding: 8px 14px !important; }
+    .info-tip { min-width: 22px; min-height: 22px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* ── Full-data tables (Summary / Property breakdown): swipe with momentum ── */
+    .data-table-wrap .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── Scenario compare chips: swipe row ── */
+    .scen-compare-bar { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .scen-compare-bar::-webkit-scrollbar { display: none; }
   }
 
   /* Installed-PWA-only tweaks (launched from home screen) */
@@ -8173,6 +8230,10 @@ propPrefixes.forEach((prefix, i) => {
     options: {
 	  locale: "en-US",
       responsive: true,
+      // Near-square on phones so a multi-decade projection stays legible;
+      // wide on desktop. Read at render time (renderResults re-runs on tab
+      // switches, so crossing the breakpoint refreshes it).
+      aspectRatio: (window.innerWidth <= 640 ? 1.15 : 2.2),
       interaction: { mode: "index", intersect: false },
       onClick: (evt, elements, chartInstance) => {
         if (!_stockOverrideModeOn) return;
