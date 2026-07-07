@@ -4771,7 +4771,10 @@ select.exp-input { cursor:pointer; }
         <button class="btn ghost btn-add-row" onclick="addIncomeRow()"
                 style="margin-top:8px; font-size:12px;">+ Add income</button>
 
-        <p class="budget-section-lbl">Expenses</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+          <p class="budget-section-lbl" style="margin:0;">Expenses</p>
+          <button class="btn ghost" style="font-size:12px; padding:5px 12px;" onclick="openImportModal()">📥 Import bank statement</button>
+        </div>
         <div id="budgetExpenseWrap"></div>
         <button class="btn ghost btn-add-row" onclick="addExpenseRow()"
                 style="margin-top:8px; font-size:12px;">+ Add expense</button>
@@ -5391,6 +5394,79 @@ select.exp-input { cursor:pointer; }
       <li>Scroll and tap <strong>Add to Home Screen</strong></li>
       <li>Tap <strong>Add</strong> — done!</li>
     </ol>
+  </div>
+</div>
+
+<!-- Bank statement import modal -->
+<div id="importModal" style="display:none; position:fixed; inset:0; z-index:3400; background:rgba(0,0,0,.5); overflow-y:auto;" onclick="if(event.target===this)closeImportModal()">
+  <div style="max-width:760px; margin:24px auto; background:#fff; border-radius:16px; padding:22px; box-sizing:border-box;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <strong style="font-size:17px; color:#151816;">Import bank statement</strong>
+      <button onclick="closeImportModal()" style="background:none; border:none; font-size:22px; color:#828A85; cursor:pointer;">✕</button>
+    </div>
+    <p id="importTargetMonth" style="font-size:12.5px; color:#5A625D; margin:0 0 14px;"></p>
+
+    <!-- Step 1: upload -->
+    <div id="importStepUpload">
+      <label id="importDrop" style="display:block; border:2px dashed #C7CDD3; border-radius:12px; padding:26px; text-align:center; cursor:pointer;">
+        <input type="file" id="importFile" accept=".csv,.txt,.pdf" style="display:none;" onchange="importFileChosen(this.files[0])"/>
+        <div style="font-size:30px;">📄</div>
+        <div style="font-weight:700; color:#151816; margin-top:6px;">Choose a CSV or PDF file</div>
+        <div style="font-size:12px; color:#828A85; margin-top:4px;">Export the last month's transactions from your bank. CSV works best.</div>
+      </label>
+      <div style="font-size:11.5px; color:#8A8582; margin-top:10px; line-height:1.5;">
+        <strong>Private:</strong> the file is read in your browser and never uploaded anywhere. Only expenses (money out) are imported.
+      </div>
+    </div>
+
+    <!-- Step 2: column mapping (shown when auto-detect fails) -->
+    <div id="importStepMap" style="display:none; margin-top:6px;">
+      <p style="font-size:13px; color:#5A625D;">We couldn't auto-detect the columns. Point us at the right ones:</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <label style="font-size:12px;">Date column<select id="mapDate" class="exp-input"></select></label>
+        <label style="font-size:12px;">Description column<select id="mapDesc" class="exp-input"></select></label>
+        <label style="font-size:12px;">Amount column<select id="mapAmount" class="exp-input"></select></label>
+        <label style="font-size:12px;">Amount sign<select id="mapSign" class="exp-input">
+          <option value="neg">Expenses are negative</option>
+          <option value="pos">Expenses are positive</option>
+        </select></label>
+      </div>
+      <button class="btn primary" style="margin-top:12px;" onclick="importApplyMapping()">Continue →</button>
+    </div>
+
+    <!-- Step 3: preview + categorise -->
+    <div id="importStepPreview" style="display:none; margin-top:8px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+        <span id="importSummary" style="font-size:12.5px; color:#5A625D;"></span>
+        <label style="font-size:12px; color:#5A625D; display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="importAddMode" checked> Add to existing actuals
+        </label>
+      </div>
+      <div style="max-height:44vh; overflow-y:auto; border:1px solid #E5E7EB; border-radius:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px;" id="importPreviewTable"></table>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+        <button class="btn ghost" onclick="importBackToUpload()">← Start over</button>
+        <button class="btn primary" id="importApplyBtn" onclick="importApply()">Add to budget</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New-category popup (layered above the import modal) -->
+<div id="importNewCatModal" style="display:none; position:fixed; inset:0; z-index:3500; background:rgba(0,0,0,.4);" onclick="if(event.target===this)closeImportNewCat()">
+  <div style="max-width:400px; margin:18vh auto 0; background:#fff; border-radius:14px; padding:20px; box-sizing:border-box;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <strong style="font-size:15px; color:#151816;">New category</strong>
+      <button onclick="closeImportNewCat()" style="background:none; border:none; font-size:20px; color:#828A85; cursor:pointer;">✕</button>
+    </div>
+    <label style="font-size:12px; color:#3E4A3F; display:block; margin-bottom:8px;">Group
+      <select id="newCatGroup" class="exp-input" style="margin-top:3px;"></select>
+    </label>
+    <label style="font-size:12px; color:#3E4A3F; display:block;">Category name
+      <input type="text" id="newCatName" class="exp-input" placeholder="e.g. Pet Care" style="margin-top:3px;"/>
+    </label>
+    <button class="btn primary" style="margin-top:14px; width:100%;" onclick="saveImportNewCat()">Create &amp; use</button>
   </div>
 </div>
 
@@ -11745,6 +11821,439 @@ function expRowChanged(id){
 function expSubcatChanged(id){
   sortExpenseRows();
   expRowChanged(id);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Bank statement import — parse CSV/PDF, rule-categorise (no AI),
+   review, then write summed expenses into the current month's actuals.
+   ══════════════════════════════════════════════════════════ */
+
+// Starter keyword → category rules for common Australian merchants.
+// Matched as case-insensitive substrings of the transaction description.
+const IMPORT_DEFAULT_RULES = [
+  { kw:'woolworths', g:'Food & Drink', s:'Groceries' }, { kw:'coles', g:'Food & Drink', s:'Groceries' },
+  { kw:'aldi', g:'Food & Drink', s:'Groceries' }, { kw:'iga', g:'Food & Drink', s:'Groceries' },
+  { kw:'costco', g:'Food & Drink', s:'Groceries' },
+  { kw:'mcdonald', g:'Food & Drink', s:'Takeaway' }, { kw:'kfc', g:'Food & Drink', s:'Takeaway' },
+  { kw:'hungry jack', g:'Food & Drink', s:'Takeaway' }, { kw:'dominos', g:'Food & Drink', s:'Takeaway' },
+  { kw:'uber eats', g:'Food & Drink', s:'Takeaway' }, { kw:'menulog', g:'Food & Drink', s:'Takeaway' },
+  { kw:'doordash', g:'Food & Drink', s:'Takeaway' },
+  { kw:'cafe', g:'Food & Drink', s:'Coffee & Cafes' }, { kw:'coffee', g:'Food & Drink', s:'Coffee & Cafes' },
+  { kw:'restaurant', g:'Food & Drink', s:'Dining Out' }, { kw:'bar ', g:'Food & Drink', s:'Dining Out' },
+  { kw:'bp ', g:'Transport', s:'Fuel' }, { kw:'shell', g:'Transport', s:'Fuel' },
+  { kw:'ampol', g:'Transport', s:'Fuel' }, { kw:'caltex', g:'Transport', s:'Fuel' },
+  { kw:'7-eleven', g:'Transport', s:'Fuel' }, { kw:'united petrol', g:'Transport', s:'Fuel' },
+  { kw:'opal', g:'Transport', s:'Public Transport' }, { kw:'myki', g:'Transport', s:'Public Transport' },
+  { kw:'translink', g:'Transport', s:'Public Transport' }, { kw:'metro', g:'Transport', s:'Public Transport' },
+  { kw:'linkt', g:'Transport', s:'Parking & Tolls' }, { kw:'e-toll', g:'Transport', s:'Parking & Tolls' },
+  { kw:'uber', g:'Transport', s:'Public Transport' }, { kw:'didi', g:'Transport', s:'Public Transport' },
+  { kw:'wilson parking', g:'Transport', s:'Parking & Tolls' }, { kw:'secure parking', g:'Transport', s:'Parking & Tolls' },
+  { kw:'agl', g:'Housing', s:'Utilities' }, { kw:'origin energy', g:'Housing', s:'Utilities' },
+  { kw:'energyaustralia', g:'Housing', s:'Utilities' }, { kw:'red energy', g:'Housing', s:'Utilities' },
+  { kw:'sydney water', g:'Housing', s:'Utilities' }, { kw:'telstra', g:'Housing', s:'Utilities' },
+  { kw:'optus', g:'Housing', s:'Utilities' }, { kw:'vodafone', g:'Housing', s:'Utilities' },
+  { kw:'tpg', g:'Housing', s:'Utilities' }, { kw:'aussie broadband', g:'Housing', s:'Utilities' },
+  { kw:'netflix', g:'Entertainment', s:'Streaming Services' }, { kw:'spotify', g:'Entertainment', s:'Streaming Services' },
+  { kw:'disney', g:'Entertainment', s:'Streaming Services' }, { kw:'stan.', g:'Entertainment', s:'Streaming Services' },
+  { kw:'binge', g:'Entertainment', s:'Streaming Services' }, { kw:'youtube premium', g:'Entertainment', s:'Streaming Services' },
+  { kw:'kayo', g:'Entertainment', s:'Streaming Services' }, { kw:'amazon prime', g:'Entertainment', s:'Streaming Services' },
+  { kw:'jetstar', g:'Entertainment', s:'Travel & Holidays' }, { kw:'qantas', g:'Entertainment', s:'Travel & Holidays' },
+  { kw:'virgin aust', g:'Entertainment', s:'Travel & Holidays' }, { kw:'airbnb', g:'Entertainment', s:'Travel & Holidays' },
+  { kw:'booking.com', g:'Entertainment', s:'Travel & Holidays' }, { kw:'hotel', g:'Entertainment', s:'Travel & Holidays' },
+  { kw:'chemist warehouse', g:'Health', s:'Pharmacy' }, { kw:'priceline', g:'Health', s:'Pharmacy' },
+  { kw:'pharmacy', g:'Health', s:'Pharmacy' }, { kw:'terry white', g:'Health', s:'Pharmacy' },
+  { kw:'gym', g:'Health', s:'Gym & Fitness' }, { kw:'fitness first', g:'Health', s:'Gym & Fitness' },
+  { kw:'anytime fitness', g:'Health', s:'Gym & Fitness' }, { kw:'f45', g:'Health', s:'Gym & Fitness' },
+  { kw:'medicare', g:'Health', s:'Medical & Dental' }, { kw:'dental', g:'Health', s:'Medical & Dental' },
+  { kw:'bupa', g:'Health', s:'Private Health Insurance' }, { kw:'medibank', g:'Health', s:'Private Health Insurance' },
+  { kw:'hcf', g:'Health', s:'Private Health Insurance' }, { kw:'nib', g:'Health', s:'Private Health Insurance' },
+  { kw:'kmart', g:'Personal', s:'Clothing' }, { kw:'target', g:'Personal', s:'Clothing' },
+  { kw:'cotton on', g:'Personal', s:'Clothing' }, { kw:'uniqlo', g:'Personal', s:'Clothing' },
+  { kw:'h&m', g:'Personal', s:'Clothing' }, { kw:'myer', g:'Personal', s:'Clothing' },
+  { kw:'mecca', g:'Personal', s:'Personal Care & Grooming' }, { kw:'barber', g:'Personal', s:'Personal Care & Grooming' },
+  { kw:'hairdress', g:'Personal', s:'Personal Care & Grooming' },
+  { kw:'bunnings', g:'Housing', s:'Maintenance & Repairs' }, { kw:'ikea', g:'Housing', s:'Maintenance & Repairs' },
+  { kw:'officeworks', g:'Education', s:'Books & Media' }, { kw:'udemy', g:'Education', s:'Courses & Learning' },
+];
+
+function _importRulesLoad(){
+  try { return JSON.parse(localStorage.getItem('fire_import_rules_v1') || '{}'); } catch(_){ return {}; }
+}
+function _importRulesSave(map){
+  try { localStorage.setItem('fire_import_rules_v1', JSON.stringify(map)); } catch(_){}
+}
+/** Learn a merchant→category rule from a user correction */
+function _importLearnRule(desc, group, sub){
+  const key = _importMerchantKey(desc);
+  if (!key) return;
+  const map = _importRulesLoad();
+  map[key] = { g: group, s: sub };
+  _importRulesSave(map);
+}
+/** A stable-ish merchant key: first 2–3 significant words, lowercased */
+function _importMerchantKey(desc){
+  return String(desc||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ')
+    .split(/\s+/).filter(w => w.length > 2 && !/^\d+$/.test(w)).slice(0,3).join(' ').trim();
+}
+/** Categorise a description → {g, s} or null. Learned rules take priority. */
+function importCategorise(desc){
+  const d = String(desc||'').toLowerCase();
+  const learned = _importRulesLoad();
+  const key = _importMerchantKey(desc);
+  if (key && learned[key]) return learned[key];
+  // learned rules can also be substrings
+  for (const k in learned){ if (k && d.includes(k)) return learned[k]; }
+  for (const r of IMPORT_DEFAULT_RULES){ if (d.includes(r.kw)) return { g:r.g, s:r.s }; }
+  return null;
+}
+
+/* ── CSV parsing ── */
+function _parseCSV(text){
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  for (let i=0; i<text.length; i++){
+    const c = text[i];
+    if (inQ){
+      if (c === '"'){ if (text[i+1] === '"'){ cell+='"'; i++; } else inQ=false; }
+      else cell += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ','){ row.push(cell); cell=''; }
+      else if (c === '\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+      else if (c === '\r'){ /* skip */ }
+      else cell += c;
+    }
+  }
+  if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => String(x).trim() !== ''));
+}
+
+function _looksLikeDate(s){ return /\b\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}\b/.test(String(s)); }
+function _parseAmount(s){
+  const m = String(s).replace(/[^0-9.\-]/g,'');
+  if (m === '' || m === '-' || m === '.') return null;
+  const v = parseFloat(m);
+  return isFinite(v) ? v : null;
+}
+
+/** Detect which columns hold date / description / amount (or debit+credit). */
+function _detectColumns(rows){
+  if (!rows.length) return null;
+  const first = rows[0].map(c => String(c).toLowerCase());
+  const headerish = first.some(c => /date|desc|narrat|detail|amount|debit|credit|transaction/.test(c));
+  const find = (re) => first.findIndex(c => re.test(c));
+  if (headerish){
+    const dateCol   = find(/date/);
+    const descCol   = find(/desc|narrat|detail|transaction|reference/);
+    const debitCol  = find(/debit/);
+    const creditCol = find(/credit/);
+    const amountCol = find(/amount/);
+    if (dateCol >= 0 && descCol >= 0 && (amountCol >= 0 || debitCol >= 0)){
+      return { header:true, dateCol, descCol, amountCol, debitCol, creditCol, sign:'neg' };
+    }
+  }
+  // No usable header — infer from the data rows.
+  const sample = rows.slice(0, 20);
+  const nCols = Math.max(...sample.map(r => r.length));
+  let dateCol=-1, amountCol=-1, descCol=-1;
+  for (let c=0; c<nCols; c++){
+    const col = sample.map(r => r[c] ?? '');
+    if (dateCol<0 && col.filter(_looksLikeDate).length >= sample.length*0.6) dateCol=c;
+  }
+  for (let c=0; c<nCols; c++){
+    if (c===dateCol) continue;
+    const col = sample.map(r => r[c] ?? '');
+    const nums = col.filter(x => _parseAmount(x)!=null && /[0-9]/.test(x)).length;
+    if (nums >= sample.length*0.6){ amountCol = amountCol<0 ? c : amountCol; }
+  }
+  // description = the widest text column that isn't date/amount
+  let bestLen=-1;
+  for (let c=0; c<nCols; c++){
+    if (c===dateCol || c===amountCol) continue;
+    const avg = sample.reduce((s,r)=>s+String(r[c]||'').length,0)/sample.length;
+    if (avg > bestLen){ bestLen=avg; descCol=c; }
+  }
+  if (dateCol>=0 && amountCol>=0 && descCol>=0)
+    return { header:false, dateCol, descCol, amountCol, debitCol:-1, creditCol:-1, sign:'neg' };
+  return null;   // caller shows the manual mapping step
+}
+
+/** Turn raw rows + column map into normalised expense transactions. */
+function _rowsToTransactions(rows, map){
+  const body = map.header ? rows.slice(1) : rows;
+  const txns = [];
+  body.forEach(r => {
+    const desc = String(r[map.descCol] || '').trim();
+    if (!desc) return;
+    let amt = null;
+    if (map.debitCol >= 0){
+      const d = _parseAmount(r[map.debitCol]);
+      if (d != null && Math.abs(d) > 0) amt = -Math.abs(d);   // debit = expense
+      else return;   // credit rows skipped
+    } else {
+      const raw = _parseAmount(r[map.amountCol]);
+      if (raw == null) return;
+      amt = map.sign === 'pos' ? -raw : raw;   // normalise so expenses are negative
+    }
+    if (amt == null || amt >= 0) return;   // only money OUT
+    txns.push({ date: String(r[map.dateCol]||'').trim(), desc, amount: Math.abs(amt), cat: importCategorise(desc) });
+  });
+  return txns;
+}
+
+/* ── Modal control ── */
+let _importState = { rows:[], map:null, txns:[], newCatForIdx:null };
+
+function _importMonthLabel(){
+  const [y,mo] = (budgetMonthStr||todayMonthStr()).split('-');
+  return new Date(y, mo-1, 1).toLocaleDateString('en-AU', {month:'long', year:'numeric'});
+}
+function openImportModal(){
+  _importState = { rows:[], map:null, txns:[], newCatForIdx:null };
+  document.getElementById('importTargetMonth').textContent = `Transactions will be added to ${_importMonthLabel()}.`;
+  _importShowStep('upload');
+  document.getElementById('importFile').value = '';
+  document.getElementById('importModal').style.display = 'block';
+}
+function closeImportModal(){ document.getElementById('importModal').style.display = 'none'; }
+function importBackToUpload(){ _importShowStep('upload'); document.getElementById('importFile').value=''; }
+function _importShowStep(step){
+  document.getElementById('importStepUpload').style.display  = step==='upload'  ? '' : 'none';
+  document.getElementById('importStepMap').style.display     = step==='map'     ? '' : 'none';
+  document.getElementById('importStepPreview').style.display = step==='preview' ? '' : 'none';
+}
+
+function importFileChosen(file){
+  if (!file) return;
+  const status = document.getElementById('importTargetMonth');
+  if (/\.pdf$/i.test(file.name)){
+    status.textContent = 'Reading PDF… (experimental — please review every row)';
+    _importReadPdf(file);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => _importIngestText(String(reader.result || ''));
+  reader.readAsText(file);
+}
+
+function _importIngestText(text){
+  const rows = _parseCSV(text);
+  if (rows.length < 2){ alert('Could not read any rows from that file.'); return; }
+  _importState.rows = rows;
+  const map = _detectColumns(rows);
+  if (map){ _importState.map = map; _importBuildPreview(); }
+  else _importShowMapping(rows);
+}
+
+function _importShowMapping(rows){
+  const cols = Math.max(...rows.slice(0,10).map(r => r.length));
+  const opts = (sel) => { let h=''; for(let i=0;i<cols;i++){ const sample=(rows[1]||rows[0])[i]||''; h+=`<option value="${i}"${i===sel?' selected':''}>Column ${i+1} — "${escapeHtml(String(sample).slice(0,18))}"</option>`; } return h; };
+  document.getElementById('mapDate').innerHTML   = opts(0);
+  document.getElementById('mapDesc').innerHTML   = opts(2);
+  document.getElementById('mapAmount').innerHTML = opts(1);
+  _importShowStep('map');
+}
+function importApplyMapping(){
+  _importState.map = {
+    header: _looksLikeDate((_importState.rows[0]||[])[+document.getElementById('mapDate').value]) ? false : true,
+    dateCol:   +document.getElementById('mapDate').value,
+    descCol:   +document.getElementById('mapDesc').value,
+    amountCol: +document.getElementById('mapAmount').value,
+    debitCol:-1, creditCol:-1,
+    sign: document.getElementById('mapSign').value,
+  };
+  _importBuildPreview();
+}
+
+function _importBuildPreview(){
+  const txns = _rowsToTransactions(_importState.rows, _importState.map);
+  if (!txns.length){ alert('No expense transactions found. Check the column mapping (or that the file has money-out rows).'); _importShowMapping(_importState.rows); return; }
+  _importState.txns = txns;
+  _importRenderPreview();
+  _importShowStep('preview');
+}
+
+/** Build the grouped <select> options for a category cell */
+function _importCatOptions(sel){
+  const groups = [...new Set(BUDGET_CATS.filter(c=>c.enabled!==false).map(c=>c.group))];
+  let h = `<option value="">— Skip —</option>`;
+  groups.forEach(g => {
+    h += `<optgroup label="${escapeHtml(g)}">`;
+    BUDGET_CATS.filter(c=>c.group===g && c.enabled!==false).forEach(c => {
+      const v = `${g}|${c.label}`;
+      h += `<option value="${escapeHtml(v)}"${v===sel?' selected':''}>${escapeHtml(c.label)}</option>`;
+    });
+    h += `</optgroup>`;
+  });
+  h += `<option value="__new__">＋ New category…</option>`;
+  return h;
+}
+
+function _importRenderPreview(){
+  const txns = _importState.txns;
+  const nCat = txns.filter(t=>t.cat).length;
+  document.getElementById('importSummary').textContent =
+    `${txns.length} expenses found · ${nCat} auto-categorised · ${txns.length-nCat} need a category`;
+  let html = `<thead><tr style="position:sticky; top:0; background:#F7F7F5;">
+    <th style="text-align:left; padding:7px 10px;">Description</th>
+    <th style="text-align:right; padding:7px 10px;">Amount</th>
+    <th style="text-align:left; padding:7px 10px; min-width:170px;">Category</th></tr></thead><tbody>`;
+  txns.forEach((t, i) => {
+    const sel = t.cat ? `${t.cat.g}|${t.cat.s}` : '';
+    const warn = t.cat ? '' : 'background:#FFFBEB;';
+    html += `<tr style="border-top:1px solid #EEE; ${warn}">
+      <td style="padding:6px 10px;">${escapeHtml(t.desc.slice(0,42))}<div style="font-size:10px;color:#A8A4A0;">${escapeHtml(t.date)}</div></td>
+      <td style="padding:6px 10px; text-align:right; white-space:nowrap;">${fmtDollar(t.amount)}</td>
+      <td style="padding:6px 10px;"><select class="exp-input" style="width:100%;" onchange="importRowCatChanged(${i}, this.value)">${_importCatOptions(sel)}</select></td>
+    </tr>`;
+  });
+  html += `</tbody>`;
+  document.getElementById('importPreviewTable').innerHTML = html;
+}
+
+function importRowCatChanged(idx, value){
+  if (value === '__new__'){ _importState.newCatForIdx = idx; openImportNewCat(); return; }
+  const t = _importState.txns[idx];
+  if (!value){ t.cat = null; }
+  else {
+    const [g, s] = value.split('|');
+    t.cat = { g, s };
+    _importLearnRule(t.desc, g, s);   // remember this correction for next time
+  }
+  _importRenderPreview();
+}
+
+/* ── New-category popup ── */
+function openImportNewCat(){
+  const groups = [...new Set(BUDGET_CATS.map(c=>c.group))];
+  document.getElementById('newCatGroup').innerHTML = groups.map(g=>`<option>${escapeHtml(g)}</option>`).join('');
+  document.getElementById('newCatName').value = '';
+  document.getElementById('importNewCatModal').style.display = 'block';
+  setTimeout(()=>document.getElementById('newCatName').focus(), 50);
+}
+function closeImportNewCat(){
+  document.getElementById('importNewCatModal').style.display = 'none';
+  _importRenderPreview();   // reset the dropdown that showed "New category…"
+}
+function saveImportNewCat(){
+  const group = document.getElementById('newCatGroup').value;
+  const name  = document.getElementById('newCatName').value.trim();
+  if (!name){ document.getElementById('newCatName').focus(); return; }
+  if (!BUDGET_CATS.some(c => c.group===group && c.label.toLowerCase()===name.toLowerCase())){
+    BUDGET_CATS.push({ group, key:'cust_'+Date.now().toString(36), label:name });
+    saveBudgetCats();
+  }
+  const idx = _importState.newCatForIdx;
+  if (idx != null){
+    _importState.txns[idx].cat = { g:group, s:name };
+    _importLearnRule(_importState.txns[idx].desc, group, name);
+  }
+  document.getElementById('importNewCatModal').style.display = 'none';
+  _importRenderPreview();
+}
+
+/** Aggregate categorised expenses and write them into the month's actuals. */
+function importApply(){
+  const addMode = document.getElementById('importAddMode').checked;
+  const byCat = {};   // "group|sub" → total
+  _importState.txns.forEach(t => {
+    if (!t.cat) return;
+    const k = `${t.cat.g}|${t.cat.s}`;
+    byCat[k] = (byCat[k] || 0) + t.amount;
+  });
+  const entries = Object.entries(byCat);
+  if (!entries.length){ alert('Nothing to add — assign a category to at least one row.'); return; }
+
+  entries.forEach(([k, total]) => {
+    const [g, s] = k.split('|');
+    const amt = Math.round(total * 100) / 100;
+    // Find an existing expense row for this sub-category with no description
+    const rows = [...document.querySelectorAll('#expenseTableBody .expense-row')];
+    const existing = rows.find(r =>
+      r.querySelector('.exp-cat')?.value === g &&
+      r.querySelector('.exp-subcat')?.value === s &&
+      !(r.querySelector('.exp-desc')?.value || '').trim());
+    if (existing){
+      const actEl = existing.querySelector('.exp-actual');
+      const prev = addMode ? (parseFloat(String(actEl.value).replace(/[,$]/g,'')) || 0) : 0;
+      actEl.value = Math.round((prev + amt) * 100) / 100;
+      existing.querySelector('.exp-cat').value = g;   // ensure group is right
+    } else {
+      addExpenseRow({ group:g, subcategory:s, actual:amt, freq:'Monthly' });
+    }
+  });
+  sortExpenseRows();
+  updateBudgetSummary();
+  scheduleAutosave();
+  closeImportModal();
+  const st = document.getElementById('budgetSaveStatus');
+  if (st){ st.textContent = `Imported ${entries.length} categories ✓`; st.className = 'budget-save-status saved'; }
+}
+
+/* ── PDF (best-effort, experimental) ── */
+let _pdfjsLoading = null;
+function _loadPdfJs(){
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (_pdfjsLoading) return _pdfjsLoading;
+  _pdfjsLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs';
+    s.type = 'module';
+    // pdf.js v4 is ESM; use a small import shim
+    const shim = document.createElement('script');
+    shim.type = 'module';
+    shim.textContent = `import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs';
+      pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+      window.pdfjsLib = pdfjs; window.dispatchEvent(new Event('pdfjs-ready'));`;
+    window.addEventListener('pdfjs-ready', () => res(window.pdfjsLib), { once:true });
+    setTimeout(() => { if (!window.pdfjsLib) rej(new Error('pdfjs load timeout')); }, 10000);
+    document.head.appendChild(shim);
+  });
+  return _pdfjsLoading;
+}
+
+async function _importReadPdf(file){
+  try {
+    const pdfjs = await _loadPdfJs();
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
+    let lines = [];
+    for (let p=1; p<=pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      // group text items into visual lines by their y-position
+      const byY = {};
+      content.items.forEach(it => {
+        const y = Math.round(it.transform[5]);
+        (byY[y] = byY[y] || []).push({ x: it.transform[4], s: it.str });
+      });
+      Object.keys(byY).sort((a,b)=>b-a).forEach(y => {
+        const line = byY[y].sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim();
+        if (line) lines.push(line);
+      });
+    }
+    // Best-effort: keep lines that contain a date AND a dollar amount
+    const txns = [];
+    const amtRe = /(-?\$?\d[\d,]*\.\d{2})(?!\d)/;
+    lines.forEach(line => {
+      if (!_looksLikeDate(line)) return;
+      const m = line.match(amtRe);
+      if (!m) return;
+      const amount = Math.abs(_parseAmount(m[1]) || 0);
+      if (!amount) return;
+      const desc = line.replace(amtRe, '').replace(/\b\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}\b/g,'').replace(/\s+/g,' ').trim();
+      if (desc.length < 3) return;
+      txns.push({ date:'', desc, amount, cat: importCategorise(desc) });
+    });
+    if (!txns.length){ alert('Couldn\'t extract transactions from this PDF. PDF layouts vary a lot — a CSV export from your bank will work far more reliably.'); document.getElementById('importTargetMonth').textContent = `Transactions will be added to ${_importMonthLabel()}.`; return; }
+    _importState.txns = txns;
+    _importRenderPreview();
+    _importShowStep('preview');
+    document.getElementById('importSummary').textContent += ' · ⚠ PDF import — double-check amounts';
+  } catch(e){
+    console.warn('PDF import failed', e);
+    alert('PDF reading failed. Please use a CSV export from your bank instead.');
+  }
 }
 
 /** Remove a row — always keeps at least one */
