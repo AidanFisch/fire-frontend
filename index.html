@@ -46,6 +46,21 @@
       navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed', err));
     });
   }
+
+  // ── Install-as-app support ──
+  // Android/Chromium fire beforeinstallprompt — capture it so an in-page
+  // button can trigger the real install. iOS Safari doesn't support this, so
+  // there the button shows manual Add-to-Home-Screen instructions instead.
+  window._deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window._deferredInstallPrompt = e;
+    if (window._refreshInstallButtons) window._refreshInstallButtons();
+  });
+  window.addEventListener('appinstalled', () => {
+    window._deferredInstallPrompt = null;
+    if (window._refreshInstallButtons) window._refreshInstallButtons();
+  });
 </script>
 
 <script type="application/ld+json">
@@ -3816,6 +3831,13 @@ select.exp-input { cursor:pointer; }
               Sign in
             </button>
           </div>
+          <!-- Install-as-app button. Hidden by default; shown when the browser
+               reports the app is installable, or on iOS (which needs manual
+               Add-to-Home-Screen instructions). -->
+          <button id="installAppBtn" onclick="promptInstallApp()"
+                  style="display:none; align-items:center; gap:7px; background:none; border:1px solid #D6D9DD; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:600; color:#0F3D2E; cursor:pointer;">
+            <span style="font-size:15px;">⤓</span> Install app
+          </button>
         </div>
       </div>
 
@@ -5363,6 +5385,22 @@ select.exp-input { cursor:pointer; }
   </div>
 </div>
 
+<!-- iOS "Add to Home Screen" instructions (iOS Safari can't auto-install) -->
+<div id="iosInstallSheet" style="display:none; position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,.45);" onclick="if(event.target===this)closeIosInstall()">
+  <div style="position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:100%; max-width:440px; background:#fff; border-radius:16px 16px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px)); box-sizing:border-box;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <strong style="font-size:16px; color:#151816;">Install WealthModel</strong>
+      <button onclick="closeIosInstall()" style="background:none; border:none; font-size:20px; color:#828A85; cursor:pointer;">✕</button>
+    </div>
+    <p style="font-size:13.5px; color:#5A625D; line-height:1.5; margin:0 0 14px;">Add WealthModel to your home screen for a full-screen app experience:</p>
+    <ol style="font-size:14px; color:#151816; line-height:1.7; margin:0; padding-left:20px;">
+      <li>Tap the <strong>Share</strong> icon <span style="display:inline-block; vertical-align:-3px;"><svg width="15" height="18" viewBox="0 0 20 24" fill="none" stroke="#0F3D2E" stroke-width="1.8"><path d="M10 15V3m0 0L6 7m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 11H4a1 1 0 00-1 1v9a1 1 0 001 1h12a1 1 0 001-1v-9a1 1 0 00-1-1h-1" stroke-linecap="round"/></svg></span> in the toolbar</li>
+      <li>Scroll and tap <strong>Add to Home Screen</strong></li>
+      <li>Tap <strong>Add</strong> — done!</li>
+    </ol>
+  </div>
+</div>
+
 <div id="inputsDrawerBackdrop" class="drawer-backdrop" hidden></div>
 <aside id="inputsDrawer" class="drawer" aria-hidden="true" role="dialog" aria-label="Inputs drawer">
   <div class="drawer-head">
@@ -5557,6 +5595,7 @@ window.addEventListener('scroll', _syncActionBarPosition, { passive: true });
 
 window.addEventListener("load", () => {
   _updateTopbarHeightVar();
+  if (window._refreshInstallButtons) window._refreshInstallButtons();
   const btn = document.getElementById("themeToggle");
   if (!btn) return;
   btn.onclick = () => {
@@ -6126,6 +6165,44 @@ function enterApp(){
   const hdr = document.getElementById('btnRunModelHeader');
   if (hdr) hdr.style.display = '';
   showDashboard();
+}
+
+/* ── Install as app ── */
+function _isIos(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    // iPadOS 13+ reports as Mac but has touch
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function _isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function _refreshInstallButtons(){
+  const btn = document.getElementById('installAppBtn');
+  if (!btn) return;
+  // Already installed → never show. Otherwise show if the browser offered an
+  // install prompt, or if we're on iOS (which needs manual instructions).
+  const show = !_isStandalone() && (window._deferredInstallPrompt || _isIos());
+  btn.style.display = show ? 'inline-flex' : 'none';
+}
+window._refreshInstallButtons = _refreshInstallButtons;
+
+async function promptInstallApp(){
+  window._logEvent?.('install_click', {});
+  if (window._deferredInstallPrompt) {
+    const e = window._deferredInstallPrompt;
+    window._deferredInstallPrompt = null;
+    e.prompt();
+    try { await e.userChoice; } catch(_) {}
+    _refreshInstallButtons();
+    return;
+  }
+  if (_isIos()) { document.getElementById('iosInstallSheet').style.display = 'block'; return; }
+  // Fallback (rare: desktop browsers without a captured prompt)
+  showToast?.('Install', 'Use your browser menu → “Install app” or “Add to Home screen”.');
+}
+function closeIosInstall(){
+  const s = document.getElementById('iosInstallSheet');
+  if (s) s.style.display = 'none';
 }
 
 /** "Get Started Free" CTA: drop them straight into the app (no forced
