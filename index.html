@@ -3503,6 +3503,19 @@ select.exp-input { cursor:pointer; }
 
     /* ── Model chart: taller (near-square) so a 35-yr projection is legible ── */
     #chartMain { min-height: 300px; }
+    /* inside the full-screen overlay the canvas fills the stage instead */
+    #chartFsCanvasSlot #chartMain { min-height: 0 !important; }
+
+    /* ── Property cards: keep every field, label and value inside the card ── */
+    .propCard { padding: 12px !important; overflow: hidden; }
+    .propCard .fieldgrid { grid-template-columns: 1fr !important; }
+    .propCard .fieldgrid > div { min-width: 0; }
+    .propCard input:not([type="checkbox"]), .propCard select {
+      width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+    }
+    .propCard .fieldgrid > div > label { display: block; word-break: break-word; }
+    .prop-state-row { flex-wrap: wrap; }
+    .prop-state-select { max-width: 100%; }
 
     /* ── Milestones Now/FIRE/End: swipeable row instead of 3 cramped cols ── */
     .ms-grid {
@@ -3555,6 +3568,48 @@ select.exp-input { cursor:pointer; }
     /* ── Scenario compare chips: swipe row ── */
     .scen-compare-bar { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .scen-compare-bar::-webkit-scrollbar { display: none; }
+  }
+
+  /* Full-screen chart button is mobile-only; desktop already has room */
+  #chartFullscreenBtn { display: inline-flex; align-items: center; }
+  @media (min-width: 641px) { #chartFullscreenBtn { display: none; } }
+
+  /* Full-screen chart overlay (opened only on mobile). Fills the viewport so
+     the projection uses the whole screen; the chart is responsive so turning
+     the phone to landscape gives a true wide view (hint prompts this). */
+  #chartFsOverlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: #FFFFFF;
+  }
+  #chartFsStage {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box; gap: 8px;
+  }
+  .chart-fs-bar { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+  .chart-fs-title { font-size: 13px; font-weight: 700; color: #151816; }
+  .chart-fs-close {
+    font-size: 13px; font-weight: 600; color: #fff; background: #151816;
+    border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+  }
+  #chartFsCanvasSlot { flex: 1 1 auto; min-height: 0; position: relative; }
+  #chartFsCanvasSlot #chartCanvasHost { height: 100%; }
+  #chartFsCanvasSlot #chartMain { margin: 0 !important; min-height: 0 !important; }
+  #chartFsChipsSlot { flex: 0 0 auto; max-height: 30vh; overflow-y: auto; }
+  #chartFsChipsSlot .chips-bar { flex-direction: row; flex-wrap: wrap; gap: 8px 14px; margin: 0 !important; }
+  #chartFsChipsSlot .chips-group { flex-direction: row; align-items: center; gap: 6px; }
+  #chartFsChipsSlot .chips-group .chips { flex-wrap: wrap; overflow: visible; }
+  #chartFsChipsSlot .stock-override-panel { display: none; }
+  /* "rotate your phone" hint — shown in portrait, hidden once landscape */
+  .chart-fs-rotate-hint {
+    flex: 0 0 auto; text-align: center; font-size: 11.5px; color: #828A85;
+    padding: 2px 0;
+  }
+  @media (orientation: landscape) {
+    .chart-fs-rotate-hint { display: none; }
+    /* landscape: chips take less vertical room so the chart gets the space */
+    #chartFsChipsSlot { max-height: 26vh; }
   }
 
   /* Installed-PWA-only tweaks (launched from home screen) */
@@ -4472,10 +4527,11 @@ select.exp-input { cursor:pointer; }
     <!-- Chart + legend/toggles -->
     <div id="chartSection">
       <div id="scenCompareBar" class="scen-compare-bar" style="display:none;"></div>
-      <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:6px;">
+        <button id="chartFullscreenBtn" class="btn-event-toggle" onclick="openChartFullscreen()">⛶ Full screen</button>
         <button id="eventMarkersToggle" class="btn-event-toggle" onclick="toggleEventMarkers()">📍 Major events</button>
       </div>
-      <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
+      <div id="chartCanvasHost"><canvas id="chartMain" style="margin-bottom:14px;"></canvas></div>
 
       <div class="stock-override-panel">
         <label class="prop-toggle stock-override-toggle">
@@ -5262,6 +5318,21 @@ select.exp-input { cursor:pointer; }
 </div>
 
 <!-- Slide-over Inputs Drawer (place OUTSIDE .wrap, BEFORE <script>) -->
+<!-- Mobile full-screen (landscape) chart overlay. The real chart canvas and
+     toggle chips are moved in here on open and moved back on close, so
+     interactivity and toggles keep working against the same chart. -->
+<div id="chartFsOverlay" style="display:none;">
+  <div id="chartFsStage">
+    <div class="chart-fs-bar">
+      <span class="chart-fs-title">Model projection</span>
+      <button class="chart-fs-close" onclick="closeChartFullscreen()">✕ Close</button>
+    </div>
+    <div class="chart-fs-rotate-hint">↻ Rotate your phone for a wider view</div>
+    <div id="chartFsCanvasSlot"></div>
+    <div id="chartFsChipsSlot"></div>
+  </div>
+</div>
+
 <div id="inputsDrawerBackdrop" class="drawer-backdrop" hidden></div>
 <aside id="inputsDrawer" class="drawer" aria-hidden="true" role="dialog" aria-label="Inputs drawer">
   <div class="drawer-head">
@@ -5862,6 +5933,67 @@ function toggleEventMarkers() {
   const btn = document.getElementById('eventMarkersToggle');
   if (btn) btn.classList.toggle('off', !_showEventMarkers);
   if (chart) chart.update('none');
+}
+
+/* ── Mobile full-screen (landscape) chart ──
+   Moves the live chart canvas + toggle chips into a rotated overlay so the
+   projection uses the full width of the phone. Toggles keep working because
+   they act on the same chart element; renderResults rebuilds it in place. */
+function openChartFullscreen(){
+  if (!state.lastResult) { alert('Run the model first.'); return; }
+  const overlay = document.getElementById('chartFsOverlay');
+  const canvasSlot = document.getElementById('chartFsCanvasSlot');
+  const chipsSlot  = document.getElementById('chartFsChipsSlot');
+  const host  = document.getElementById('chartCanvasHost');
+  const chips = document.querySelector('#chartSection .chips-bar');
+  if (!overlay || !canvasSlot || !host) return;
+
+  _chartFullscreen = true;
+  canvasSlot.appendChild(host);
+  if (chips) chipsSlot.appendChild(chips);
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  // Rebuild the chart so it fills the stage (maintainAspectRatio off)
+  renderResults(state.lastResult);
+  requestAnimationFrame(() => { if (chart) chart.resize(); });
+  document.addEventListener('keydown', _chartFsEsc);
+  window.addEventListener('resize', _chartFsRefit);
+  window.addEventListener('orientationchange', _chartFsRefit);
+}
+
+function closeChartFullscreen(){
+  const overlay = document.getElementById('chartFsOverlay');
+  const section = document.getElementById('chartSection');
+  const host  = document.getElementById('chartCanvasHost');
+  const chips = document.querySelector('#chartFsChipsSlot .chips-bar');
+  if (!overlay || !section || !host) return;
+
+  _chartFullscreen = false;
+  // Put the canvas host back where it belongs (before the stock-override panel)
+  const anchor = section.querySelector('.stock-override-panel');
+  if (anchor) section.insertBefore(host, anchor); else section.appendChild(host);
+  if (chips) section.appendChild(chips);   // chips-bar sits after the panel
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  renderResults(state.lastResult);
+  document.removeEventListener('keydown', _chartFsEsc);
+  window.removeEventListener('resize', _chartFsRefit);
+  window.removeEventListener('orientationchange', _chartFsRefit);
+}
+
+function _chartFsEsc(e){ if (e.key === 'Escape') closeChartFullscreen(); }
+
+/* Rotation/resize while full-screen: re-render so the chart re-measures the
+   new stage box (a bare chart.resize() doesn't reflow reliably here). */
+let _chartFsRefitTimer = null;
+function _chartFsRefit(){
+  clearTimeout(_chartFsRefitTimer);
+  _chartFsRefitTimer = setTimeout(() => {
+    if (_chartFullscreen && state.lastResult) {
+      renderResults(state.lastResult);
+      requestAnimationFrame(() => { if (chart) chart.resize(); });
+    }
+  }, 180);
 }
 
 /* ====== Additional Stock Contributions ======
@@ -7818,6 +7950,7 @@ const STOCK_OVERRIDE_COLOR = "#92400E";
  *  --------------------------*/
 let chart = null;
 let lastMetricsRegistry = [];
+let _chartFullscreen = false;   // mobile landscape full-screen chart overlay
 
 function renderResults(result){
   document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
@@ -8230,9 +8363,10 @@ propPrefixes.forEach((prefix, i) => {
     options: {
 	  locale: "en-US",
       responsive: true,
-      // Near-square on phones so a multi-decade projection stays legible;
-      // wide on desktop. Read at render time (renderResults re-runs on tab
-      // switches, so crossing the breakpoint refreshes it).
+      // Full-screen overlay: fill the stage (definite height) rather than hold
+      // an aspect ratio. Otherwise near-square on phones (legible multi-decade
+      // projection), wide on desktop.
+      maintainAspectRatio: _chartFullscreen ? false : true,
       aspectRatio: (window.innerWidth <= 640 ? 1.15 : 2.2),
       interaction: { mode: "index", intersect: false },
       onClick: (evt, elements, chartInstance) => {
