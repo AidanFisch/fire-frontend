@@ -5101,7 +5101,7 @@ select.exp-input { cursor:pointer; }
     <div id="legalPanelContact" class="legal-panel" style="display:none;">
       <h3>Contact</h3>
       <p>For support, billing questions, bug reports, or general feedback, email us at:</p>
-      <p style="font-size:16px; font-weight:700;"><a href="mailto:wealthmodel@gmail.com">wealthmodel@gmail.com</a></p>
+      <p style="font-size:16px; font-weight:700;"><a href="mailto:hello@wealthmodel.io">hello@wealthmodel.io</a></p>
       <p>We aim to respond within a few business days.</p>
     </div>
   </div>
@@ -5898,6 +5898,9 @@ function renderPropertyChips(propPrefixes){
 
 
 function saveState(){
+  // Demo mode (?demo=1) is read-only: never persist the sample scenario over
+  // the user's real localStorage / synced data.
+  if (window._demoMode) return;
   localStorage.setItem(LS_KEY, JSON.stringify(state));
   _queueSync();
 }
@@ -6158,6 +6161,81 @@ function enterApp(){
   const hdr = document.getElementById('btnRunModelHeader');
   if (hdr) hdr.style.display = '';
   showDashboard();
+}
+
+/* ── Demo mode: a curated, relatable Australian scenario for ad/screenshot
+   recording. Loaded via ?demo=1, never persisted. A 32-year-old couple with
+   an apartment they rent out, a home bought this year, shares and super —
+   reaches FIRE in their early 50s, a satisfying on-screen arc. */
+const DEMO_SCENARIO = {
+  inputs: {
+    current_age: 32,
+    end_age: 90,
+    inflation: 0.025,
+    todays_lifestyle_income: 46000,
+    initial_savings: 110000,
+    current_income: 155000,
+    current_expenses: 55000,
+    average_salary_increase: 0.035,
+    stock_growth: 0.07,
+    stock_yearly_contribution: 42000,
+    starting_stock_value: 140000,
+    stock_swr: 0.04,
+    super_swr: 0.04,
+    super_access_age: 60,
+    super_starting_balance: 110000,
+    super_sg_rate: 0.12,
+    super_growth: 0.065,
+    super_additional_annual: 0,
+    super_extra_is_pre_tax: true,
+    cpi_rate: 0.025,
+    on_income_support: false,
+  },
+  property_list: [
+    {
+      id: 1, name: "Investment Apartment", purchase_price: 480000, current_value: 620000,
+      original_loan: 384000, loan_balance_current: 300000, purchase_fees: 22000,
+      monthly_rent: 2350, strata_quarterly: 1100, rates_quarterly: 850, other_costs_monthly: 150,
+      interest_rate: 0.058, property_growth: 0.04, rental_growth: 0.03, year_bought: 2020,
+      purchase_date: "2020-06", loan_term_years: 30, use_offset: true, is_owner_occupied: false,
+      vacancy_weeks: 2, mgmt_fee_rate: 0.066, ppor_periods: [], sale_date: null, sale_year: null, sale_price: null
+    },
+    {
+      id: 2, name: "Our Home", purchase_price: 780000, current_value: 1050000,
+      original_loan: 620000, loan_balance_current: 430000, purchase_fees: 38000,
+      monthly_rent: 0, strata_quarterly: 0, rates_quarterly: 900, other_costs_monthly: 350,
+      interest_rate: 0.058, property_growth: 0.04, rental_growth: 0.0,
+      year_bought: 2019, purchase_date: "2019-05",
+      loan_term_years: 25, use_offset: true, is_owner_occupied: true,
+      vacancy_weeks: 0, mgmt_fee_rate: 0, ppor_periods: [], sale_date: null, sale_year: null, sale_price: null
+    }
+  ],
+  life_events: [],
+  stock_contribution_overrides: [],
+};
+
+function _startDemoMode(){
+  window._demoMode = true;
+  state.inputs = { ...state.inputs, ...DEMO_SCENARIO.inputs };
+  state.property_list = JSON.parse(JSON.stringify(DEMO_SCENARIO.property_list));
+  state.life_events = [];
+  state.stock_contribution_overrides = [];
+  state.mode = "yearly";
+  // Drop the user's field-sync settings — otherwise the "sync from budget /
+  // holdings" logic would overwrite the demo income/expenses a tick after load.
+  state.syncModes = {};
+  state.lastResult = null;   // don't show the user's stale cached result
+  document.querySelectorAll('.input-synced').forEach(el => el.classList.remove('input-synced'));
+  clearTimeout(window._authFallback);
+  bindCoreInputs();
+  enterApp();
+  renderProperties?.();
+  showTab('results');
+  // Commit the demo field values, then run once. (First load can hit the
+  // Render cold-start — the chart shows a loading state for ~15-40s until the
+  // API wakes; clearing lastResult above prevents a stale result flashing.)
+  syncInputsFromUI();
+  setTimeout(() => runModel(), 150);
 }
 
 /* ── Install as app ── */
@@ -7818,6 +7896,7 @@ const FREE_DAILY_RUN_LIMIT = 5;
  *  exhaustively drill down. Returns false (and shows the upgrade modal)
  *  without incrementing if the day's quota is already used. */
 function _checkModelRunLimit(){
+  if (window._demoMode) return true;   // demo scenario runs freely (ad recording)
   if (isPro()) return true;
   const today = todayMonthStr() + '-' + String(new Date().getDate()).padStart(2, '0');
   if (!state.modelRunUsage || state.modelRunUsage.date !== today) {
@@ -9906,6 +9985,15 @@ window.addEventListener("load", ()=>{
   hydrateUI();
   initIncomeTable();      // build income table once
   initExpenseTable();     // build expense table once
+
+  // ── Demo mode (?demo=1): load a polished sample scenario for recording
+  // ads/screenshots. Read-only (saveState is a no-op) so it never touches
+  // the user's real data. Drops straight into the app and runs the model.
+  if (_sp.get('demo') === '1') {
+    _startDemoMode();
+    return;
+  }
+
   // Don't call initLanding() here — wait for fbAuthChange so signed-in users
   // go straight to the app. Fallback after 3s in case Firebase is slow.
   window._authFallback = setTimeout(() => initLanding(), 3000);
