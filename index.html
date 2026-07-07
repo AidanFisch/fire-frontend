@@ -3831,13 +3831,6 @@ select.exp-input { cursor:pointer; }
               Sign in
             </button>
           </div>
-          <!-- Install-as-app button. Hidden by default; shown when the browser
-               reports the app is installable, or on iOS (which needs manual
-               Add-to-Home-Screen instructions). -->
-          <button id="installAppBtn" onclick="promptInstallApp()"
-                  style="display:none; align-items:center; gap:7px; background:none; border:1px solid #D6D9DD; border-radius:9px; padding:9px 16px; font-size:13px; font-weight:600; color:#0F3D2E; cursor:pointer;">
-            <span style="font-size:15px;">⤓</span> Install app
-          </button>
         </div>
       </div>
 
@@ -6177,12 +6170,16 @@ function _isStandalone(){
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 function _refreshInstallButtons(){
-  const btn = document.getElementById('installAppBtn');
-  if (!btn) return;
+  const card = document.getElementById('settingsInstallCard');
+  if (!card) return;
   // Already installed → never show. Otherwise show if the browser offered an
   // install prompt, or if we're on iOS (which needs manual instructions).
   const show = !_isStandalone() && (window._deferredInstallPrompt || _isIos());
-  btn.style.display = show ? 'inline-flex' : 'none';
+  card.style.display = show ? 'flex' : 'none';
+  const sub = document.getElementById('settingsInstallSub');
+  if (sub) sub.textContent = _isIos() && !window._deferredInstallPrompt
+    ? 'Tap for Add to Home Screen steps'
+    : 'Add WealthModel to your home screen';
 }
 window._refreshInstallButtons = _refreshInstallButtons;
 
@@ -13347,6 +13344,7 @@ function saveTaxSettings(){
 /* ── Navigation ── */
 function openSettings(){
   settingsGoHome();
+  if (window._refreshInstallButtons) _refreshInstallButtons();
   document.getElementById('settingsOverlay').style.display = 'flex';
 }
 function closeSettings(){ document.getElementById('settingsOverlay').style.display = 'none'; }
@@ -13660,6 +13658,15 @@ function refreshExpenseDropdowns(){
           <span id="settingsApiStatusText">Not checked yet</span>
         </div>
         <button class="btn ghost" style="font-size:12px;" onclick="pingAPI()">Re-check</button>
+      </div>
+      <!-- Install app — hidden when already installed or not installable -->
+      <div class="settings-nav-card" id="settingsInstallCard" style="display:none; cursor:pointer;" onclick="promptInstallApp()">
+        <span class="settings-nav-icon">⤓</span>
+        <div class="settings-nav-label">
+          <strong>Install App</strong>
+          <span id="settingsInstallSub">Add WealthModel to your home screen</span>
+        </div>
+        <span class="settings-nav-arrow">›</span>
       </div>
     </div>
 
