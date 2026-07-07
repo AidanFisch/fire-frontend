@@ -3501,10 +3501,24 @@ select.exp-input { cursor:pointer; }
 
     /* ═══ Phase 3: per-screen polish ═══ */
 
-    /* ── Model chart: taller (near-square) so a 35-yr projection is legible ── */
-    #chartMain { min-height: 300px; }
+    /* ── Model chart: hidden inline (too cramped on a phone); replaced by a
+       button that opens the full-screen view. Desktop keeps the inline chart.
+       !important beats the global base rule (source order) and the toolbar's
+       inline display:flex. ── */
+    #chartOpenMobile { display: flex !important; }
+    #chartSection #chartToolbarRow,
+    #chartSection #chartCanvasHost,
+    #chartSection .chips-bar,
+    #chartSection .stock-override-panel { display: none !important; }
     /* inside the full-screen overlay the canvas fills the stage instead */
     #chartFsCanvasSlot #chartMain { min-height: 0 !important; }
+
+    /* ── Property card header: name on its own line, badges wrap below,
+       expand arrow pinned top-right (was overlapping on narrow screens) ── */
+    .propCardHeader { align-items: flex-start !important; gap: 8px !important; }
+    .propCardNameRow { flex-wrap: wrap !important; }
+    .propCardName { flex: 1 1 100% !important; }
+    .propExpandBtn { flex: 0 0 auto; margin-top: 2px; }
 
     /* ── Property cards: keep every field, label and value inside the card ── */
     .propCard { padding: 12px !important; overflow: hidden; }
@@ -3573,6 +3587,17 @@ select.exp-input { cursor:pointer; }
   /* Full-screen chart button is mobile-only; desktop already has room */
   #chartFullscreenBtn { display: inline-flex; align-items: center; }
   @media (min-width: 641px) { #chartFullscreenBtn { display: none; } }
+
+  /* Mobile-only "View graph full screen" CTA (hidden on desktop, which shows
+     the inline chart). Shown by the mobile block below. */
+  #chartOpenMobile {
+    display: none;
+    width: 100%; gap: 8px; align-items: center; justify-content: center;
+    background: #0F3D2E; color: #fff; border: none; border-radius: 12px;
+    padding: 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+    margin: 4px 0 14px;
+  }
+  #chartOpenMobile:active { background: #0b2e22; }
 
   /* Full-screen chart overlay (opened only on mobile). Fills the viewport so
      the projection uses the whole screen; the chart is responsive so turning
@@ -4527,10 +4552,15 @@ select.exp-input { cursor:pointer; }
     <!-- Chart + legend/toggles -->
     <div id="chartSection">
       <div id="scenCompareBar" class="scen-compare-bar" style="display:none;"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:6px;">
+      <div id="chartToolbarRow" style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:6px;">
         <button id="chartFullscreenBtn" class="btn-event-toggle" onclick="openChartFullscreen()">⛶ Full screen</button>
         <button id="eventMarkersToggle" class="btn-event-toggle" onclick="toggleEventMarkers()">📍 Major events</button>
       </div>
+      <!-- Mobile: the inline chart is hidden (too cramped); this opens the
+           full-screen view instead. Desktop keeps the inline chart. -->
+      <button id="chartOpenMobile" onclick="openChartFullscreen()">
+        <span style="font-size:17px;">⛶</span> View Model Graph Full Screen
+      </button>
       <div id="chartCanvasHost"><canvas id="chartMain" style="margin-bottom:14px;"></canvas></div>
 
       <div class="stock-override-panel">
