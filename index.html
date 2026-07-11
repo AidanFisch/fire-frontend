@@ -3631,18 +3631,28 @@ select.exp-input { cursor:pointer; }
     top: calc(var(--topbar-height, 85px) + var(--bar-height, 50px) + 14px);
     max-height: calc(100vh - var(--topbar-height, 85px) - var(--bar-height, 50px) - 28px);
     overflow-y: auto;
-    padding: 14px 16px !important;
+    padding: 0 !important;           /* sticky header block carries its own */
   }
   @media (min-width: 1100px) {
     #inputsDock { display: block; }
     /* Edit Inputs button is redundant while the dock is on screen */
     #modelActionsBar .bar-primary-group button[onclick*="openInputsDrawer"] { display: none; }
   }
-  .dock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  /* Header + tabs pinned to the top of the dock while fields scroll under */
+  .dock-sticky {
+    position: sticky; top: 0; z-index: 6;
+    background: #FFFFFF;
+    padding: 13px 16px 9px;
+    border-bottom: 1px solid #F0EDE8;
+    border-radius: 12px 12px 0 0;
+  }
+  #inputsDockMount { padding: 10px 16px 16px; }
+  .dock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
   .dock-head strong { font-size: 15px; color: #151816; }
-  .dock-autorun { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #5A625D; cursor: pointer; user-select: none; }
-  .dock-subnav { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
-  .dock-subnav button { padding: 5px 11px !important; font-size: 12px !important; }
+  .dock-autorun { display: inline-flex !important; align-items: center; gap: 7px; white-space: nowrap; cursor: pointer; user-select: none; padding: 0 !important; }
+  .dock-autorun-lbl { font-size: 12px; font-weight: 600; color: #3E4A3F; }
+  .dock-subnav { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; }
+  .dock-subnav button { padding: 5px 11px !important; font-size: 12px !important; flex: 0 0 auto; }
   /* the docked panel is narrow — force single-column field grids inside it */
   #inputsDock .fieldgrid, #inputsDock .coregrid { grid-template-columns: 1fr !important; }
 
@@ -4385,22 +4395,12 @@ select.exp-input { cursor:pointer; }
     <div id="inputsPanel">
       <div class="grid">
 
-        <!-- Inputs (Core) -->
+        <!-- Inputs (Core). The old inner "Inputs" header (with the
+             yearly/monthly debug selector) is gone — the dock/drawer chrome
+             already says where you are, and the model always runs yearly. -->
         <div id="panel-core" class="drawer-panel">
           <div class="section">
-            <div class="sectionHeader" onclick="toggleSection('inputsSectionBody','inputsChev')">
-              <div>
-                <h2>Inputs</h2>
-                <div class="sub">The settings you change most often.</div>
-              </div>
-              <div class="row" style="gap:10px;">
-                <select id="modeSelect" onchange="event.stopPropagation(); setMode(this.value)">
-                  <option value="yearly">Yearly (recommended)</option>
-                  <option value="monthly">Monthly (debug)</option>
-                </select>
-                <div class="chev" id="inputsChev">▾</div>
-              </div>
-            </div>
+            <select id="modeSelect" style="display:none;"><option value="yearly" selected>Yearly</option></select>
             <div class="sectionBody" id="inputsSectionBody">
               <p class="budget-section-lbl" style="margin:10px 0 8px;">About You</p>
               <div class="fieldgrid coregrid">
@@ -4665,20 +4665,24 @@ select.exp-input { cursor:pointer; }
 
   </div><!-- /#resultsMainCol -->
 
-  <!-- Docked inputs panel (desktop only) -->
+  <!-- Docked inputs panel (desktop only). Header + tabs stay pinned while
+       the fields below scroll. -->
   <aside id="inputsDock" class="card">
-    <div class="dock-head">
-      <strong>Inputs</strong>
-      <label class="dock-autorun" title="Re-run the model automatically ~1s after you change an input">
-        <input type="checkbox" id="autoRunToggle" onchange="setAutoRun(this.checked)">
-        <span>Auto-run</span>
-      </label>
-    </div>
-    <div class="subnav dock-subnav">
-      <button id="btnDockCore" class="active" onclick="showInputsPanel('core')">Core</button>
-      <button id="btnDockStocks" onclick="showInputsPanel('stocks')">Stocks &amp; Super</button>
-      <button id="btnDockProps" onclick="showInputsPanel('properties')">Properties</button>
-      <button id="btnDockEvents" onclick="showInputsPanel('events')">Life Events</button>
+    <div class="dock-sticky">
+      <div class="dock-head">
+        <strong>Inputs</strong>
+        <label class="prop-toggle dock-autorun" title="Re-run the model automatically ~1s after you change an input">
+          <input type="checkbox" id="autoRunToggle" onchange="setAutoRun(this.checked)">
+          <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+          <span class="dock-autorun-lbl">⚡ Auto-run</span>
+        </label>
+      </div>
+      <div class="subnav dock-subnav">
+        <button id="btnDockCore" class="active" onclick="showInputsPanel('core')">Core</button>
+        <button id="btnDockStocks" onclick="showInputsPanel('stocks')">Stocks &amp; Super</button>
+        <button id="btnDockProps" onclick="showInputsPanel('properties')">Properties</button>
+        <button id="btnDockEvents" onclick="showInputsPanel('events')">Life Events</button>
+      </div>
     </div>
     <div id="inputsDockMount"></div>
   </aside>
@@ -6054,7 +6058,8 @@ function loadState(){
     if (isPlainObject(parsed)) {
       if (typeof parsed.apiBase === "string") state.apiBase = parsed.apiBase;
       if (typeof parsed.apiPath === "string") state.apiPath = parsed.apiPath;
-      if (typeof parsed.mode === "string") state.mode = parsed.mode;
+      // Monthly "debug" mode retired — the model always runs yearly now.
+      state.mode = "yearly";
 	  if (parsed.expandedPropertyId !== undefined) state.expandedPropertyId = parsed.expandedPropertyId;
 
 
