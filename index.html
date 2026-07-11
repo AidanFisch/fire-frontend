@@ -2017,8 +2017,12 @@ html, body {
 #themeToggle { display: none !important; }
 
 /* Page layout */
-.wrap { padding: 24px 24px 56px; padding-top: calc(var(--topbar-height, 85px) + 24px); }
-body.has-action-bar .wrap { padding-top: calc(var(--topbar-height, 85px) + var(--bar-height, 50px) + 24px); }
+/* The topbar is in normal flow (it scrolls away) — the wrap needs no
+   compensation for it. Only the Model tab's FIXED action bar overlays
+   content, so only that height is reserved, and only on that tab. */
+.wrap { padding: 12px 24px 56px; }
+body.has-action-bar .wrap { padding-top: calc(var(--bar-height, 50px) + 12px); }
+section.tabs { margin-top: 4px !important; }
 body.landing .wrap { padding: 0 !important; }
 body.landing #tab-landing { margin-top: 0 !important; }
 body.landing #tab-landing > .grid { gap: 0 !important; }
