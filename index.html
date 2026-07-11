@@ -3603,6 +3603,45 @@ select.exp-input { cursor:pointer; }
   #chartFullscreenBtn { display: inline-flex; align-items: center; }
   @media (min-width: 641px) { #chartFullscreenBtn { display: none; } }
 
+  /* ── Professional polish: consistent focus, empty states, type scale ── */
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #059669 !important; outline-offset: 2px !important;
+  }
+  .empty-state { text-align: center; padding: 28px 16px; color: #828A85; font-size: 13px; line-height: 1.5; }
+  .empty-state .es-icon { font-size: 26px; display: block; margin-bottom: 8px; }
+  .empty-state .es-cta { margin-top: 10px; }
+  /* one section-title scale everywhere */
+  .card h2 { font-size: 17px !important; font-weight: 800 !important; }
+  .panel-title, .results-section-header .title { font-size: 15.5px !important; font-weight: 800 !important; }
+
+  /* ── Model page split layout: results left, docked inputs right ── */
+  /* The Model tab uses the full screen width (body.has-action-bar is only
+     set while the Model tab is active) so the chart + dock get real room. */
+  body.has-action-bar .wrap { max-width: 1680px; }
+  #resultsLayout { display: flex; gap: 18px; align-items: flex-start; }
+  #resultsMainCol { flex: 1; min-width: 0; }
+  #inputsDock {
+    display: none;                    /* desktop only — enabled below */
+    flex: 0 0 402px; width: 402px;
+    position: sticky;
+    top: calc(var(--topbar-height, 85px) + var(--bar-height, 50px) + 14px);
+    max-height: calc(100vh - var(--topbar-height, 85px) - var(--bar-height, 50px) - 28px);
+    overflow-y: auto;
+    padding: 14px 16px !important;
+  }
+  @media (min-width: 1100px) {
+    #inputsDock { display: block; }
+    /* Edit Inputs button is redundant while the dock is on screen */
+    #modelActionsBar .bar-primary-group button[onclick*="openInputsDrawer"] { display: none; }
+  }
+  .dock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .dock-head strong { font-size: 15px; color: #151816; }
+  .dock-autorun { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #5A625D; cursor: pointer; user-select: none; }
+  .dock-subnav { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+  .dock-subnav button { padding: 5px 11px !important; font-size: 12px !important; }
+  /* the docked panel is narrow — force single-column field grids inside it */
+  #inputsDock .fieldgrid, #inputsDock .coregrid { grid-template-columns: 1fr !important; }
+
   /* Mobile-only "View graph full screen" CTA (hidden on desktop, which shows
      the inline chart). Shown by the mobile block below. */
   #chartOpenMobile {
@@ -3681,16 +3720,11 @@ select.exp-input { cursor:pointer; }
         <span class="api-dot" id="apiStatusDot" onclick="pingAPI()" style="cursor:pointer;"></span>
       </div>
       <div class="nav">
-        <button id="btnDashboard"   onclick="showDashboard()">Overview</button>
-        <button id="btnBudget"      onclick="showBudgetTab()">Budget</button>
-        <div class="nav-port-wrap">
-          <button id="btnPortfolio" onclick="toggleNavPortDrop(event)">Portfolio ▾</button>
-          <div class="nav-port-dropdown" id="navPortDropdown">
-            <button class="nav-drop-item" onclick="showPortfolioTab(); closeNavPortDrop()">Holdings</button>
-            <button class="nav-drop-item" onclick="showPropertiesTab(); closeNavPortDrop()">Properties</button>
-          </div>
-        </div>
-        <button id="btnResults"     onclick="showTab('results')">Model</button>
+        <button id="btnDashboard"     onclick="showDashboard()">Overview</button>
+        <button id="btnBudget"        onclick="showBudgetTab()">Budget</button>
+        <button id="btnPortfolio"     onclick="showPortfolioTab()">Holdings</button>
+        <button id="btnPropertiesNav" onclick="showPropertiesTab()">Properties</button>
+        <button id="btnResults"       onclick="showTab('results')">Model</button>
       </div>
       <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button><!-- legacy; bar btn is canonical -->
       <div class="header-actions">
@@ -4294,60 +4328,11 @@ select.exp-input { cursor:pointer; }
 
 
 
-    <!-- HOME -->
- <!-- HOME -->
-	<section id="tab-home" class="tabs active" style="margin-top:18px;">
+    <!-- HOME (legacy tab removed — kept only as a hidden holder for the
+         statusCard API fields that JS binds to; nothing navigates here) -->
+	<section id="tab-home" class="tabs" style="display:none;">
 	  <div class="grid cols1">
 
-		<!-- What this does (FULL WIDTH) -->
-		<div class="card">
-		  <h2>What this does</h2>
-		  <div class="sub">
-			This is your FIRE simulator UI. You enter assumptions + properties, the backend runs the monthly engine,
-			and you get charts + tables to see when (or if) your plan becomes self-funding.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <h3 style="margin:0 0 8px 0;">How to use it</h3>
-		  <div class="sub">
-			<b>1) Inputs</b> — set your income/expenses, growth assumptions, and super settings.<br/>
-			<b>2) Properties</b> — add PPOR + investment properties (each has its own loan/rent/costs).<br/>
-			<b>3) Model</b> — view your net worth, cashflow, and the first point you become FIRE-eligible.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <h3 style="margin:0 0 8px 0;">Key concepts (plain English)</h3>
-		  <div class="sub" style="line-height:1.55;">
-			<b>Offset account</b>: cash you hold reduces interest by “offsetting” your loan balance.
-			Example: $100k cash against a $500k loan means interest is charged on ~$400k (not $500k).<br/><br/>
-
-			<b>Net rent</b>: rent after property running costs (strata/rates/other) and (for investments) interest.
-			It can be negative (negative gearing) or positive.<br/><br/>
-
-			<b>Principal vs interest</b>: interest is a cost; principal is paying down the loan (it reduces your debt and builds equity).<br/><br/>
-
-			<b>FIRE income</b>: the model estimates income after FIRE mainly from:
-			investment property net rent + stock drawdown + (super drawdown once accessible), minus tax and principal servicing.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="sub">
-			Tip: start with <b>Yearly</b> mode while you’re tuning assumptions (faster, cleaner). Use <b>Monthly</b> only for debugging.
-		  </div>
-
-		  <div class="hr"></div>
-
-		  <div class="row">
-			<button class="btn primary" onclick="openInputsDrawer()">Edit Inputs</button>
-			<button class="btn" onclick="showTab('results')">Go to Model</button>
-		  </div>
-		</div>
-
-		<!-- Status (FULL WIDTH, BELOW) -->
-		<!-- change display to style="display:block;" to show and style="display:none;" to hide-->
 		<div class="card" id="statusCard" style="display:none;">
 		  <div class="row">
 			<div>
@@ -4536,7 +4521,10 @@ select.exp-input { cursor:pointer; }
 
     <!-- RESULTS -->
 <section id="tab-results" class="tabs" style="margin-top:18px;">
-  <div class="card">
+ <!-- Desktop split layout: results left, docked inputs right (≥1100px).
+      Below that the dock hides and inputs use the slide-over drawer. -->
+ <div id="resultsLayout">
+  <div id="resultsMainCol" class="card">
 
     <!-- Hidden elements kept for JS compatibility -->
     <div style="display:none">
@@ -4671,7 +4659,26 @@ select.exp-input { cursor:pointer; }
       <div id="kpiEquityEnd"></div><div id="kpiCashEnd"></div>
     </div>
 
-  </div>
+  </div><!-- /#resultsMainCol -->
+
+  <!-- Docked inputs panel (desktop only) -->
+  <aside id="inputsDock" class="card">
+    <div class="dock-head">
+      <strong>Inputs</strong>
+      <label class="dock-autorun" title="Re-run the model automatically ~1s after you change an input">
+        <input type="checkbox" id="autoRunToggle" onchange="setAutoRun(this.checked)">
+        <span>Auto-run</span>
+      </label>
+    </div>
+    <div class="subnav dock-subnav">
+      <button id="btnDockCore" class="active" onclick="showInputsPanel('core')">Core</button>
+      <button id="btnDockStocks" onclick="showInputsPanel('stocks')">Stocks &amp; Super</button>
+      <button id="btnDockProps" onclick="showInputsPanel('properties')">Properties</button>
+      <button id="btnDockEvents" onclick="showInputsPanel('events')">Life Events</button>
+    </div>
+    <div id="inputsDockMount"></div>
+  </aside>
+ </div><!-- /#resultsLayout -->
 </section>
 
 
@@ -4722,7 +4729,7 @@ select.exp-input { cursor:pointer; }
     <!-- Budget trend chart -->
     <div class="card">
       <p class="budget-section-lbl" style="margin:0 0 12px;">Monthly Savings vs Target</p>
-      <div id="dashBudgetChartWrap"><div class="small muted" style="padding:8px 0">Log budget months to see your savings history.</div></div>
+      <div id="dashBudgetChartWrap"><div class="empty-state"><span class="es-icon">📊</span>Log a few budget months to see your savings history.<div class="es-cta"><button class="btn ghost" style="font-size:12px;" onclick="showBudgetTab()">Open Budget</button></div></div></div>
     </div>
 
   </div>
@@ -4909,7 +4916,7 @@ select.exp-input { cursor:pointer; }
           <span class="panel-meta">all time</span>
         </div>
         <div id="portHistoryContent">
-          <div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>
+          <div class="empty-state"><span class="es-icon">📈</span>Enter asset values for at least two months to see your net worth trend.</div>
         </div>
       </div>
 
@@ -4994,6 +5001,8 @@ select.exp-input { cursor:pointer; }
 <footer class="site-footer">
   <div>© 2026 WealthModel · General information only — not financial advice. Educational purposes only.</div>
   <div class="site-footer-links">
+    <a onclick="openLegalModal('method')">How the Model Works</a>
+    <a onclick="openLegalModal('changes')">What's New</a>
     <a onclick="openLegalModal('privacy')">Privacy Policy</a>
     <a onclick="openLegalModal('terms')">Terms of Service</a>
     <a onclick="openLegalModal('contact')">Contact</a>
@@ -5019,6 +5028,8 @@ select.exp-input { cursor:pointer; }
     <div class="legal-tabs">
       <button class="legal-tab" id="legalTabPrivacy" onclick="showLegalPanel('privacy')">Privacy Policy</button>
       <button class="legal-tab" id="legalTabTerms"   onclick="showLegalPanel('terms')">Terms of Service</button>
+      <button class="legal-tab" id="legalTabMethod"  onclick="showLegalPanel('method')">Methodology</button>
+      <button class="legal-tab" id="legalTabChanges" onclick="showLegalPanel('changes')">What's New</button>
       <button class="legal-tab" id="legalTabContact" onclick="showLegalPanel('contact')">Contact</button>
     </div>
 
@@ -5099,6 +5110,49 @@ select.exp-input { cursor:pointer; }
 
       <h4>11. Changes to these terms</h4>
       <p>We may update these terms from time to time. Continuing to use WealthModel after a change means you accept the updated terms.</p>
+    </div>
+
+    <div id="legalPanelMethod" class="legal-panel" style="display:none;">
+      <h3>How the Model Works</h3>
+      <div class="legal-updated">The maths behind your FIRE age — in plain English</div>
+
+      <h4>The engine</h4>
+      <p>WealthModel runs a <strong>month-by-month simulation</strong> from today to your chosen end age. Every month it pays your salary, deducts tax, pays living costs and mortgages, collects rent, contributes to shares and super, grows every balance at your assumed rates, and checks whether you've reached financial independence. Nothing is a shortcut formula — it's a full simulation, which is why things like paying off a loan mid-journey or buying a property in 2031 are handled properly.</p>
+
+      <h4>Tax</h4>
+      <p>Income tax uses the <strong>2025–26 Australian resident brackets</strong> (16% / 30% / 37% / 45%) plus the 2% Medicare levy with its low-income phase-in. Pre-tax super contributions reduce taxable income. Investment property losses offset your salary (negative gearing). Capital gains on property sales apply the 50% discount before 1 July 2027 and the legislated post-2027 rules (CPI cost-base indexation with a 30% minimum rate) after, including the split treatment for properties held across the boundary and the PPOR main-residence and six-year-rule exemptions.</p>
+
+      <h4>Superannuation</h4>
+      <p>Employer SG contributions (12%) are taxed 15% on the way in, as are salary-sacrifice extras. Super grows at your assumed after-fees rate and becomes drawable at your access age (60 for most people), tax-free in drawdown.</p>
+
+      <h4>Property</h4>
+      <p>Each property has its own loan amortisation (principal + interest at your rate and term), rent with vacancy and agent-fee allowances, running costs, growth rate, and optional offset account — your cash balance is allocated across offset-enabled loans to reduce interest, mirroring how offsets actually work. Future purchases deduct the deposit and fees in the purchase month; sales settle the loan, selling costs, and CGT.</p>
+
+      <h4>The FIRE test</h4>
+      <p>You reach FIRE in the first month where your passive cashflow — net rent, a sustainable stock drawdown (your SWR), and super drawdown once accessible — covers your <strong>inflation-adjusted target lifestyle income</strong>, after tax and any remaining loan principal payments. From that point the simulation stops your salary and contributions and lives off the portfolio, so you can see whether the plan actually holds to end age, not just the crossover moment.</p>
+
+      <h4>What it deliberately simplifies</h4>
+      <p>Returns are smooth (no market crashes — consider your rates conservative averages), dividends aren't taxed during accumulation (use an after-tax growth rate), the concessional super cap isn't enforced, and future tax brackets aren't indexed. It's a planning model, not a prediction — assumptions dominate outcomes, which is why every rate input shows a recommended range.</p>
+    </div>
+
+    <div id="legalPanelChanges" class="legal-panel" style="display:none;">
+      <h3>What's New</h3>
+      <div class="legal-updated">Recent improvements to WealthModel</div>
+
+      <h4>July 2026</h4>
+      <ul>
+        <li><strong>Desktop Model workspace</strong> — inputs now dock beside the chart with optional auto-run, so you can see your FIRE age respond as you type.</li>
+        <li><strong>Bank statement import</strong> — upload a CSV and expenses auto-sort into budget categories (learns your merchants over time). All in-browser, nothing uploaded.</li>
+        <li><strong>Install as an app</strong> — WealthModel is now installable on your phone/desktop from Settings.</li>
+        <li><strong>Full mobile redesign</strong> — bottom tab bar, card-based budget editing, full-screen model chart.</li>
+        <li><strong>Budget templates</strong> — save your standard month and stamp it onto any month.</li>
+        <li><strong>Tax engine updates</strong> — 2025–26 Stage-3 brackets, Medicare levy, 12% super guarantee, pre/post-tax super contributions, vacancy &amp; agent fees on rentals.</li>
+        <li><strong>Accuracy fixes</strong> — net worth counts property equity (not gross value) exactly once; planned future purchases no longer inflate today's position.</li>
+      </ul>
+      <h4>June 2026</h4>
+      <ul>
+        <li>Life events (income/expense changes, windfalls), per-year stock contribution overrides, scenario comparison overlays, property CGT with the July 2027 reform, and the FIRE progress dashboard.</li>
+      </ul>
     </div>
 
     <div id="legalPanelContact" class="legal-panel" style="display:none;">
@@ -5575,6 +5629,7 @@ let state = {
     }
   ],
   life_events: [],
+  autoRunModel: false, // desktop dock: auto re-run the model after input changes
   modelRunUsage: null, // { date: 'YYYY-MM-DD', count: N } — free-plan daily run cap
   stock_contribution_overrides: [], // [{ year, amount }] — per-year override of annual stock contribution
   chartTogglesVersion: 2,
@@ -6021,6 +6076,8 @@ function loadState(){
       if (isPlainObject(parsed.modelRunUsage)) {
         state.modelRunUsage = parsed.modelRunUsage;
       }
+
+      if (typeof parsed.autoRunModel === 'boolean') state.autoRunModel = parsed.autoRunModel;
 
       if (Array.isArray(parsed.stock_contribution_overrides)) {
         state.stock_contribution_overrides = parsed.stock_contribution_overrides;
@@ -7387,6 +7444,10 @@ function duplicateProperty(id){
 function showPropertiesTab(){
   showTab('portfolio');
   switchPortSubTab('properties');
+  // Both sub-tabs share tab-portfolio; showTab activated the Holdings nav
+  // button — hand the highlight to the Properties one instead.
+  document.getElementById('btnPortfolio')?.classList.remove('active');
+  document.getElementById('btnPropertiesNav')?.classList.add('active');
 }
 
 function updatePropSummaryStrip(){
@@ -7801,6 +7862,9 @@ function initInfoTips(){
   // Avoid double-binding: mark each element once
   document.querySelectorAll('.info-tip:not([data-tip-bound])').forEach(el => {
     el.setAttribute('data-tip-bound', '1');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', 'More information');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
     const key = el.dataset.tip;
     el.addEventListener('mouseenter', () => { if (!_tipPinned) showInfoTip(key, el); });
     el.addEventListener('mouseleave', hideInfoTip);
@@ -9637,8 +9701,8 @@ function closeLegalModal() {
   if (m) m.style.display = 'none';
 }
 function showLegalPanel(which) {
-  const panels = { privacy: 'legalPanelPrivacy', terms: 'legalPanelTerms', contact: 'legalPanelContact' };
-  const tabs   = { privacy: 'legalTabPrivacy',   terms: 'legalTabTerms',   contact: 'legalTabContact' };
+  const panels = { privacy: 'legalPanelPrivacy', terms: 'legalPanelTerms', method: 'legalPanelMethod', changes: 'legalPanelChanges', contact: 'legalPanelContact' };
+  const tabs   = { privacy: 'legalTabPrivacy',   terms: 'legalTabTerms',   method: 'legalTabMethod',   changes: 'legalTabChanges',   contact: 'legalTabContact' };
   Object.keys(panels).forEach(k => {
     document.getElementById(panels[k]).style.display = (k === which) ? '' : 'none';
     document.getElementById(tabs[k]).classList.toggle('active', k === which);
@@ -10151,9 +10215,6 @@ function closeInputsDrawer(){
   const { panel, home, drawerEl, backdrop } = inputsMounts();
   if(!panel || !home || !drawerEl || !backdrop) return;
 
-  // Move back to inputs tab
-  if(panel.parentNode !== home) home.appendChild(panel);
-
   drawerEl.classList.remove("show");
   drawerEl.setAttribute("aria-hidden","true");
   backdrop.classList.remove("show");
@@ -10163,6 +10224,8 @@ function closeInputsDrawer(){
   if(_priorFocus && typeof _priorFocus.focus === "function") {
     try{ _priorFocus.focus(); }catch(e){}
   }
+  // Back to the dock on a wide Model screen, else the hidden home mount
+  placeInputsPanel();
 }
 
 function handleDrawerEsc(e){
@@ -10176,6 +10239,63 @@ function ensureInputsAtHome(){
     home.appendChild(panel);
   }
 }
+
+/* ── Docked inputs (desktop Model page) ──
+   ≥1100px on the Model tab, the inputs panel lives in a permanent side dock
+   next to the results, so changing an assumption and watching the FIRE age
+   move is one visible loop. Below 1100px (and on other tabs) the panel parks
+   in its hidden home mount and opens via the slide-over drawer as before. */
+function _dockWanted(){
+  return window.innerWidth >= 1100 &&
+         document.getElementById('tab-results')?.classList.contains('active');
+}
+
+/** Put the inputs panel wherever it currently belongs (dock / home). */
+function placeInputsPanel(){
+  const { panel, home } = inputsMounts();
+  const dockMount = document.getElementById('inputsDockMount');
+  if(!panel) return;
+  // never yank it out from under an open drawer
+  if(document.getElementById('inputsDrawer')?.classList.contains('show')) return;
+  if(_dockWanted() && dockMount){
+    if(panel.parentNode !== dockMount){
+      dockMount.appendChild(panel);
+      showInputsPanel(_currentInputsPanel);
+      loadSyncData();
+      initInfoTips();
+      _initAutoRunToggle();
+    }
+  } else if(home && panel.parentNode !== home){
+    home.appendChild(panel);
+  }
+}
+
+// Re-place when the viewport crosses the breakpoint
+window.addEventListener('resize', () => {
+  clearTimeout(window._dockResizeT);
+  window._dockResizeT = setTimeout(placeInputsPanel, 150);
+});
+
+/* ── Auto-run: debounce a model run after any docked-input change ── */
+let _autoRunTimer = null;
+function setAutoRun(on){
+  state.autoRunModel = !!on;
+  saveState();
+  const t = document.getElementById('autoRunToggle');
+  if(t) t.checked = !!on;
+}
+function _initAutoRunToggle(){
+  const t = document.getElementById('autoRunToggle');
+  if(t) t.checked = !!state.autoRunModel;
+}
+document.addEventListener('change', (e) => {
+  if(!state.autoRunModel) return;
+  const panel = document.getElementById('inputsPanel');
+  if(!panel || !panel.contains(e.target)) return;
+  if(!document.getElementById('tab-results')?.classList.contains('active')) return;
+  clearTimeout(_autoRunTimer);
+  _autoRunTimer = setTimeout(() => runModel(), 900);
+});
 
 /* Wrap your original showTab to also restore the panel when leaving Results */
 /* Highlight the right bottom-tab for the current screen. Deferred a tick so
@@ -10208,6 +10328,8 @@ showTab = function(name){
       document.body.classList.remove('has-action-bar');
     }
   }
+  // On the Model tab (desktop width) the inputs panel docks beside the results
+  placeInputsPanel();
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -12313,20 +12435,24 @@ function populateLogForm(data, incomeOverride){
 /* ─────────────────────────────────────────────────────── */
 
 /* Drawer inner tabs (Core / Stocks & Super / Properties) */
+let _currentInputsPanel = 'core';
 function showInputsPanel(which){
+  _currentInputsPanel = which;
+  // Two synced button sets: the drawer header tabs and the desktop dock tabs
   const groups = [
-    { id:"core", el: document.getElementById("panel-core"),  btn: document.getElementById("btnDrawerCore") },
-    { id:"stocks", el: document.getElementById("panel-stocks"), btn: document.getElementById("btnDrawerStocks") },
-    { id:"properties", el: document.getElementById("panel-properties"), btn: document.getElementById("btnDrawerProps") },
-    { id:"events", el: document.getElementById("panel-events"), btn: document.getElementById("btnDrawerEvents") },
+    { id:"core",       el: document.getElementById("panel-core"),       btns: [document.getElementById("btnDrawerCore"),   document.getElementById("btnDockCore")] },
+    { id:"stocks",     el: document.getElementById("panel-stocks"),     btns: [document.getElementById("btnDrawerStocks"), document.getElementById("btnDockStocks")] },
+    { id:"properties", el: document.getElementById("panel-properties"), btns: [document.getElementById("btnDrawerProps"),  document.getElementById("btnDockProps")] },
+    { id:"events",     el: document.getElementById("panel-events"),     btns: [document.getElementById("btnDrawerEvents"), document.getElementById("btnDockEvents")] },
   ];
   groups.forEach(g=>{
     const isActive = (g.id === which);
     if(g.el) g.el.classList.toggle("hidden", !isActive);
-    if(g.btn){
-      g.btn.classList.toggle("active", isActive);
-      g.btn.setAttribute("aria-selected", String(isActive));
-    }
+    g.btns.forEach(btn => {
+      if(!btn) return;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", String(isActive));
+    });
   });
   if (which === "events") renderLifeEvents();
 }
@@ -12744,7 +12870,7 @@ function switchPortSubTab(tab){
 }
 
 function showPortfolioTab(){
-  showTab('portfolio');
+  showTab('portfolio');   // activates btnPortfolio (Holdings) by naming convention
   switchPortSubTab('holdings');
 }
 
@@ -12971,7 +13097,7 @@ function renderPortHistoryChart(data){
     .sort();
   if(months.length < 2){
     if(_portChartInstance){ _portChartInstance.destroy(); _portChartInstance=null; }
-    wrap.innerHTML = '<div class="small muted" style="padding:8px 0;">Enter values for at least two months to see your net worth trend.</div>';
+    wrap.innerHTML = '<div class="empty-state"><span class="es-icon">📈</span>Enter asset values for at least two months to see your net worth trend.</div>';
     return;
   }
   if(!document.getElementById('portHistoryCanvas')){
@@ -13306,7 +13432,7 @@ function _dashNWChart_render(){
   const months   = Object.keys(monthly).filter(m=>assets.some(a=>(monthly[m][a.id]||0)>0)).sort();
   if(months.length < 2){
     if(_dashNWChart){ _dashNWChart.destroy(); _dashNWChart=null; }
-    wrap.innerHTML='<div class="small muted" style="padding:8px 0;">Add at least 2 months of portfolio data to see your net worth trend.</div>';
+    wrap.innerHTML='<div class="empty-state"><span class="es-icon">📈</span>Add at least two months of Holdings data to see your net worth trend.<div class="es-cta"><button class="btn ghost" style="font-size:12px;" onclick="showPortfolioTab()">Open Holdings</button></div></div>';
     return;
   }
   if(!wrap.querySelector('#dashNWCanvas')) wrap.innerHTML='<canvas id="dashNWCanvas" style="max-height:240px;"></canvas>';
@@ -13351,7 +13477,7 @@ function _dashBudgetChart_render(){
   const logged = series.filter(m=>m.net_actual!=null);
   if(logged.length < 1){
     if(_dashBudgetChart){ _dashBudgetChart.destroy(); _dashBudgetChart=null; }
-    wrap.innerHTML='<div class="small muted" style="padding:8px 0;">Log budget months to see your savings history.</div>';
+    wrap.innerHTML='<div class="empty-state"><span class="es-icon">📊</span>Log a few budget months to see your savings history.<div class="es-cta"><button class="btn ghost" style="font-size:12px;" onclick="showBudgetTab()">Open Budget</button></div></div>';
     return;
   }
   if(!wrap.querySelector('#dashBudgetCanvas')) wrap.innerHTML='<canvas id="dashBudgetCanvas" style="max-height:200px;"></canvas>';
