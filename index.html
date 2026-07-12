@@ -306,7 +306,7 @@
   --stroke2:  #C8C4BC;
   --txt:      #151816;
   --muted:    #5A625D;
-  --muted2:   #828A85;
+  --muted2:   #6A716B;
   --good:     #059669;
   --accent:   #059669;
   --shadow:   0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
@@ -326,7 +326,7 @@
     --stroke2:  #C8C4BC;
     --txt:      #151816;
     --muted:    #5A625D;
-    --muted2:   #828A85;
+    --muted2:   #6A716B;
     --good:     #059669;
     --accent:   #059669;
     --shadow:   0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
@@ -588,8 +588,7 @@
     }
     .btn.primary{
       border-color: transparent;
-      background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(34,211,238,.75));
-      box-shadow: 0 12px 30px rgba(139,92,246,.18);
+      background: #151816;
     }
     .btn.ghost{
       background: transparent;
@@ -648,9 +647,7 @@
     .fire-banner-icon{ font-size:26px; line-height:1; }
     .fire-banner-label{ color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.9px; }
     .fire-banner-age{
-      font-size:34px; font-weight:800; line-height:1.1;
-      background:linear-gradient(135deg,rgba(139,92,246,1),rgba(34,211,238,1));
-      -webkit-background-clip:text; background-clip:text; color:transparent;
+      font-size:34px; font-weight:800; line-height:1.1; color:#151816;
     }
     .fire-banner.not-achieved .fire-banner-age{ background:none; color:var(--muted); font-size:16px; font-weight:600; }
     .fire-banner-note{ color:var(--muted); font-size:12px; }
@@ -936,7 +933,7 @@ th{
 		padding: 6px 10px; font-size: 13px; color: #151816; cursor: pointer;
 	  }
 	  .month-picker-btn:hover { border-color: #B8B4AC; }
-	  .month-picker-caret { color: #828A85; font-size: 10px; margin-left: 6px; }
+	  .month-picker-caret { color: #6A716B; font-size: 10px; margin-left: 6px; }
 	  .month-picker-pop {
 		display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
 		width: 220px; background: white; border: 1px solid #D6D9DD; border-radius: 10px;
@@ -960,7 +957,7 @@ th{
 	  .month-picker-cell:hover { background: #E6F7F2; color: #059669; }
 	  .month-picker-cell.selected { background: #059669; color: white; font-weight: 700; }
 	  .month-picker-clear {
-		width: 100%; margin-top: 8px; border: none; background: none; color: #828A85;
+		width: 100%; margin-top: 8px; border: none; background: none; color: #6A716B;
 		font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 2px 0;
 	  }
 	  .month-picker-clear:hover { color: #059669; }
@@ -969,7 +966,7 @@ th{
 	     discounted by the property's own growth rate — future prices are
 	     hard to reason about on their own. */
 	  .prop-field-hint {
-		font-size: 11px; color: #828A85; margin-top: 5px; line-height: 1.4;
+		font-size: 11px; color: #6A716B; margin-top: 5px; line-height: 1.4;
 	  }
 	  .btn-estimate-rent {
 		display: inline-flex; align-items: center; gap: 4px;
@@ -1058,8 +1055,7 @@ th{
 		margin-bottom: 6px;
 		padding: 5px 10px;
 		border-radius: 6px;
-		border-left: 3px solid var(--accent);
-		background: rgba(5,150,105,0.07);
+		background: rgba(5,150,105,0.09);
 	  }
 	  .prop-section-label:first-child {
 		margin-top: 0;
@@ -1163,7 +1159,7 @@ th{
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: .06em;
-		color: #828A85;
+		color: #6A716B;
 		margin-bottom: 6px;
 	  }
 	  /* Single horizontal row: [from] → [to] [6yr chip] [✕] */
@@ -1177,7 +1173,7 @@ th{
 		flex-wrap: wrap;
 	  }
 	  .ppor-row:last-child { border-bottom: none; }
-	  .ppor-arrow { color: #828A85; font-size: 13px; flex-shrink: 0; }
+	  .ppor-arrow { color: #6A716B; font-size: 13px; flex-shrink: 0; }
 	  .ppor-input {
 		font-size: 12px;
 		padding: 4px 7px;
@@ -1187,7 +1183,7 @@ th{
 		color: #151816;
 		width: 126px;
 	  }
-	  .ppor-input.ppor-to::placeholder { color: #B0ABA6; font-style: italic; }
+	  .ppor-input.ppor-to::placeholder { color: #70736E; font-style: italic; }
 	  /* 6-yr chip — pill style */
 	  .ppor-sixyr-chip {
 		display: inline-flex;
@@ -1217,7 +1213,7 @@ th{
 		pointer-events: none;
 		border-color: #D6D9DD;
 		background: #F4F2EE;
-		color: #828A85;
+		color: #6A716B;
 	  }
 	  .ppor-remove-btn {
 		font-size: 11px !important;
@@ -1264,13 +1260,13 @@ th{
 	  }
 	  .panel-meta {
 		font-size: 11px;
-		color: #828A85;
+		color: #6A716B;
 		font-weight: 500;
 		margin-left: 2px;
 	  }
 	  .panel-desc {
 		font-size: 12px;
-		color: #828A85;
+		color: #6A716B;
 		margin-top: 3px;
 		line-height: 1.5;
 	  }
@@ -1283,7 +1279,7 @@ th{
 	  }
 	  .prop-sale-sub {
 		font-size: 10.5px;
-		color: #828A85;
+		color: #6A716B;
 		margin: 4px 2px 8px;
 		line-height: 1.5;
 	  }
@@ -1296,13 +1292,13 @@ th{
 	  }
 	  .prop-history-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 	  .prop-history-body { margin-top: 10px; }
-	  .prop-history-chevron { color: #828A85; font-size: 10px; width: 10px; display: inline-block; }
+	  .prop-history-chevron { color: #6A716B; font-size: 10px; width: 10px; display: inline-block; }
 	  .prop-history-count {
 		background: #E5E7EB; color: #5A625D; font-size: 10px; font-weight: 700;
 		border-radius: 999px; padding: 1px 7px; line-height: 1.5;
 	  }
 	  .prop-history-list { display: flex; flex-direction: column; gap: 6px; }
-	  .prop-history-empty { font-size: 11.5px; color: #828A85; line-height: 1.5; padding: 8px 0; }
+	  .prop-history-empty { font-size: 11.5px; color: #6A716B; line-height: 1.5; padding: 8px 0; }
 	  .prop-history-row {
 		display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
 		border: 1px solid #E5E7EB; border-radius: 8px; padding: 7px 10px; font-size: 11.5px;
@@ -1311,7 +1307,7 @@ th{
 	  .prop-history-date { font-weight: 700; color: #151816; min-width: 88px; }
 	  .prop-history-stat { color: #5A625D; }
 	  .prop-history-stat strong { color: #151816; }
-	  .prop-history-edit { background: none; border: none; color: #828A85; cursor: pointer; font-size: 12px; margin-left: auto; padding: 0 2px; }
+	  .prop-history-edit { background: none; border: none; color: #6A716B; cursor: pointer; font-size: 12px; margin-left: auto; padding: 0 2px; }
 	  .prop-history-edit:hover { color: #059669; }
 	  .prop-history-del { background: none; border: none; color: #C4B5B0; cursor: pointer; font-size: 12px; padding: 0 2px; }
 	  .prop-history-del:hover { color: #E11D48; }
@@ -1322,7 +1318,7 @@ th{
 	  }
 	  .prop-history-form-title {
 		font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-		color: #828A85; margin-bottom: 8px;
+		color: #6A716B; margin-bottom: 8px;
 	  }
 	  .prop-history-form-grid {
 		display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
@@ -1348,7 +1344,7 @@ th{
 	  .cgt-row.total { font-weight:700; border-top:1px solid #A7F3D0; margin-top:4px; padding-top:4px; }
 	  .cgt-row.net { font-weight:700; color:#059669; border-top:1px solid #A7F3D0; margin-top:2px; padding-top:4px; }
 	  .cgt-row.sub { color:#6A6660; font-size:11px; padding-left:12px; }
-	  .cgt-note { font-size:10px; color:#828A85; margin-top:4px; }
+	  .cgt-note { font-size:10px; color:#6A716B; margin-top:4px; }
 
 	  /* ---- Stamp duty estimate panel ---- */
 	  .stamp-estimate {
@@ -1359,7 +1355,7 @@ th{
 	  .stamp-row { display:flex; justify-content:space-between; padding:2px 0; color:#3C3A36; }
 	  .stamp-row.lmi { color:#B45309; }
 	  .stamp-total { display:flex; justify-content:space-between; font-weight:700; border-top:1px solid #FCD34D; margin-top:4px; padding-top:4px; }
-	  .stamp-note { font-size:10px; color:#828A85; margin-top:4px; }
+	  .stamp-note { font-size:10px; color:#6A716B; margin-top:4px; }
 	  .stamp-btn-row { display:flex; gap:6px; margin-top:8px; }
   .btn-event-toggle { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid #151816; background:#151816; color:#fff; cursor:pointer; font-weight:500; white-space:nowrap; }
   .btn-event-toggle.off { background:white; color:#5A625D; border-color:#D6D9DD; }
@@ -1368,7 +1364,7 @@ th{
   .scen-chip:hover { background:#F3F4F2; }
   .scen-chip.pinned { border-color:var(--chip-color,#888); background:var(--chip-bg,#F0FDF4); }
   .scen-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .scen-chip-meta { color:#828A85; font-size:11px; font-weight:400; }
+  .scen-chip-meta { color:#6A716B; font-size:11px; font-weight:400; }
 
 	  /* ---- State selector ---- */
 	  .prop-state-row { display:flex; align-items:center; gap:8px; grid-column:1/-1; flex-wrap:wrap; margin-top:2px; }
@@ -1592,14 +1588,14 @@ th{
 }
 .hero-logo-icon{
   flex-shrink: 0; border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(15,61,46,.28);
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
 .hero-logo-text{ display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
 .hero-logo-word{ font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
 .hero-logo-word-a{ color: #151816; }
 .hero-logo-word-b{ color: #059669; }
 .hero-logo-tagline{
-  font-size: 12.5px; font-weight: 600; color: #828A85;
+  font-size: 12.5px; font-weight: 600; color: #6A716B;
   letter-spacing: .03em; margin-top: 2px;
 }
 @keyframes heroLogoIn{
@@ -1643,8 +1639,8 @@ th{
   position: relative; overflow: hidden;
 }
 @media (max-width: 980px){ .hero-chart-card{ margin-top: 8px; } }
-.hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #828A85; }
-.hero-chart-caption { font-size: 11.5px; color: #828A85; margin-top: 2px; line-height: 1.4; max-width: 300px; }
+.hero-chart-label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #6A716B; }
+.hero-chart-caption { font-size: 11.5px; color: #6A716B; margin-top: 2px; line-height: 1.4; max-width: 300px; }
 .hero-chart-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 10.5px; color: #5A625D; }
 .hero-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .hcl-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
@@ -1823,7 +1819,7 @@ th{
   display: flex; flex-direction: column; height: 100%;
 }
 .feat-showcase-title { font-size: 15px; font-weight: 800; color: #151816; letter-spacing: -.01em; }
-.feat-showcase-sub { font-size: 12px; color: #828A85; margin-top: 2px; }
+.feat-showcase-sub { font-size: 12px; color: #6A716B; margin-top: 2px; }
 .feat-showcase-stage { position: relative; min-height: 152px; margin-top: 14px; flex: 1; display: flex; align-items: center; }
 .feat-showcase-stage .feat-scene { display: flex; flex-direction: column; justify-content: flex-start; }
 .feat-scene {
@@ -1842,7 +1838,7 @@ th{
 /* Budget scene */
 .fs-budget { font-size: 12.5px; }
 .fs-budget-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 6px; padding: 6px 0; border-bottom: 1px solid #F0EDE8; }
-.fs-budget-row.fs-head { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #B0ABA6; border-bottom: 1px solid #E5E7EB; }
+.fs-budget-row.fs-head { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #70736E; border-bottom: 1px solid #E5E7EB; }
 .fs-budget-row.fs-total { border-bottom: none; font-weight: 700; color: #151816; padding-top: 8px; }
 .fs-budget-row span:nth-child(2), .fs-budget-row span:nth-child(3) { text-align: right; }
 .fs-pos { color: #059669; font-weight: 700; }
@@ -1857,7 +1853,7 @@ th{
 .fs-tag { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #E6F7F2; color: #059669; margin-left: auto; }
 .fs-tag-muted { background: #E0F2FE; color: #0891B2; }
 .fs-prop-stats { display: flex; gap: 18px; }
-.fs-prop-stats label { display: block; font-size: 9.5px; color: #B0ABA6; }
+.fs-prop-stats label { display: block; font-size: 9.5px; color: #70736E; }
 .fs-prop-stats strong { font-size: 12.5px; }
 .fs-prop-total {
   display: flex; align-items: center; justify-content: space-between;
@@ -1879,12 +1875,12 @@ th{
 .fs-bar { flex: 1; min-height: 4px; background: linear-gradient(180deg, #6EE7B7, #059669); border-radius: 3px 3px 0 0; }
 .fs-bar:last-child { background: linear-gradient(180deg, #34D399, #047857); box-shadow: 0 2px 8px rgba(5,150,105,.35); }
 .fs-mini-chart-labels { display: flex; gap: 5px; margin-top: 4px; }
-.fs-mini-chart-labels span { flex: 1; text-align: center; font-size: 9px; color: #B0ABA6; }
+.fs-mini-chart-labels span { flex: 1; text-align: center; font-size: 9px; color: #70736E; }
 .fs-hold-spark { font-size: 12px; font-weight: 700; color: #059669; line-height: 1.3; white-space: nowrap; }
-.fs-hold-spark span { font-size: 10px; font-weight: 600; color: #828A85; }
+.fs-hold-spark span { font-size: 10px; font-weight: 600; color: #6A716B; }
 
 /* Scenario scene */
-.fs-scen-caption { font-size: 11px; color: #828A85; margin-bottom: 6px; }
+.fs-scen-caption { font-size: 11px; color: #6A716B; margin-bottom: 6px; }
 .fs-scen-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F0EDE8; font-size: 12.5px; }
 .fs-scen-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px; border: 1.5px solid; background: #fff; }
 
@@ -2096,7 +2092,11 @@ body.landing .topbar { display: none; }
   border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .06s ease !important;
 }
+/* Complete interaction states — every button gets hover / active / disabled */
+.btn:active { transform: translateY(0.5px); }
+.btn:disabled, .btn[disabled] { opacity: .5 !important; cursor: not-allowed !important; pointer-events: none; }
 .btn.primary {
   background: #151816 !important;
   border-color: #151816 !important;
@@ -2105,7 +2105,9 @@ body.landing .topbar { display: none; }
 }
 .btn.primary:hover { background: #333330 !important; filter: none !important; }
 .btn.ghost { background: transparent !important; border-color: #D6D9DD !important; color: #5A625D !important; }
-.btn.danger { border-color: rgba(220,60,60,.3) !important; background: rgba(220,60,60,.06) !important; }
+.btn.ghost:hover { background: #F3F4F2 !important; border-color: #C3C7CC !important; color: #151816 !important; }
+.btn.danger { border-color: rgba(220,60,60,.3) !important; background: rgba(220,60,60,.06) !important; color:#B42318 !important; }
+.btn.danger:hover { background: rgba(220,60,60,.12) !important; border-color: rgba(220,60,60,.5) !important; }
 
 /* ── Cards / sections ── */
 .card, .section {
@@ -2157,7 +2159,7 @@ body.landing .topbar { display: none; }
   gap: 6px !important;
 }
 .ms-col + .ms-col { border-left: 1px solid #D6D9DD !important; }
-.ms-col.fire { border-left: 3px solid #059669 !important; background: #F5FBF9 !important; }
+.ms-col.fire { border: 1.5px solid #059669 !important; background: #F5FBF9 !important; }
 .ms-col-label {
   font-size: 10px !important;
   letter-spacing: .1em !important;
@@ -2192,11 +2194,11 @@ body.landing .topbar { display: none; }
 .chips-bar { margin-bottom: 0 !important; gap: 16px !important; }
 .chips-group { gap: 8px !important; }
 .chips-label { font-size: 10px !important; letter-spacing: .1em !important; color: #5A625D !important; }
-.chips-label--sub { font-size: 9px !important; color: #828A85 !important; font-weight: 500 !important; letter-spacing: .05em !important; text-transform: none !important; }
+.chips-label--sub { font-size: 9px !important; color: #6A716B !important; font-weight: 500 !important; letter-spacing: .05em !important; text-transform: none !important; }
 .chips-group--indent { margin-left: 10px; padding-left: 10px; border-left: 2px solid #E5E7EB; }
 
 /* Range-guide hints under assumption inputs */
-.input-hint { font-size: 10.5px; color: #828A85; margin-top: 3px; line-height: 1.35; }
+.input-hint { font-size: 10.5px; color: #6A716B; margin-top: 3px; line-height: 1.35; }
 input.input-warn { border-color: #F59E0B !important; background: #FFFBEB !important; }
 .chips { gap: 6px !important; }
 .chip {
@@ -2259,11 +2261,13 @@ label { color: #5A625D !important; }
 .toast { background: #FFFFFF !important; border-color: #D6D9DD !important; box-shadow: 0 4px 16px rgba(0,0,0,.1) !important; }
 .toast .x { background: #F0EDE8 !important; border-color: #D6D9DD !important; color: #5A625D !important; }
 
-/* ── Remove remaining purple from inline styles ── */
+/* Hero rotating word: solid brand green, emphasis via the weight/size it
+   already carries (gradient text is decorative — impeccable absolute ban). */
 .hero-title span[style] {
-  background: linear-gradient(135deg, #059669, #34D399) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #059669 !important;
 }
 
 /* ── Landing page ── */
@@ -2302,7 +2306,7 @@ label { color: #5A625D !important; }
 .port-summary-item { flex: 1; min-width: 80px; text-align: center; }
 .port-summary-total { min-width: 110px; }
 .port-summary-sep { width: 1px; background: #E5E7EB; flex-shrink: 0; margin: 0 4px; align-self: stretch; min-height: 36px; }
-.psi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #828A85; }
+.psi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6A716B; }
 .psi-val   { font-size: 18px; font-weight: 700; color: #151816; margin-top: 3px; }
 .psi-secondary { font-size: 14px; color: #3C3C3A; }
 
@@ -2343,7 +2347,7 @@ label { color: #5A625D !important; }
 .port-totals-row td { background:#F9FAF9 !important; border-top:2px solid #E5E7EB; padding:5px 5px; font-size:11px; font-weight:600; }
 .port-cell-input { width:100%; border:none !important; background:transparent !important; text-align:right; font-size:12px; padding:3px 2px; box-sizing:border-box; }
 .port-cell-input:focus { background:#fff !important; border:1px solid #059669 !important; border-radius:3px; outline:none; box-shadow:0 0 0 2px rgba(29,158,117,.15); }
-.port-cell-hint { font-size:9.5px; color:#828A85; text-align:right; line-height:1.2; padding:0 2px; white-space:nowrap; }
+.port-cell-hint { font-size:9.5px; color:#6A716B; text-align:right; line-height:1.2; padding:0 2px; white-space:nowrap; }
 /* Name/type inputs inside fixed-width cells */
 .port-year-table td:first-child .exp-input,
 .port-year-table td:nth-child(2) .exp-input { width:100%; box-sizing:border-box; }
@@ -2355,17 +2359,17 @@ label { color: #5A625D !important; }
 .sync-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid #F0EDE8; }
 .sync-row:last-child { border-bottom:none; }
 .sync-field-lbl { font-size:12px; color:#3C3C3A; font-weight:500; }
-.sync-field-val { font-size:11px; color:#828A85; text-align:right; white-space:nowrap; min-width:80px; }
+.sync-field-val { font-size:11px; color:#6A716B; text-align:right; white-space:nowrap; min-width:80px; }
 .sync-pills { display:flex; gap:3px; }
 .sync-pill { font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid #D6D9DD; background:#fff; color:#5A625D; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.sync-pill:hover { border-color:#828A85; }
+.sync-pill:hover { border-color:#6A716B; }
 .sync-pill.active { background:#151816; color:#fff; border-color:#151816; }
 .sync-pill:disabled { opacity:.4; cursor:default; }
 
 /* Portfolio sub-tab pills */
 .port-sub-pills { display:flex; gap:8px; margin-bottom:4px; }
 .port-sub-pill { font-size:14px; font-weight:600; padding:9px 22px; border-radius:22px; border:1px solid #D6D9DD; background:#fff; color:#5A625D; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.port-sub-pill:hover { border-color:#828A85; background:#F3F4F2; color:#151816; }
+.port-sub-pill:hover { border-color:#6A716B; background:#F3F4F2; color:#151816; }
 .port-sub-pill.active { background:#151816; color:#fff; border-color:#151816; }
 
 /* Portfolio nav dropdown */
@@ -2453,8 +2457,8 @@ body.landing #modelActionsBar { display: none !important; }
 .budget-section-lbl {
   font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
   color:#3E4A3F; margin:16px 0 8px; padding:5px 10px;
-  border-radius:6px; border-left:3px solid var(--accent);
-  background: rgba(5,150,105,0.07);
+  border-radius:6px;
+  background: rgba(5,150,105,0.09);
   display:flex; align-items:center; gap:8px;
 }
 .budget-summary-strip {
@@ -2464,7 +2468,7 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .budget-summary-item { flex:1; text-align:center; min-width:70px; }
 .budget-summary-sep  { font-size:16px; color:#C8C4BC; padding:0 6px; flex-shrink:0; font-weight:300; }
-.bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#828A85; }
+.bsi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#6A716B; }
 .bsi-val   { font-size:16px; font-weight:700; color:#151816; margin-top:3px; }
 .bsi-sub   { font-size:14px; font-weight:600; color:#2563EB; margin-top:3px; min-height:17px; }
 .bsi-pos   { color:#059669 !important; }
@@ -2495,7 +2499,7 @@ body.landing #modelActionsBar { display: none !important; }
 }
 #budgetMonthLabel:hover { background:#fff; color:#059669; box-shadow:0 1px 3px rgba(0,0,0,.10); }
 
-.budget-save-status { font-size:11px; color:#828A85; transition:color .3s; }
+.budget-save-status { font-size:11px; color:#6A716B; transition:color .3s; }
 .budget-save-status.saved { color:#059669; }
 .budget-save-status.error { color:#dc2626; }
 
@@ -2537,7 +2541,7 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .budget-sec-hdr {
   font-size:10px !important; font-weight:700 !important; letter-spacing:.08em !important;
-  text-transform:uppercase !important; color:#828A85 !important;
+  text-transform:uppercase !important; color:#6A716B !important;
   background:#F7F7F5 !important; padding:5px 12px !important;
 }
 .budget-cell {
@@ -2585,12 +2589,12 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .fp-stat-label {
   font-size:9px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.07em; color:#828A85; margin-bottom:4px;
+  letter-spacing:.07em; color:#6A716B; margin-bottom:4px;
 }
 .fp-stat-val {
   font-size:18px; font-weight:800; color:#151816; line-height:1.2;
 }
-.fp-stat-sub { font-size:10px; color:#A8A4A0; margin-top:3px; }
+.fp-stat-sub { font-size:10px; color:#70736E; margin-top:3px; }
 
 /* FIRE progress — monthly chart */
 .fp-chart-hdr {
@@ -2599,7 +2603,7 @@ body.landing #modelActionsBar { display: none !important; }
 }
 .fp-chart-title {
   font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.07em; color:#828A85;
+  letter-spacing:.07em; color:#6A716B;
 }
 .fp-chart-wrap { height:230px; position:relative; }
 
@@ -2610,7 +2614,7 @@ body.landing #modelActionsBar { display: none !important; }
 .expense-table thead tr { background:#F5F3EF; }
 .expense-table th {
   font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  color:#828A85; padding:5px 6px 6px; text-align:center;
+  color:#6A716B; padding:5px 6px 6px; text-align:center;
   border:1px solid #E5E7EB;
 }
 .expense-table th:first-child { border-left:none; }
@@ -2657,7 +2661,7 @@ select.exp-input { cursor:pointer; }
 .dollar-wrap:focus-within {
   border-color:#059669; box-shadow:0 0 0 2px rgba(29,158,117,.18);
 }
-.inp-dollar { font-size:11px; color:#828A85; padding:0 1px 0 5px; flex-shrink:0; user-select:none; }
+.inp-dollar { font-size:11px; color:#6A716B; padding:0 1px 0 5px; flex-shrink:0; user-select:none; }
 .dollar-wrap .exp-input {
   border:none !important; background:transparent !important;
   border-radius:0 !important; box-shadow:none !important;
@@ -2695,7 +2699,7 @@ select.exp-input { cursor:pointer; }
   border-top:none !important; border-right:none !important; font-size:11px;
 }
 .inc-sub-lbl {
-  color:#828A85 !important; padding-left:24px !important;
+  color:#6A716B !important; padding-left:24px !important;
   font-size:11px; white-space:nowrap;
 }
 .inc-sub-auto {
@@ -2710,7 +2714,7 @@ select.exp-input { cursor:pointer; }
 .income-sub-row:last-child > td { border-bottom:1px solid #E5E7EB !important; }
 
 /* Summary strip gross note */
-.bsi-gross { font-size:11px; color:#828A85; margin-top:1px; }
+.bsi-gross { font-size:11px; color:#6A716B; margin-top:1px; }
 
 /* Budget past-month lock */
 .budget-lock-banner {
@@ -2743,7 +2747,7 @@ select.exp-input { cursor:pointer; }
 }
 .ts-field:last-child { border-bottom:none; }
 .ts-field label { flex:1; font-size:12px; font-weight:600; color:#151816; }
-.ts-field span  { font-size:11px; color:#828A85; }
+.ts-field span  { font-size:11px; color:#6A716B; }
 .ts-select {
   font-size:12px; border:1px solid #E5E7EB; border-radius:6px;
   padding:4px 26px 4px 8px; background:#FAFAF8; color:#151816;
@@ -2759,7 +2763,7 @@ select.exp-input { cursor:pointer; }
 .ts-num:focus { border-color:#059669; }
 .ts-num::-webkit-outer-spin-button,
 .ts-num::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-.ts-unit { font-size:12px; color:#828A85; }
+.ts-unit { font-size:12px; color:#6A716B; }
 .ts-row {
   display:flex; align-items:center; gap:12px;
   padding:11px 14px; border-bottom:1px solid #F0EDE8;
@@ -2767,7 +2771,7 @@ select.exp-input { cursor:pointer; }
 .ts-row:last-child { border-bottom:none; }
 .ts-row-label { flex:1; }
 .ts-row-label strong { display:block; font-size:12px; font-weight:600; color:#151816; }
-.ts-row-label span   { font-size:11px; color:#828A85; }
+.ts-row-label span   { font-size:11px; color:#6A716B; }
 .ts-bracket-toggle {
   display:flex; align-items:center; justify-content:space-between;
   padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600;
@@ -2784,7 +2788,7 @@ select.exp-input { cursor:pointer; }
 .ts-bracket-table th {
   padding:6px 14px; text-align:left; background:#F9FAF9;
   font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.05em; color:#828A85;
+  letter-spacing:.05em; color:#6A716B;
 }
 .ts-bracket-table th:last-child { text-align:right; }
 .ts-bracket-table td { padding:7px 14px; border-top:1px solid #F8F6F3; color:#3C3C3A; }
@@ -2810,13 +2814,13 @@ select.exp-input { cursor:pointer; }
 .settings-head h2 { font-size:14px; font-weight:700; color:#151816; margin:0; flex:1; }
 .settings-close {
   width:26px; height:26px; border:none; background:transparent; cursor:pointer;
-  border-radius:6px; font-size:17px; color:#828A85;
+  border-radius:6px; font-size:17px; color:#6A716B;
   display:flex; align-items:center; justify-content:center; transition:background .15s;
 }
 .settings-close:hover { background:#F0EDE8; color:#151816; }
 .settings-back {
   width:26px; height:26px; border:none; background:transparent; cursor:pointer;
-  border-radius:6px; font-size:17px; color:#828A85; display:none;
+  border-radius:6px; font-size:17px; color:#6A716B; display:none;
   align-items:center; justify-content:center; transition:background .15s;
 }
 .settings-back:hover { background:#F0EDE8; color:#151816; }
@@ -2832,7 +2836,7 @@ select.exp-input { cursor:pointer; }
 .settings-nav-icon { font-size:18px; width:28px; text-align:center; flex-shrink:0; }
 .settings-nav-label { flex:1; }
 .settings-nav-label strong { display:block; font-size:13px; font-weight:600; color:#151816; }
-.settings-nav-label span   { font-size:11px; color:#828A85; }
+.settings-nav-label span   { font-size:11px; color:#6A716B; }
 .settings-nav-arrow { color:#C8C4BC; font-size:14px; }
 
 /* Sub-page */
@@ -2925,25 +2929,25 @@ select.exp-input { cursor:pointer; }
 .dash-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 @media(max-width:640px){ .dash-stats-row { grid-template-columns:repeat(2,1fr); } }
 .dash-stat-card { padding:14px 16px !important; }
-.dash-stat-sub { font-size:11px; color:#828A85; margin-top:3px; }
+.dash-stat-sub { font-size:11px; color:#6A716B; margin-top:3px; }
 .dash-progress-track { height:10px; background:#F0EDE8; border-radius:99px; overflow:hidden; margin-top:6px; }
 .dash-progress-fill  { height:100%; border-radius:99px; background:#059669; transition:width .6s ease; }
 .dash-fire-header { display:flex; align-items:flex-start; justify-content:space-between; }
 .dash-fire-label { font-size:20px; font-weight:700; color:#151816; }
-.dash-fire-sub   { font-size:12px; color:#828A85; margin-top:3px; }
+.dash-fire-sub   { font-size:12px; color:#6A716B; margin-top:3px; }
 .dash-fire-pct   { font-size:28px; font-weight:800; color:#059669; line-height:1; }
-.dash-no-data    { font-size:12px; color:#A8A4A0; padding:4px 0; }
+.dash-no-data    { font-size:12px; color:#70736E; padding:4px 0; }
 
 /* ── Scenarios table ───────────────────────────────── */
 .scen-table { width:100%; border-collapse:collapse; font-size:12px; }
-.scen-table th { text-align:left; padding:6px 10px; font-size:11px; color:#828A85; border-bottom:2px solid #E5E7EB; white-space:nowrap; font-weight:600; }
+.scen-table th { text-align:left; padding:6px 10px; font-size:11px; color:#6A716B; border-bottom:2px solid #E5E7EB; white-space:nowrap; font-weight:600; }
 .scen-table th.scen-th-r { text-align:right; }
 .scen-table td { padding:8px 10px; border-bottom:1px solid #F0EDE8; vertical-align:middle; }
 .scen-table tr:last-child td { border-bottom:none; }
 .scen-table tbody tr:hover td { background:#FAFAF8; }
 .scen-col-label { font-weight:500; color:#2C2A28; cursor:pointer; max-width:220px; }
 .scen-col-label:hover { color:#059669; text-decoration:underline; }
-.scen-col-meta { color:#A8A4A0; white-space:nowrap; font-size:11px; }
+.scen-col-meta { color:#70736E; white-space:nowrap; font-size:11px; }
 .scen-col-num { text-align:right; white-space:nowrap; }
 .scen-col-fire { text-align:right; font-weight:700; color:#059669; white-space:nowrap; }
 .scen-col-actions { text-align:right; white-space:nowrap; }
@@ -2954,7 +2958,7 @@ select.exp-input { cursor:pointer; }
   .site-footer {
     max-width: 1180px; margin: 8px auto 0; padding: 18px 18px 30px;
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 10px; font-size: 12px; color: #828A85; border-top: 1px solid #E5E7EB;
+    gap: 10px; font-size: 12px; color: #6A716B; border-top: 1px solid #E5E7EB;
   }
   .site-footer-links { display: flex; gap: 14px; flex-wrap: wrap; }
   .site-footer a { color: #5A625D; text-decoration: none; cursor: pointer; }
@@ -2970,18 +2974,18 @@ select.exp-input { cursor:pointer; }
   }
   .legal-close {
     position: absolute; top: 16px; right: 18px; background: none; border: none;
-    font-size: 22px; color: #828A85; cursor: pointer; line-height: 1;
+    font-size: 22px; color: #6A716B; cursor: pointer; line-height: 1;
   }
   .legal-close:hover { color: #151816; }
   .legal-tabs { display: flex; gap: 4px; border-bottom: 2px solid #F0EDE8; margin-bottom: 18px; flex-wrap: wrap; }
   .legal-tab {
     border: none; background: none; padding: 8px 4px; margin-right: 18px;
-    font-size: 13px; font-weight: 600; color: #828A85; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: #6A716B; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -2px;
   }
   .legal-tab.active { color: #151816; border-color: #151816; }
   .legal-panel h3 { font-size: 17px; margin: 0 0 4px; color: #151816; }
-  .legal-panel .legal-updated { font-size: 12px; color: #828A85; margin-bottom: 16px; }
+  .legal-panel .legal-updated { font-size: 12px; color: #6A716B; margin-bottom: 16px; }
   .legal-panel h4 { font-size: 13.5px; margin: 20px 0 6px; color: #151816; }
   .legal-panel p, .legal-panel li { font-size: 13px; line-height: 1.6; color: #3C3A36; }
   .legal-panel ul { margin: 4px 0 4px 18px; padding: 0; }
@@ -3010,17 +3014,17 @@ select.exp-input { cursor:pointer; }
   .auth-close:hover { background: #E2DED7; color: #151816; }
   .auth-skip {
     display: block; text-align: center; margin-top: 16px;
-    font-size: 12.5px; color: #828A85; cursor: pointer; text-decoration: underline;
+    font-size: 12.5px; color: #6A716B; cursor: pointer; text-decoration: underline;
   }
   .auth-skip:hover { color: #5A625D; }
   .auth-brand { font-size: 18px; font-weight: 800; color: #151816; letter-spacing: -.02em; }
-  .auth-tagline { font-size: 12px; color: #828A85; margin: 3px 0 22px; }
+  .auth-tagline { font-size: 12px; color: #6A716B; margin: 3px 0 22px; }
   .auth-tabs {
     display: flex; border-bottom: 2px solid #F0EDE8; margin-bottom: 20px;
   }
   .auth-tab {
     background: none; border: none; font-size: 13px; font-weight: 600;
-    color: #828A85; padding: 6px 14px 9px; cursor: pointer;
+    color: #6A716B; padding: 6px 14px 9px; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -2px;
     transition: color .15s, border-color .15s;
   }
@@ -3047,7 +3051,7 @@ select.exp-input { cursor:pointer; }
   .auth-link:hover { text-decoration: underline; }
   .auth-divider {
     display: flex; align-items: center; gap: 10px;
-    margin: 16px 0; font-size: 11px; color: #B0ABA6;
+    margin: 16px 0; font-size: 11px; color: #70736E;
   }
   .auth-divider::before, .auth-divider::after {
     content: ''; flex: 1; height: 1px; background: #E5E7EB;
@@ -3089,7 +3093,7 @@ select.exp-input { cursor:pointer; }
     font-size: 12px; color: #5A625D; padding: 4px 8px 9px;
     border-bottom: 1px solid #F0EDE8; margin-bottom: 4px; word-break: break-all;
   }
-  .user-menu-sync { font-size: 11px; color: #828A85; padding: 4px 8px; }
+  .user-menu-sync { font-size: 11px; color: #6A716B; padding: 4px 8px; }
   .user-menu-signout {
     display: block; width: 100%; text-align: left;
     padding: 8px; border: none; background: none;
@@ -3110,7 +3114,7 @@ select.exp-input { cursor:pointer; }
   }
   .onboard-step{display:none;} .onboard-step.active{display:block;}
   .onboard-title{font-size:20px;font-weight:800;color:#151816;margin-bottom:4px;}
-  .onboard-sub{font-size:13px;color:#828A85;margin-bottom:22px;line-height:1.5;}
+  .onboard-sub{font-size:13px;color:#6A716B;margin-bottom:22px;line-height:1.5;}
   .onboard-pip-row{display:flex;gap:5px;margin-bottom:22px;}
   .onboard-pip{height:3px;border-radius:99px;background:#E5E7EB;flex:1;}
   .onboard-pip.done{background:#059669;}
@@ -3121,7 +3125,7 @@ select.exp-input { cursor:pointer; }
     font-size:14px;color:#151816;background:#FAFAF8;box-sizing:border-box;transition:border-color .15s;
   }
   .onboard-field input:focus,.onboard-field select:focus{outline:none;border-color:#059669;}
-  .onboard-field .opt-label{font-size:11px;color:#B0ABA6;margin-left:4px;font-weight:400;}
+  .onboard-field .opt-label{font-size:11px;color:#70736E;margin-left:4px;font-weight:400;}
   .onboard-actions{display:flex;gap:8px;margin-top:20px;}
   .onboard-primary{
     flex:1;padding:10px;background:#059669;color:#fff;border:none;
@@ -3130,7 +3134,7 @@ select.exp-input { cursor:pointer; }
   .onboard-primary:hover{background:#047857;}
   .onboard-skip{
     padding:10px 16px;background:none;border:1px solid #D6D9DD;
-    border-radius:8px;font-size:13px;color:#828A85;cursor:pointer;
+    border-radius:8px;font-size:13px;color:#6A716B;cursor:pointer;
   }
 
   /* ---- Upgrade / Pricing modal ---- */
@@ -3143,7 +3147,7 @@ select.exp-input { cursor:pointer; }
     max-width:calc(100vw - 32px);box-shadow:0 24px 64px rgba(0,0,0,.2);position:relative;
   }
   .upgrade-title{font-size:20px;font-weight:800;color:#151816;margin-bottom:4px;}
-  .upgrade-sub{font-size:13px;color:#828A85;margin-bottom:16px;}
+  .upgrade-sub{font-size:13px;color:#6A716B;margin-bottom:16px;}
   .upgrade-reason{
     font-size:12px;color:#059669;font-weight:600;background:#EDFAF5;
     border-radius:6px;padding:6px 10px;margin-bottom:16px;
@@ -3165,10 +3169,10 @@ select.exp-input { cursor:pointer; }
     background:#059669;color:#fff;font-size:10px;font-weight:700;
     padding:2px 10px;border-radius:99px;letter-spacing:.05em;white-space:nowrap;
   }
-  .plan-card-name{font-size:12px;font-weight:700;color:#828A85;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .plan-card-name{font-size:12px;font-weight:700;color:#6A716B;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
   .plan-card-price{font-size:30px;font-weight:800;color:#151816;line-height:1;margin-bottom:3px;}
   .plan-card-price sup{font-size:16px;font-weight:600;vertical-align:super;}
-  .plan-card-per{font-size:12px;color:#828A85;margin-bottom:14px;}
+  .plan-card-per{font-size:12px;color:#6A716B;margin-bottom:14px;}
   .plan-card-features{list-style:none;padding:0;margin:0 0 16px;}
   .plan-card-features li{font-size:12px;color:#5A625D;padding:3px 0;display:flex;align-items:baseline;gap:6px;}
   .plan-card-features li::before{content:'✓';color:#059669;font-weight:700;flex-shrink:0;}
@@ -3185,7 +3189,7 @@ select.exp-input { cursor:pointer; }
     font-size:20px;color:#C8C4BE;cursor:pointer;line-height:1;
   }
   .upgrade-close:hover{color:#151816;}
-  .upgrade-note{font-size:11px;color:#B0ABA6;text-align:center;margin-top:14px;}
+  .upgrade-note{font-size:11px;color:#70736E;text-align:center;margin-top:14px;}
 
   /* ---- Save prompt banner ---- */
   .save-prompt{
@@ -3198,7 +3202,7 @@ select.exp-input { cursor:pointer; }
   @keyframes spUp{from{opacity:0;transform:translateX(-50%) translateY(14px);}}
   .save-prompt-text{font-size:13px;flex:1;line-height:1.45;}
   .save-prompt-text strong{display:block;font-weight:700;margin-bottom:1px;}
-  .save-prompt-text small{font-size:11px;color:#A8A4A0;}
+  .save-prompt-text small{font-size:11px;color:#70736E;}
   .sp-btn{padding:7px 13px;border-radius:7px;border:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
   .sp-btn.primary{background:#059669;color:#fff;}
   .sp-btn.primary:hover{background:#047857;}
@@ -3235,7 +3239,7 @@ select.exp-input { cursor:pointer; }
   .profile-title { font-size:20px; font-weight:700; color:#151816; margin-bottom:20px; }
   .profile-close {
     position:absolute; top:16px; right:16px;
-    background:none; border:none; font-size:22px; color:#828A85; cursor:pointer; line-height:1;
+    background:none; border:none; font-size:22px; color:#6A716B; cursor:pointer; line-height:1;
   }
   .profile-close:hover { color:#151816; }
   .profile-field { margin-bottom:14px; }
@@ -3245,13 +3249,13 @@ select.exp-input { cursor:pointer; }
     font-size:14px; color:#151816; background:#fff; box-sizing:border-box;
   }
   .profile-input:focus { outline:none; border-color:#151816; }
-  .profile-input[readonly] { background:#F3F4F2; color:#828A85; cursor:default; }
-  .profile-input-note { font-size:11px; color:#828A85; margin-top:4px; }
+  .profile-input[readonly] { background:#F3F4F2; color:#6A716B; cursor:default; }
+  .profile-input-note { font-size:11px; color:#6A716B; margin-top:4px; }
   .profile-plan-row {
     display:flex; align-items:center; justify-content:space-between;
     background:#F8F6F3; border-radius:10px; padding:12px 16px; margin:18px 0;
   }
-  .profile-plan-label { font-size:11px; color:#828A85; margin-bottom:2px; }
+  .profile-plan-label { font-size:11px; color:#6A716B; margin-bottom:2px; }
   .profile-plan-value { font-size:14px; font-weight:700; color:#151816; }
   .profile-plan-value.pro { color:#059669; }
   .profile-save-btn {
@@ -3271,7 +3275,7 @@ select.exp-input { cursor:pointer; }
   .profile-upgrade-btn:hover { background:#047857; }
   .profile-delete-link {
     display:block; width:100%; text-align:center; margin-top:14px;
-    background:none; border:none; font-size:12px; color:#B0ABA6; cursor:pointer;
+    background:none; border:none; font-size:12px; color:#70736E; cursor:pointer;
   }
   .profile-delete-link:hover { color:#E11D48; text-decoration:underline; }
 
@@ -3367,7 +3371,7 @@ select.exp-input { cursor:pointer; }
       display: flex; flex-direction: column; align-items: center; gap: 2px;
       background: none; border: none; cursor: pointer;
       padding: 8px 2px 6px;
-      color: #828A85;
+      color: #6A716B;
       font-size: 10px; font-weight: 600; font-family: inherit;
       min-height: 52px;
     }
@@ -3455,7 +3459,7 @@ select.exp-input { cursor:pointer; }
     #budgetExpenseWrap .expense-row td:nth-child(4)::before,
     #budgetExpenseWrap .expense-row td:nth-child(5)::before {
       display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
-      text-transform: uppercase; color: #828A85; margin-bottom: 2px;
+      text-transform: uppercase; color: #6A716B; margin-bottom: 2px;
     }
     #budgetExpenseWrap .expense-row td:nth-child(4)::before { content: "Budget"; }
     #budgetExpenseWrap .expense-row td:nth-child(5)::before { content: "Actual"; }
@@ -3491,7 +3495,7 @@ select.exp-input { cursor:pointer; }
     #incomeTableWrap .income-row td:nth-child(3)::before,
     #incomeTableWrap .income-row td:nth-child(4)::before {
       display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
-      text-transform: uppercase; color: #828A85; margin-bottom: 2px;
+      text-transform: uppercase; color: #6A716B; margin-bottom: 2px;
     }
     #incomeTableWrap .income-row td:nth-child(3)::before { content: "Budget"; }
     #incomeTableWrap .income-row td:nth-child(4)::before { content: "Actual"; }
@@ -3611,7 +3615,7 @@ select.exp-input { cursor:pointer; }
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
     outline: 2px solid #059669 !important; outline-offset: 2px !important;
   }
-  .empty-state { text-align: center; padding: 28px 16px; color: #828A85; font-size: 13px; line-height: 1.5; }
+  .empty-state { text-align: center; padding: 28px 16px; color: #6A716B; font-size: 13px; line-height: 1.5; }
   .empty-state .es-icon { font-size: 26px; display: block; margin-bottom: 8px; }
   .empty-state .es-cta { margin-top: 10px; }
   /* one section-title scale everywhere */
@@ -3696,7 +3700,7 @@ select.exp-input { cursor:pointer; }
   #chartFsChipsSlot .stock-override-panel { display: none; }
   /* "rotate your phone" hint — shown in portrait, hidden once landscape */
   .chart-fs-rotate-hint {
-    flex: 0 0 auto; text-align: center; font-size: 11.5px; color: #828A85;
+    flex: 0 0 auto; text-align: center; font-size: 11.5px; color: #6A716B;
     padding: 2px 0;
   }
   @media (orientation: landscape) {
@@ -3834,7 +3838,7 @@ select.exp-input { cursor:pointer; }
             <span class="hero-title-word-ghost" aria-hidden="true">reliably</span>
             <span class="hero-title-word-ghost" aria-hidden="true">confidently</span>
             <span class="hero-title-word-ghost" aria-hidden="true">instantly</span>
-            <span id="heroTitleWord" class="hero-title-word" style="background:linear-gradient(135deg, rgba(5,150,105,1), rgba(110,231,183,1)); -webkit-background-clip:text; background-clip:text; color:transparent;">clearly</span>
+            <span id="heroTitleWord" class="hero-title-word" style="color:#059669;">clearly</span>
           </span>
         </h1>
         <script>
@@ -3952,7 +3956,7 @@ select.exp-input { cursor:pointer; }
 
               <div class="feat-scene" id="featScene3">
                 <div class="fs-scen-caption">Same income, different paths — same calculator.</div>
-                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#828A85; color:#828A85;">Stay Renting</span><span>FIRE: Age 58</span></div>
+                <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#6A716B; color:#6A716B;">Stay Renting</span><span>FIRE: Age 58</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#059669; color:#059669;">Buy a Home</span><span>FIRE: Age 52</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#0891B2; color:#0891B2;">Investment + Home</span><span>FIRE: Age 50</span></div>
                 <div class="fs-scen-row"><span class="fs-scen-chip" style="border-color:#7C3AED; color:#7C3AED;">Rent &amp; Invest</span><span>FIRE: Age 49</span></div>
@@ -4014,29 +4018,29 @@ select.exp-input { cursor:pointer; }
               <line x1="10" y1="152" x2="390" y2="152" />
               <line x1="10" y1="205" x2="390" y2="205" />
             </g>
-            <text class="hero-chart-axislabel" id="heroAxisLabel"  x="14" y="38"  font-size="9.5" fill="#B0ABA6">$500K</text>
+            <text class="hero-chart-axislabel" id="heroAxisLabel"  x="14" y="38"  font-size="9.5" fill="#70736E">$500K</text>
             <text class="hero-chart-axislabel" id="heroAxisLabel2" x="14" y="91"  font-size="9.5" fill="#C8C4BC">$333K</text>
             <text class="hero-chart-axislabel" id="heroAxisLabel3" x="14" y="145" font-size="9.5" fill="#C8C4BC">$167K</text>
             <text class="hero-chart-axislabel" x="14" y="200" font-size="9.5" fill="#C8C4BC">$0</text>
             <g class="hero-chart-years">
-              <text x="42"  y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2026</text>
-              <text x="105" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2031</text>
-              <text x="200" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2036</text>
-              <text x="295" y="222" text-anchor="middle" font-size="9.5" fill="#B0ABA6">2041</text>
-              <text x="390" y="222" text-anchor="end"    font-size="9.5" fill="#B0ABA6">2046</text>
+              <text x="42"  y="222" text-anchor="middle" font-size="9.5" fill="#70736E">2026</text>
+              <text x="105" y="222" text-anchor="middle" font-size="9.5" fill="#70736E">2031</text>
+              <text x="200" y="222" text-anchor="middle" font-size="9.5" fill="#70736E">2036</text>
+              <text x="295" y="222" text-anchor="middle" font-size="9.5" fill="#70736E">2041</text>
+              <text x="390" y="222" text-anchor="end"    font-size="9.5" fill="#70736E">2046</text>
             </g>
             <g class="hero-chart-dynamic">
               <path class="hero-chart-savings" id="heroSavingsPath" d="" />
               <path class="hero-chart-fill" id="heroFillPath" fill="url(#heroGrad)" stroke="none" d="" />
               <path class="hero-chart-line" id="heroLinePath" d="" />
-              <circle id="heroSaveTipDot" cx="42" cy="205" r="3.5" fill="#828A85" />
+              <circle id="heroSaveTipDot" cx="42" cy="205" r="3.5" fill="#6A716B" />
               <circle id="heroTipDot" cx="42" cy="205" r="4.5" fill="#059669" />
               <g id="heroInvestLabelAnchor" class="hero-tip-label">
                 <rect x="6" y="-21" width="92" height="16" rx="8" fill="#059669" />
                 <text x="52" y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Wealth Model</text>
               </g>
               <g id="heroSaveLabelAnchor" class="hero-tip-label">
-                <rect x="6" y="6" width="82" height="16" rx="8" fill="#828A85" />
+                <rect x="6" y="6" width="82" height="16" rx="8" fill="#6A716B" />
                 <text x="47" y="18" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Just saving</text>
               </g>
               <g id="heroMilestoneAnchor">
@@ -4290,7 +4294,7 @@ select.exp-input { cursor:pointer; }
         </details>
       </div>
 
-      <div class="small" style="text-align:center; margin-top:10px; color:#828A85;">
+      <div class="small" style="text-align:center; margin-top:10px; color:#6A716B;">
         No signup required · General information only
       </div>
 
@@ -4797,7 +4801,7 @@ select.exp-input { cursor:pointer; }
         <!-- Summary strip — centred between income and expenses -->
         <div class="budget-summary-strip" id="budgetSummaryStrip" style="margin-top:20px;">
           <div class="budget-summary-item">
-            <div class="bsi-label">Income <span style="font-size:10px;color:#A8A4A0;font-weight:400;">(net)</span></div>
+            <div class="bsi-label">Income <span style="font-size:10px;color:#70736E;font-weight:400;">(net)</span></div>
             <div class="bsi-val" id="bsiIncome">—</div>
             <div class="bsi-sub" id="bsiIncomeA"></div>
             <div class="bsi-gross" id="bsiIncomeGross"></div>
@@ -5406,7 +5410,7 @@ select.exp-input { cursor:pointer; }
                onkeydown="if(event.key==='Enter')authRegister()" autocomplete="email" />
       </div>
       <div class="auth-field">
-        <label>Password <span style="font-weight:400;color:#B0ABA6;">(min 6 characters)</span></label>
+        <label>Password <span style="font-weight:400;color:#70736E;">(min 6 characters)</span></label>
         <input type="password" id="authRegPassword" placeholder="••••••••"
                onkeydown="if(event.key==='Enter')authRegister()" autocomplete="new-password" />
       </div>
@@ -5448,7 +5452,7 @@ select.exp-input { cursor:pointer; }
   <div style="position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:100%; max-width:440px; background:#fff; border-radius:16px 16px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px)); box-sizing:border-box;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
       <strong style="font-size:16px; color:#151816;">Install WealthModel</strong>
-      <button onclick="closeIosInstall()" style="background:none; border:none; font-size:20px; color:#828A85; cursor:pointer;">✕</button>
+      <button onclick="closeIosInstall()" style="background:none; border:none; font-size:20px; color:#6A716B; cursor:pointer;">✕</button>
     </div>
     <p style="font-size:13.5px; color:#5A625D; line-height:1.5; margin:0 0 14px;">Add WealthModel to your home screen for a full-screen app experience:</p>
     <ol style="font-size:14px; color:#151816; line-height:1.7; margin:0; padding-left:20px;">
@@ -5464,7 +5468,7 @@ select.exp-input { cursor:pointer; }
   <div style="max-width:760px; margin:24px auto; background:#fff; border-radius:16px; padding:22px; box-sizing:border-box;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
       <strong style="font-size:17px; color:#151816;">Import bank statement</strong>
-      <button onclick="closeImportModal()" style="background:none; border:none; font-size:22px; color:#828A85; cursor:pointer;">✕</button>
+      <button onclick="closeImportModal()" style="background:none; border:none; font-size:22px; color:#6A716B; cursor:pointer;">✕</button>
     </div>
     <p id="importTargetMonth" style="font-size:12.5px; color:#5A625D; margin:0 0 14px;"></p>
 
@@ -5474,9 +5478,9 @@ select.exp-input { cursor:pointer; }
         <input type="file" id="importFile" accept=".csv,.txt,.pdf" style="display:none;" onchange="importFileChosen(this.files[0])"/>
         <div style="font-size:30px;">📄</div>
         <div style="font-weight:700; color:#151816; margin-top:6px;">Choose a CSV or PDF file</div>
-        <div style="font-size:12px; color:#828A85; margin-top:4px;">Export the last month's transactions from your bank. CSV works best.</div>
+        <div style="font-size:12px; color:#6A716B; margin-top:4px;">Export the last month's transactions from your bank. CSV works best.</div>
       </label>
-      <div style="font-size:11.5px; color:#8A8582; margin-top:10px; line-height:1.5;">
+      <div style="font-size:11.5px; color:#6A716B; margin-top:10px; line-height:1.5;">
         <strong>Private:</strong> the file is read in your browser and never uploaded anywhere. Only expenses (money out) are imported.
       </div>
     </div>
@@ -5520,7 +5524,7 @@ select.exp-input { cursor:pointer; }
   <div style="max-width:400px; margin:18vh auto 0; background:#fff; border-radius:14px; padding:20px; box-sizing:border-box;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
       <strong style="font-size:15px; color:#151816;">New category</strong>
-      <button onclick="closeImportNewCat()" style="background:none; border:none; font-size:20px; color:#828A85; cursor:pointer;">✕</button>
+      <button onclick="closeImportNewCat()" style="background:none; border:none; font-size:20px; color:#6A716B; cursor:pointer;">✕</button>
     </div>
     <label style="font-size:12px; color:#3E4A3F; display:block; margin-bottom:8px;">Group
       <select id="newCatGroup" class="exp-input" style="margin-top:3px;"></select>
@@ -6263,7 +6267,7 @@ function _renderStockOverrideForm(year){
       <div class="prop-history-form-title">Additional contribution for ${year}</div>
       <div class="prop-history-form-grid" style="grid-template-columns:1fr;">
         <div>
-          <label>On top of the normal ${fmtMoney(baseAmt)}/yr <span style="font-size:10px;color:#828A85;">(+ to add, − to reduce)</span></label>
+          <label>On top of the normal ${fmtMoney(baseAmt)}/yr <span style="font-size:10px;color:#6A716B;">(+ to add, − to reduce)</span></label>
           <input type="text" inputmode="decimal" id="stockOverrideAmount" value="${additionalAmt ? fmtMoneyInput(additionalAmt) : ''}" placeholder="e.g. 5000 or -5000" />
         </div>
       </div>
@@ -7036,19 +7040,19 @@ function renderProperties(){
             })}
           </div>
           <div>
-            <label>Sale Price <span style="font-size:10px; color:#828A85;">(blank = projected)</span></label>
+            <label>Sale Price <span style="font-size:10px; color:#6A716B;">(blank = projected)</span></label>
             <input id="p_${p.id}_sale_price" type="text" inputmode="decimal"
                    value="${p.sale_price ? fmtMoneyInput(p.sale_price) : ''}" placeholder="Leave blank"
                    oninput="updateSaleField(${p.id},'sale_price',this.value)" />
           </div>
           <div>
-            <label>Agent commission <span style="font-size:10px;color:#828A85;">(%)</span></label>
+            <label>Agent commission <span style="font-size:10px;color:#6A716B;">(%)</span></label>
             <input id="p_${p.id}_sale_agent_rate" type="text" inputmode="decimal"
                    value="${((p.sale_agent_rate ?? 0.022)*100).toFixed(2)}"
                    oninput="updateSaleField(${p.id},'sale_agent_rate',this.value)" />
           </div>
           <div>
-            <label>Conveyancing <span style="font-size:10px;color:#828A85;">($)</span></label>
+            <label>Conveyancing <span style="font-size:10px;color:#6A716B;">($)</span></label>
             <input id="p_${p.id}_sale_conveyancing" type="text" inputmode="decimal"
                    value="${fmtMoneyInput(p.sale_conveyancing ?? 2500)}"
                    oninput="updateSaleField(${p.id},'sale_conveyancing',this.value)" />
@@ -7494,7 +7498,7 @@ function updatePropSummaryStrip(){
         + (inv  ? ` &nbsp;·&nbsp; ${inv} investment` : '')
         + (planned ? ` &nbsp;·&nbsp; ${planned} planned` : '')
         + `<br>Total equity <strong>${fmtMoney(totEquity)}</strong>`
-        + (planned ? ` <span style="color:#828A85;">(owned today — excludes planned)</span>` : '')
+        + (planned ? ` <span style="color:#6A716B;">(owned today — excludes planned)</span>` : '')
         + ` &nbsp;·&nbsp; Net/mo <strong style="color:${totNet>=0?'#059669':'#E11D48'}">${totNet>=0?'+':''}${fmtMoney(totNet)}</strong>`;
     }
   }
@@ -7596,7 +7600,7 @@ function renderPporRows(id){
 
   wrap.innerHTML = '';
   if (!periods.length){
-    wrap.innerHTML = '<div style="font-size:12px; color:#828A85; padding:4px 0;">No PPOR periods — property treated as investment throughout.</div>';
+    wrap.innerHTML = '<div style="font-size:12px; color:#6A716B; padding:4px 0;">No PPOR periods — property treated as investment throughout.</div>';
     return;
   }
 
@@ -8529,7 +8533,7 @@ const fireIncomeWithCashSeries =
 	  // adjusted lifestyle target divided by the stock drawdown rate. Where
 	  // Net worth crosses this line ≈ wealth-based FIRE.
 	  ...(fireNumberSeries      ? [{ id:"fireNumberLine",  label:"FIRE Number (wealth needed)", axis:"y", data: fireNumberSeries, defaultOn:true,  group:"balances", order:6, color:"#DC2626", borderDash:[7,4], borderWidth:1.5 }] : []),
-	  ...(todayNWLineSeries     ? [{ id:"todayNWLine",     label:"Today's net worth",           axis:"y", data: todayNWLineSeries, defaultOn:false, group:"balances", order:7, color:"#828A85", borderDash:[3,3], borderWidth:1.5 }] : []),
+	  ...(todayNWLineSeries     ? [{ id:"todayNWLine",     label:"Today's net worth",           axis:"y", data: todayNWLineSeries, defaultOn:false, group:"balances", order:7, color:"#6A716B", borderDash:[3,3], borderWidth:1.5 }] : []),
 
 	  // --- Properties combined (above per-property breakdown)
 	  ...(propPrefixes.length   ? [{ id:"propertyEquity",  label:"Total equity",   axis:"y",  data: equitySeries,        defaultOn:false, group:"props-combined", order:1, color:"#F97316" }] : []),
@@ -10677,13 +10681,13 @@ function toggleCopyFromDropdown(e){
   let tplNote = '';
   if (tpl?.savedFrom){
     const [ty, tm] = tpl.savedFrom.split('-').map(Number);
-    tplNote = ` <span style="color:#828A85;font-size:10.5px;">(from ${new Date(ty, tm-1, 1).toLocaleDateString('en-AU',{month:'short', year:'numeric'})})</span>`;
+    tplNote = ` <span style="color:#6A716B;font-size:10.5px;">(from ${new Date(ty, tm-1, 1).toLocaleDateString('en-AU',{month:'short', year:'numeric'})})</span>`;
   }
   let html = `
     <button style="${itemStyle}" ${hover} onclick="${closeThen('saveBudgetTemplate()')}">📌 Save this month as template</button>
     ${tpl ? `<button style="${itemStyle}" ${hover} onclick="${closeThen('applyBudgetTemplate()')}">📋 Apply template${tplNote}</button>` : ''}
     <div style="border-top:1px solid #E5E7EB; margin:4px 0;"></div>
-    <div style="padding:4px 12px 2px; font-size:10px; font-weight:700; letter-spacing:.06em; color:#828A85; text-transform:uppercase;">Copy from month</div>`;
+    <div style="padding:4px 12px 2px; font-size:10px; font-weight:700; letter-spacing:.06em; color:#6A716B; text-transform:uppercase;">Copy from month</div>`;
 
   const store = _budgLoad();
   const months = Object.keys(store.months || {})
@@ -10692,7 +10696,7 @@ function toggleCopyFromDropdown(e){
     .reverse();
 
   if(!months.length){
-    html += `<div style="padding:6px 12px 8px; font-size:12px; color:#828A85;">No other months logged yet</div>`;
+    html += `<div style="padding:6px 12px 8px; font-size:12px; color:#6A716B;">No other months logged yet</div>`;
   } else {
     html += months.map(m => {
       const [y, mo] = m.split('-').map(Number);
@@ -11147,7 +11151,7 @@ async function renderFireProgress(){
   const ytdTarget = ytdLogged.reduce((s,m) => s + monthTarget(m), 0);
 
   const col  = (v, tgt) => v >= tgt ? '#059669' : v >= 0 ? '#F59E0B' : '#E11D48';
-  const colV = v => v === null ? '#A8A4A0' : v >= 0 ? '#059669' : '#E11D48';
+  const colV = v => v === null ? '#70736E' : v >= 0 ? '#059669' : '#E11D48';
 
   // Source label for target footnote
   const targetSource = projections
@@ -11166,7 +11170,7 @@ async function renderFireProgress(){
         </div>
         <div class="fp-stat-box">
           <div class="fp-stat-label">This Month</div>
-          <div class="fp-stat-val" style="color:${thisActual!==null?col(thisActual,thisTarget):'#A8A4A0'}">${fmtDollar(thisActual)}</div>
+          <div class="fp-stat-val" style="color:${thisActual!==null?col(thisActual,thisTarget):'#70736E'}">${fmtDollar(thisActual)}</div>
           <div class="fp-stat-sub">${thisBudget!==null?'budget '+fmtDollar(thisBudget):'not yet logged'}</div>
         </div>
         <div class="fp-stat-box">
@@ -11176,7 +11180,7 @@ async function renderFireProgress(){
         </div>
         <div class="fp-stat-box">
           <div class="fp-stat-label">Months On Target</div>
-          <div class="fp-stat-val">${onTrackCount}<span style="font-size:13px;font-weight:500;color:#828A85"> / ${logged.length}</span></div>
+          <div class="fp-stat-val">${onTrackCount}<span style="font-size:13px;font-weight:500;color:#6A716B"> / ${logged.length}</span></div>
           <div class="fp-stat-sub">last 12 months</div>
         </div>
       </div>
@@ -11311,7 +11315,7 @@ function _renderFireChart(series, targets){
         y: {
           ticks: {
             callback: v => '$' + Math.round(v/1000) + 'k',
-            font:{size:10}, color:'#828A85'
+            font:{size:10}, color:'#6A716B'
           },
           grid:   { color:'#F0EDE8' },
           border: { color:'#E5E7EB' }
@@ -11385,7 +11389,7 @@ function addIncomeRow(data){
     <td><select class="inc-mode-sel" onchange="setIncomeMode(${id}, this.value)">
           <option value="gross"${isGross?' selected':''}>Gross</option>
           <option value="net"${!isGross?' selected':''}>Net</option>
-        </select><span class="inc-mode-dash" style="display:none;color:#B0ABA6;font-size:12px;" title="Gross/net breakdown (PAYG tax + employer super) only applies to salary income — enter the cash amount you actually receive">—</span></td>
+        </select><span class="inc-mode-dash" style="display:none;color:#70736E;font-size:12px;" title="Gross/net breakdown (PAYG tax + employer super) only applies to salary income — enter the cash amount you actually receive">—</span></td>
     <td><button class="inc-expand-btn" id="incExp_${id}" onclick="toggleIncomeExpand(${id})"
                 style="${isGross?'':'display:none'}" title="Show breakdown">&#9654;</button></td>
     <td><button class="exp-del" onclick="deleteIncomeRow(${id})" title="Remove">×</button></td>`;
@@ -11763,7 +11767,7 @@ function renderExpenseChart(){
         },
         y: {
           stacked: true,
-          ticks: { callback: v => '$' + Math.round(v).toLocaleString(), font:{size:10}, color:'#828A85' },
+          ticks: { callback: v => '$' + Math.round(v).toLocaleString(), font:{size:10}, color:'#6A716B' },
           grid: { color:'#F0EDE8' }, border:{ color:'#E5E7EB' }
         }
       }
@@ -11858,10 +11862,10 @@ const BUDGET_GROUP_COLORS = {
 function _applyExpRowColor(row){
   const g = row.querySelector('.exp-cat')?.value;
   const c = BUDGET_GROUP_COLORS[g] || '#9CA3AF';
-  const firstTd = row.firstElementChild;
-  if (firstTd) firstTd.style.borderLeft = `3px solid ${c}`;
-  row.style.background = c + '12';                    // ~7% tint across the row
-  row.style.setProperty('--row-tint', c + '0F');      // inputs pick this up too
+  // Category colour is carried by the whole-row tint (data, not decoration);
+  // the accent border was a side-stripe tell — the tint alone reads the group.
+  row.style.background = c + '14';                    // ~8% tint across the row
+  row.style.setProperty('--row-tint', c + '10');     // inputs inherit it too
 }
 
 /** Reorder expense rows: category group order, then sub-category A→Z */
@@ -12233,7 +12237,7 @@ function _importRenderPreview(){
     const sel = t.cat ? `${t.cat.g}|${t.cat.s}` : '';
     const warn = t.cat ? '' : 'background:#FFFBEB;';
     html += `<tr style="border-top:1px solid #EEE; ${warn}">
-      <td style="padding:6px 10px;">${escapeHtml(t.desc.slice(0,42))}<div style="font-size:10px;color:#A8A4A0;">${escapeHtml(t.date)}</div></td>
+      <td style="padding:6px 10px;">${escapeHtml(t.desc.slice(0,42))}<div style="font-size:10px;color:#70736E;">${escapeHtml(t.date)}</div></td>
       <td style="padding:6px 10px; text-align:right; white-space:nowrap;">${fmtDollar(t.amount)}</td>
       <td style="padding:6px 10px;"><select class="exp-input" style="width:100%;" onchange="importRowCatChanged(${i}, this.value)">${_importCatOptions(sel)}</select></td>
     </tr>`;
@@ -12726,7 +12730,7 @@ function _renderLifeEventForm(form){
         </div>
         ${!isWindfall ? `
         <div>
-          <label>End <span style="font-size:10px;color:#828A85;">(blank = ongoing)</span></label>
+          <label>End <span style="font-size:10px;color:#6A716B;">(blank = ongoing)</span></label>
           ${monthPickerHTML('lev_end', form.end, { placeholder: 'Ongoing', allowClear: true, clearLabel: 'Ongoing' })}
         </div>
         <div>
@@ -13363,7 +13367,7 @@ function _dashFireCard(){
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div>
-          <div class="dash-fire-label" style="color:#A8A4A0;font-size:15px;">Set a Target Lifestyle Income to see your FIRE progress</div>
+          <div class="dash-fire-label" style="color:#70736E;font-size:15px;">Set a Target Lifestyle Income to see your FIRE progress</div>
           <div class="dash-fire-sub">Current net worth: <strong>${fmtDollar(currentNW)}</strong></div>
         </div>
         <button class="btn primary" style="white-space:nowrap;" onclick="openInputsDrawer()">Edit Inputs</button>
@@ -13405,7 +13409,7 @@ function _dashStats(){
       set('dashFireGap', fmtDollar(gap), `of ${fmtDollar(fireNumber)} FIRE number (today's $)`, '#5A625D');
     }
   } else {
-    set('dashFireGap', '—', 'Set a Target Lifestyle Income', '#A8A4A0');
+    set('dashFireGap', '—', 'Set a Target Lifestyle Income', '#70736E');
   }
 
   // This month net
@@ -13413,7 +13417,7 @@ function _dashStats(){
   const thisNet = thisSeries?.net_actual ?? thisSeries?.net_planned ?? null;
   const modelMoTarget = fireModelTargetMonthly();
   let tmStr = thisNet!=null ? (thisNet>=0?'+':'')+fmtDollar(thisNet) : '—';
-  let tmSub = '', tmColor = '#A8A4A0';
+  let tmSub = '', tmColor = '#70736E';
   if(thisNet!=null && modelMoTarget>0){
     tmSub = `Target ${fmtDollar(modelMoTarget)}/mo`;
     tmColor = thisNet >= modelMoTarget ? '#059669' : '#F59E0B';
@@ -13620,7 +13624,7 @@ function renderScenCompareBar() {
   const list = _scenLoad();
   if (!list.length || !state.lastResult) { bar.style.display = 'none'; return; }
   bar.style.display = '';
-  bar.innerHTML = `<span style="font-size:11px;color:#828A85;white-space:nowrap;">Compare:</span>` +
+  bar.innerHTML = `<span style="font-size:11px;color:#6A716B;white-space:nowrap;">Compare:</span>` +
     list.map(s => {
       const pinned = _pinnedScenarios.has(s.id);
       const color  = s.color || '#888';
@@ -13797,7 +13801,7 @@ function renderScenarios(){
       <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;color:#151816;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(s.label)}">${escapeHtml(s.label)}</div>
-        <div style="font-size:11px;color:#828A85;">${s.date} · FIRE ${fireAge || '—'}${fireDiff}${isBest?' 🏆':''}</div>
+        <div style="font-size:11px;color:#6A716B;">${s.date} · FIRE ${fireAge || '—'}${fireDiff}${isBest?' 🏆':''}</div>
       </div>
       <button class="btn ghost" style="padding:3px 10px;font-size:12px;white-space:nowrap;" onclick="loadScenario('${s.id}');toggleScenarioDropdown(false);">Load</button>
       <button style="background:none;border:none;color:#C4B5B0;cursor:pointer;font-size:14px;padding:0 2px;" onclick="deleteScenario('${s.id}')" title="Delete">✕</button>
