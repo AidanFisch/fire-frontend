@@ -3611,6 +3611,30 @@ select.exp-input { cursor:pointer; }
   #chartFullscreenBtn { display: inline-flex; align-items: center; }
   @media (min-width: 641px) { #chartFullscreenBtn { display: none; } }
 
+  /* ── Chart loading skeleton (shown while the model runs) ── */
+  #chartSkeleton[hidden] { display: none; }
+  #chartSkeleton {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: #FFFFFF;
+  }
+  #chartSkeleton .cs-bars { display: flex; align-items: flex-end; gap: 10px; height: 46%; }
+  #chartSkeleton .cs-bars span {
+    width: 26px; border-radius: 6px 6px 0 0;
+    background: linear-gradient(90deg, #EEF0EE 25%, #E3E7E3 37%, #EEF0EE 63%);
+    background-size: 400% 100%;
+    animation: csShimmer 1.4s ease infinite;
+  }
+  #chartSkeleton .cs-bars span:nth-child(1){ height:38%; } #chartSkeleton .cs-bars span:nth-child(2){ height:52%; }
+  #chartSkeleton .cs-bars span:nth-child(3){ height:46%; } #chartSkeleton .cs-bars span:nth-child(4){ height:66%; }
+  #chartSkeleton .cs-bars span:nth-child(5){ height:74%; } #chartSkeleton .cs-bars span:nth-child(6){ height:88%; }
+  #chartSkeleton .cs-bars span:nth-child(7){ height:100%; }
+  #chartSkeleton .cs-note { font-size: 13px; color: #5A625D; font-weight: 500; }
+  @keyframes csShimmer { 0%{ background-position: 100% 0; } 100%{ background-position: 0 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    #chartSkeleton .cs-bars span { animation: none; }
+  }
+
   /* ── Professional polish: consistent focus, empty states, type scale ── */
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
     outline: 2px solid #059669 !important; outline-offset: 2px !important;
@@ -4572,7 +4596,15 @@ select.exp-input { cursor:pointer; }
       <button id="chartOpenMobile" onclick="openChartFullscreen()">
         <span style="font-size:17px;">⛶</span> View Model Graph Full Screen
       </button>
-      <div id="chartCanvasHost"><canvas id="chartMain" style="margin-bottom:14px;"></canvas></div>
+      <div id="chartCanvasHost" style="position:relative;">
+        <canvas id="chartMain" style="margin-bottom:14px;"></canvas>
+        <div id="chartSkeleton" hidden aria-live="polite">
+          <div class="cs-bars">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="cs-note" id="chartSkeletonNote">Modelling your projection…</div>
+        </div>
+      </div>
 
       <div class="stock-override-panel">
         <label class="prop-toggle stock-override-toggle">
@@ -8069,6 +8101,7 @@ async function runModel(){
 
   const runBtn = document.getElementById("btnRunModelBar") || document.getElementById("btnRunModelHeader");
   if(runBtn){ runBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3z" opacity=".3"/><path d="M8 1a7 7 0 017 7h-2a5 5 0 00-5-5V1z"/></svg> Running…'; runBtn.disabled = true; }
+  _showChartSkeleton();
 
   // Inputs changed — projections cache is stale
   invalidateFireProjections();
@@ -8138,6 +8171,7 @@ async function runModel(){
     document.getElementById("rawOut").textContent = String(lastErr || "Unknown error");
     document.getElementById("resultsMeta").textContent = "Run failed. See raw output.";
     if(runBtn){ runBtn.textContent = "Run Model"; runBtn.disabled = false; }
+    _hideChartSkeleton();
     showTab("results");
     return;
   }
@@ -8288,7 +8322,28 @@ let chart = null;
 let lastMetricsRegistry = [];
 let _chartFullscreen = false;   // mobile landscape full-screen chart overlay
 
+/* Chart loading skeleton — shown while a run is in flight. After ~7s (a
+   likely Render cold-start) the note explains the one-off wait. */
+let _chartSkeletonTimer = null;
+function _showChartSkeleton(){
+  const el = document.getElementById('chartSkeleton');
+  const note = document.getElementById('chartSkeletonNote');
+  if(!el) return;
+  if(note) note.textContent = 'Modelling your projection…';
+  el.hidden = false;
+  clearTimeout(_chartSkeletonTimer);
+  _chartSkeletonTimer = setTimeout(() => {
+    if(note && !el.hidden) note.textContent = 'Waking the modelling engine — first run can take ~30s…';
+  }, 7000);
+}
+function _hideChartSkeleton(){
+  clearTimeout(_chartSkeletonTimer);
+  const el = document.getElementById('chartSkeleton');
+  if(el) el.hidden = true;
+}
+
 function renderResults(result){
+  _hideChartSkeleton();
   document.getElementById("rawOut").textContent = JSON.stringify(result, null, 2);
 
   const rows = result.rows || [];
