@@ -3389,7 +3389,6 @@ select.exp-input { cursor:pointer; }
     .topbar { padding: 10px 14px !important; }
     .brand-lockup-svg { width: 132px; height: 25px; }
     /* Header Run Model is redundant — the Model tab's action bar has it */
-    #btnRunModelHeader { display: none !important; }
     /* Action bar can swipe sideways if it ever runs tight */
     #modelActionsBar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -3773,7 +3772,6 @@ select.exp-input { cursor:pointer; }
         <button id="btnPropertiesNav" onclick="showPropertiesTab()">Properties</button>
         <button id="btnResults"       onclick="showTab('results')">Model</button>
       </div>
-      <button id="btnRunModelHeader" class="btn primary" style="display:none; white-space:nowrap;" onclick="showTab('results');runModel()">Run Model</button><!-- legacy; bar btn is canonical -->
       <div class="header-actions">
         <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
         <button class="btn btn-auth" id="btnSignIn" onclick="openAuthModal()">Sign in</button>
@@ -6341,8 +6339,6 @@ function _refreshAfterStockOverrideChange(){
 function enterApp(){
   _appEntered = true;
   document.body.classList.remove("landing");
-  const hdr = document.getElementById('btnRunModelHeader');
-  if (hdr) hdr.style.display = '';
   showDashboard();
 }
 
@@ -8104,7 +8100,7 @@ function _checkModelRunLimit(){
 async function runModel(){
   if (!_checkModelRunLimit()) return;
 
-  const runBtn = document.getElementById("btnRunModelBar") || document.getElementById("btnRunModelHeader");
+  const runBtn = document.getElementById("btnRunModelBar");
   if(runBtn){ runBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3z" opacity=".3"/><path d="M8 1a7 7 0 017 7h-2a5 5 0 00-5-5V1z"/></svg> Running…'; runBtn.disabled = true; }
   _showChartSkeleton();
 
