@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  fire_pace: {
+    title: 'Wealth built vs FIRE pace',
+    body: 'The blue line — your FIRE pace — is the surplus your plan needs you to build each month: your income minus tax minus living costs (from Edit Inputs). It\'s the money that should be growing your wealth. The bars are what you actually built, from your logged Budget months. Crucially, this is NOT just cash saved: money you route into shares, extra super, or an "Extra Mortgage / Offset" line counts as wealth built, not spending — so investing keeps you on pace. Green = on pace, amber = over halfway, red = under half (or negative). Note: paying down your mortgage principal also builds equity, which the model already counts in your net worth; log the extra-repayment portion under Financial → Extra Mortgage / Offset if you want it to count here too.'
+  },
   savings_rate: {
     title: 'Savings Rate',
     body: 'Net savings divided by after-tax income — the single most powerful FIRE lever, because it sets both how fast you invest AND how little you need to live on. The years-to-FIRE estimates shown assume a 5% real (after-inflation) return, the 4% rule (needing 25× annual spending), and starting from zero. On those assumptions: 20% ≈ 37 yrs, 30% ≈ 28 yrs, 50% ≈ 17 yrs, 70% ≈ 9 yrs — independent of how much you earn. Your full model refines this with your actual balances, property, super and tax.'
@@ -4850,6 +4854,7 @@ const DEFAULT_BUDGET_CATS = [
 
   { group:'Financial',     key:'fin_invest',   label:'Investment Contributions' },
   { group:'Financial',     key:'fin_super',    label:'Extra Super Contributions' },
+  { group:'Financial',     key:'fin_mortgage', label:'Extra Mortgage / Offset' },
   { group:'Financial',     key:'fin_debt',     label:'Other Debt Repayments' },
 
   { group:'Other',         key:'oth_misc',     label:'Miscellaneous' },
@@ -5469,6 +5474,33 @@ function fireModelTargetMonthly(){
   const taxBreakdown = calcTax(grossAnnual, TAX_SETTINGS);
   const target = (grossAnnual - taxBreakdown.totalTax - expensesAnnual) / 12;
   return Math.max(0, target);
+}
+
+/* Expense sub-categories that AREN'T consumption — they move money into
+   wealth (shares, super, home equity). For FIRE tracking these count toward
+   progress, not against it, so we don't subtract them as "spending". */
+const WEALTH_BUILDING_CATS = new Set([
+  'Investment Contributions', 'Extra Super Contributions', 'Extra Mortgage / Offset'
+]);
+
+/** Money that built wealth in a saved budget month =
+ *  actual income − consumption expenses (i.e. all expenses EXCEPT the
+ *  wealth-building categories, which are savings routed into assets).
+ *  Returns null when the month has no actuals logged. */
+function _monthWealthBuilt(rec){
+  if(!rec) return null;
+  const inc = rec.income_actual ?? null;
+  const exps = rec.expenses || [];
+  const hasActual = inc != null || exps.some(e => e.actual != null);
+  if(!hasActual) return null;
+  const income = inc ?? rec.income_planned ?? 0;
+  let consumption = 0;
+  exps.forEach(e => {
+    const { subcategory } = parseCategoryDescription(e.category || '');
+    if(WEALTH_BUILDING_CATS.has(subcategory)) return;   // routed to assets, not spent
+    consumption += (e.actual ?? e.planned ?? 0);
+  });
+  return Math.round((income - consumption) * 100) / 100;
 }
 
 /**
@@ -6125,7 +6157,19 @@ function updateBudgetSummary(){
   // return), and what slice of the remaining gap this month closes.
   const tgtEl = document.getElementById('bsiNetTarget');
   if (tgtEl){
-    const liveNet = (hasIncA || hasExpA) ? netA : netP;
+    const rawNet = (hasIncA || hasExpA) ? netA : netP;
+    // Money routed into shares/super/extra-mortgage isn't spending — add it
+    // back so the FIRE pace reflects wealth built, not just cash left over.
+    let wealthAddBack = 0;
+    document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
+      const sub = row.querySelector('.exp-subcat')?.value?.trim();
+      if(!WEALTH_BUILDING_CATS.has(sub)) return;
+      const freqMult = FREQ_TO_MONTHLY[row.querySelector('.exp-freq')?.value] ?? 1;
+      const raw = (hasExpA ? row.querySelector('.exp-actual')?.value : '') || row.querySelector('.exp-budget')?.value || '';
+      const v = parseFloat(String(raw).replace(/[,$]/g,'')) || 0;
+      wealthAddBack += v * freqMult;
+    });
+    const liveNet = rawNet == null ? null : rawNet + wealthAddBack;
     const fireN = _dashFireNumber();
     const nw = _dashCurrentNW();
     tgtEl.style.color = '#059669';
@@ -7954,7 +7998,10 @@ function _dashBudgetChart_render(){
   if(!wrap.querySelector('#dashBudgetCanvas')) wrap.innerHTML='<canvas id="dashBudgetCanvas" style="max-height:200px;"></canvas>';
   const ctx = wrap.querySelector('#dashBudgetCanvas').getContext('2d');
   const labels = series.map(m=>{ const [y,mo]=m.month.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short'}); });
-  const actuals = series.map(m=>m.net_actual);
+  // Wealth built = income − consumption; money routed into shares/super/extra
+  // mortgage counts toward FIRE, not as spending (see _monthWealthBuilt).
+  const budStore = _budgLoad();
+  const actuals = series.map(m => _monthWealthBuilt(budStore.months[m.month]));
   const target = fireModelTargetMonthly() || null;
   const targets = series.map(()=>target);
 
@@ -7976,7 +8023,7 @@ function _dashBudgetChart_render(){
     data:{
       labels,
       datasets:[
-        { label:'Actual net savings', data:actuals,
+        { label:'Wealth built', data:actuals,
           backgroundColor: actuals.map(barColorFor),
           borderRadius:3, borderSkipped:false },
         ...(target ? [{ label:'Target', data:targets, type:'line',
