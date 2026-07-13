@@ -2182,7 +2182,7 @@ const INFO_TIPS = {
   },
   fire_pace: {
     title: 'Wealth built vs FIRE pace',
-    body: 'The blue line — your FIRE pace — is the surplus your plan needs you to build each month: your income minus tax minus living costs (from Edit Inputs). It\'s the money that should be growing your wealth. The bars are what you actually built, from your logged Budget months. Crucially, this is NOT just cash saved: money you route into shares, extra super, or an "Extra Mortgage / Offset" line counts as wealth built, not spending — so investing keeps you on pace. Green = on pace, amber = over halfway, red = under half (or negative). Note: paying down your mortgage principal also builds equity, which the model already counts in your net worth; log the extra-repayment portion under Financial → Extra Mortgage / Offset if you want it to count here too.'
+    body: 'The dashed line — your FIRE pace — is the total you need to put toward wealth each month to stay on plan: income minus tax minus living costs, PLUS your employer super. Each bar is what you actually built in a logged Budget month, stacked into three kinds of progress because they aren\'t interchangeable: Invested / saved (green) is spendable — leftover cash plus share contributions; Super (indigo) is your 12% employer contribution plus any extra, locked until preservation age; Home equity (amber) is the principal you paid down on your mortgage plus any extra repayments/offset. All three count toward FIRE on a total-net-worth basis, so a month heavy on mortgage principal or super is NOT "behind" — the stack shows exactly where your progress went. Reach the line and you\'re on track. Mortgage principal is worked out automatically from your home loan in the model; add your home under Properties for it to appear.'
   },
   savings_rate: {
     title: 'Savings Rate',
@@ -5472,7 +5472,10 @@ function fireModelTargetMonthly(){
   const expensesAnnual = Number(state.inputs.current_expenses || 0);
   if(!grossAnnual) return 0;
   const taxBreakdown = calcTax(grossAnnual, TAX_SETTINGS);
-  const target = (grossAnnual - taxBreakdown.totalTax - expensesAnnual) / 12;
+  // Take-home surplus the plan needs each month, PLUS employer super — which is
+  // automatic FIRE progress the bars also count, so both sides include it.
+  const target = (grossAnnual - taxBreakdown.totalTax - expensesAnnual) / 12
+               + _employerSuperMonthly();
   return Math.max(0, target);
 }
 
@@ -5501,6 +5504,69 @@ function _monthWealthBuilt(rec){
     consumption += (e.actual ?? e.planned ?? 0);
   });
   return Math.round((income - consumption) * 100) / 100;
+}
+
+/** Employer super guarantee (SG) per month — real FIRE progress that never
+ *  appears in take-home pay, so it must be added to both the bars and the
+ *  target for an apples-to-apples comparison. */
+function _employerSuperMonthly(){
+  const gross = Number(state.inputs.current_income || 0);
+  let rate = (TAX_SETTINGS && TAX_SETTINGS.superRate) || 0.12;
+  if(rate > 1) rate = rate / 100;   // stored as a percentage (e.g. 12), not a decimal
+  return gross > 0 ? (gross * rate) / 12 : 0;
+}
+
+/** Monthly principal paid down on the home loan (PPOR) at the current balance —
+ *  this builds equity, so it's wealth, not spending. Interest is the true cost.
+ *  Returns 0 when there's no owner-occupied loan in the model. */
+function _pporMonthlyPrincipal(){
+  const props = (state.property_list || []).filter(p => propertyOwnedNow(p) && _isPporNow(p));
+  let principal = 0;
+  const now = new Date();
+  props.forEach(p => {
+    const bal = Number(p.loan_balance_current ?? p.original_loan ?? 0);
+    if(bal <= 0) return;
+    const r = (Number(p.interest_rate) || 0) / 12;
+    const termM = (Number(p.loan_term_years) || 30) * 12;
+    const yb = Number(p.year_bought) || now.getFullYear();
+    const elapsed = Math.max(0, (now.getFullYear() - yb) * 12 + now.getMonth());
+    const n = Math.max(termM - elapsed, 12);          // remaining months
+    const pmt = r > 0 ? bal * r / (1 - Math.pow(1 + r, -n)) : bal / n;
+    principal += Math.max(0, pmt - bal * r);          // payment − interest = principal
+  });
+  return Math.round(principal * 100) / 100;
+}
+
+/** Break a saved budget month's wealth-building into three FIRE-progress
+ *  buckets that don't mix non-fungible dollars:
+ *   • liquid  = take-home not consumed + share contributions (spendable)
+ *   • superA  = employer SG + extra super (locked till preservation age)
+ *   • equity  = home-loan principal + extra mortgage/offset (illiquid)
+ *  Returns null when the month has no actuals. */
+function _monthWealthSegments(rec){
+  if(!rec) return null;
+  const inc = rec.income_actual ?? null;
+  const exps = rec.expenses || [];
+  const hasActual = inc != null || exps.some(e => e.actual != null);
+  if(!hasActual) return null;
+  const income = inc ?? rec.income_planned ?? 0;
+  let allExp = 0, invContrib = 0, extraSuper = 0, extraMortgage = 0, mortgagePay = 0;
+  exps.forEach(e => {
+    const amt = (e.actual ?? e.planned ?? 0) || 0;
+    const { subcategory } = parseCategoryDescription(e.category || '');
+    allExp += amt;
+    if(subcategory === 'Investment Contributions')     invContrib    += amt;
+    else if(subcategory === 'Extra Super Contributions') extraSuper   += amt;
+    else if(subcategory === 'Extra Mortgage / Offset')   extraMortgage += amt;
+    else if(subcategory === 'Rent / Mortgage')           mortgagePay  += amt;
+  });
+  const principal = Math.min(_pporMonthlyPrincipal(), mortgagePay); // principal inside the mortgage payment
+  const liquid = (income - allExp) + invContrib;                    // leftover cash + shares
+  const superA = _employerSuperMonthly() + extraSuper;
+  const equity = principal + extraMortgage;
+  const r2 = v => Math.round(v * 100) / 100;
+  return { liquid: r2(liquid), super: r2(superA), equity: r2(equity),
+           total: r2(liquid + superA + equity) };
 }
 
 /**
@@ -6160,16 +6226,20 @@ function updateBudgetSummary(){
     const rawNet = (hasIncA || hasExpA) ? netA : netP;
     // Money routed into shares/super/extra-mortgage isn't spending — add it
     // back so the FIRE pace reflects wealth built, not just cash left over.
-    let wealthAddBack = 0;
+    // Also add employer super (never in take-home) and home-loan principal
+    // (the equity slice of the mortgage), matching the stacked Overview chart.
+    let wealthAddBack = 0, mortgagePay = 0;
     document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
       const sub = row.querySelector('.exp-subcat')?.value?.trim();
-      if(!WEALTH_BUILDING_CATS.has(sub)) return;
       const freqMult = FREQ_TO_MONTHLY[row.querySelector('.exp-freq')?.value] ?? 1;
       const raw = (hasExpA ? row.querySelector('.exp-actual')?.value : '') || row.querySelector('.exp-budget')?.value || '';
-      const v = parseFloat(String(raw).replace(/[,$]/g,'')) || 0;
-      wealthAddBack += v * freqMult;
+      const v = (parseFloat(String(raw).replace(/[,$]/g,'')) || 0) * freqMult;
+      if(WEALTH_BUILDING_CATS.has(sub)) wealthAddBack += v;
+      else if(sub === 'Rent / Mortgage') mortgagePay += v;
     });
-    const liveNet = rawNet == null ? null : rawNet + wealthAddBack;
+    const principalAdd = Math.min(_pporMonthlyPrincipal(), mortgagePay);
+    const liveNet = rawNet == null ? null
+                  : rawNet + wealthAddBack + _employerSuperMonthly() + principalAdd;
     const fireN = _dashFireNumber();
     const nw = _dashCurrentNW();
     tgtEl.style.color = '#059669';
@@ -7998,24 +8068,18 @@ function _dashBudgetChart_render(){
   if(!wrap.querySelector('#dashBudgetCanvas')) wrap.innerHTML='<canvas id="dashBudgetCanvas" style="max-height:200px;"></canvas>';
   const ctx = wrap.querySelector('#dashBudgetCanvas').getContext('2d');
   const labels = series.map(m=>{ const [y,mo]=m.month.split('-'); return new Date(y,mo-1).toLocaleString('default',{month:'short'}); });
-  // Wealth built = income − consumption; money routed into shares/super/extra
-  // mortgage counts toward FIRE, not as spending (see _monthWealthBuilt).
+  // Wealth built, split into 3 non-fungible FIRE buckets (see _monthWealthSegments):
+  // liquid (spendable) + super (locked) + home equity (illiquid). All count
+  // toward FIRE on a total-net-worth basis; stacking keeps them visible.
   const budStore = _budgLoad();
-  const actuals = series.map(m => _monthWealthBuilt(budStore.months[m.month]));
+  const segs   = series.map(m => _monthWealthSegments(budStore.months[m.month]));
+  const liquid = segs.map(s => s ? s.liquid : null);
+  const superA = segs.map(s => s ? s.super  : null);
+  const equity = segs.map(s => s ? s.equity : null);
   const target = fireModelTargetMonthly() || null;
   const targets = series.map(()=>target);
 
-  // Traffic-light bars: green = on target, orange = below but over half,
-  // red = under half the target (or negative). No target: green/red by sign.
-  const barColorFor = v => {
-    if (v == null) return 'transparent';
-    if (target && target > 0){
-      if (v >= target)       return '#059669';
-      if (v >= target * 0.5) return '#F59E0B';
-      return '#DC2626';
-    }
-    return v >= 0 ? '#059669' : '#DC2626';
-  };
+  const C = { liquid:'#059669', super:'#6366F1', equity:'#F59E0B', target:'#151816' };
 
   if(_dashBudgetChart){ _dashBudgetChart.destroy(); _dashBudgetChart=null; }
   _dashBudgetChart = new Chart(ctx, {
@@ -8023,11 +8087,11 @@ function _dashBudgetChart_render(){
     data:{
       labels,
       datasets:[
-        { label:'Wealth built', data:actuals,
-          backgroundColor: actuals.map(barColorFor),
-          borderRadius:3, borderSkipped:false },
+        { label:'Invested / saved', data:liquid, backgroundColor:C.liquid, stack:'wealth', borderRadius:{topLeft:0,topRight:0}, borderSkipped:false },
+        { label:'Super',            data:superA, backgroundColor:C.super,  stack:'wealth', borderSkipped:false },
+        { label:'Home equity',      data:equity, backgroundColor:C.equity, stack:'wealth', borderRadius:{topLeft:3,topRight:3}, borderSkipped:false },
         ...(target ? [{ label:'Target', data:targets, type:'line',
-          borderColor:'#3B82F6', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }] : [])
+          borderColor:C.target, borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false, tension:0 }] : [])
       ]
     },
     options:{
@@ -8035,22 +8099,22 @@ function _dashBudgetChart_render(){
       plugins:{
         legend:{
           position:'top',
-          onClick: () => {},   // status-key entries, nothing to toggle
-          labels:{
-            boxWidth:12, font:{size:11}, usePointStyle:true,
-            generateLabels: () => [
-              ...(target ? [{ text:'Target', fontColor:'#3E4A3F', fillStyle:'#3B82F6', strokeStyle:'#3B82F6', pointStyle:'line', lineDash:[5,4], lineWidth:2 }] : []),
-              { text:'On target',             fontColor:'#3E4A3F', fillStyle:'#059669', strokeStyle:'#059669', pointStyle:'rectRounded', lineWidth:0 },
-              { text:'Below target',          fontColor:'#3E4A3F', fillStyle:'#F59E0B', strokeStyle:'#F59E0B', pointStyle:'rectRounded', lineWidth:0 },
-              { text:'Under half / negative', fontColor:'#3E4A3F', fillStyle:'#DC2626', strokeStyle:'#DC2626', pointStyle:'rectRounded', lineWidth:0 },
-            ]
-          }
+          labels:{ boxWidth:12, font:{size:11}, usePointStyle:true }
         },
-        tooltip:{ callbacks:{ label: c=>c.dataset.label+': '+fmtDollar(c.parsed.y) } }
+        tooltip:{
+          callbacks:{
+            label: c => c.dataset.label + ': ' + fmtDollar(c.parsed.y),
+            footer: items => {
+              const t = items.filter(i => i.dataset.type !== 'line')
+                             .reduce((a,i)=>a+(i.parsed.y||0), 0);
+              return 'Total wealth built: ' + fmtDollar(t);
+            }
+          }
+        }
       },
       scales:{
-        y:{ ticks:{ callback:v=>'$'+moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:false },
-        x:{ grid:{ display:false } }
+        y:{ stacked:true, ticks:{ callback:v=>'$'+moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:true },
+        x:{ stacked:true, grid:{ display:false } }
       }
     }
   });
