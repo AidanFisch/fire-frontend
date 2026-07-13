@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  mortgage_split: {
+    title: 'Splitting your mortgage',
+    body: 'A mortgage payment is two different things: interest (the true cost of borrowing — money you never get back, like rent) and principal (paying down the loan, which builds equity you own — real progress toward FIRE). Link this row to a property above and we split the payment automatically using that loan\'s rate and balance (payment − interest), updating each month as the balance falls. Prefer to set it yourself? Type the principal and it switches to a manual split; ↺ Back to auto re-links it. Only the principal counts as wealth built; the interest stays a living cost. Not sure or renting? Leave it unlinked and the whole payment is treated as a cost.'
+  },
   fire_pace: {
     title: 'Wealth built vs FIRE pace',
     body: 'The dashed line — your FIRE pace — is the total you need to put toward wealth each month to stay on plan: income minus tax minus living costs, PLUS your employer super. Each bar is what you actually built in a logged Budget month, stacked into three kinds of progress because they aren\'t interchangeable: Invested / saved (green) is spendable — leftover cash plus share contributions; Super (indigo) is your 12% employer contribution plus any extra, locked until preservation age; Home equity (amber) is the principal you paid down on your mortgage plus any extra repayments/offset. All three count toward FIRE on a total-net-worth basis, so a month heavy on mortgage principal or super is NOT "behind" — the stack shows exactly where your progress went. Reach the line and you\'re on track. Mortgage principal is worked out automatically from your home loan in the model; add your home under Properties for it to appear.'
@@ -4813,7 +4817,8 @@ showTab = function(name){
 
 /** Pre-seeded category definitions — group → sub-categories */
 const DEFAULT_BUDGET_CATS = [
-  { group:'Housing',       key:'hous_rent',    label:'Rent / Mortgage' },
+  { group:'Housing',       key:'hous_rent',    label:'Rent' },
+  { group:'Housing',       key:'hous_mort',    label:'Mortgage' },
   { group:'Housing',       key:'hous_util',    label:'Utilities' },
   { group:'Housing',       key:'hous_ins',     label:'Home Insurance' },
   { group:'Housing',       key:'hous_maint',   label:'Maintenance & Repairs' },
@@ -5347,7 +5352,13 @@ async function doAutosave(){
   document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
     const subcat    = row.querySelector('.exp-subcat').value.trim();
     if(!subcat) return;
-    const desc      = row.querySelector('.exp-desc')?.value.trim() || '';
+    const isMort    = subcat === 'Mortgage';
+    // Mortgage rows use a property dropdown as their "description"; store the
+    // linked property's name so the saved label reads e.g. "Mortgage (PPOR)".
+    const propSel   = isMort ? row.querySelector('.exp-mort-prop') : null;
+    const desc      = isMort
+      ? (propSel && propSel.value ? (_propertyById(propSel.value)?.name || '') : '')
+      : (row.querySelector('.exp-desc')?.value.trim() || '');
     const cat       = desc ? `${subcat} (${desc})` : subcat;
     const budgetRaw = row.querySelector('.exp-budget').value.trim();
     const actualRaw = row.querySelector('.exp-actual').value.trim();
@@ -5355,8 +5366,15 @@ async function doAutosave(){
     const mult      = FREQ_TO_MONTHLY[freq] ?? 1;
     const planned   = budgetRaw !== '' ? Math.round(parseFloat(budgetRaw) * mult * 100) / 100 : 0;
     const actual    = actualRaw !== '' ? Math.round(parseFloat(actualRaw) * mult * 100) / 100 : null;
-    if(planned > 0 || actual != null)
-      expenses.push({ category: cat, planned, actual });
+    if(planned > 0 || actual != null){
+      const e = { category: cat, planned, actual };
+      if(isMort){
+        const pay = actual != null ? actual : planned;   // monthly total for this month
+        e.property_id = propSel && propSel.value ? propSel.value : null;
+        e.principal   = Math.round(Math.min(_mortgageRowPrincipalMonthly(row), pay || Infinity) * 100) / 100 || 0;
+      }
+      expenses.push(e);
+    }
   });
 
   // Warn if two rows resolve to the same category name (they'll be merged server-side)
@@ -5516,25 +5534,43 @@ function _employerSuperMonthly(){
   return gross > 0 ? (gross * rate) / 12 : 0;
 }
 
-/** Monthly principal paid down on the home loan (PPOR) at the current balance —
- *  this builds equity, so it's wealth, not spending. Interest is the true cost.
- *  Returns 0 when there's no owner-occupied loan in the model. */
-function _pporMonthlyPrincipal(){
-  const props = (state.property_list || []).filter(p => propertyOwnedNow(p) && _isPporNow(p));
-  let principal = 0;
+/** Monthly principal being paid down on one property's loan at its current
+ *  balance (payment − interest). This builds equity, so it's wealth, not a cost;
+ *  the interest is the true living cost. Returns 0 for a property with no loan. */
+function _loanMonthlyPrincipal(p){
+  if(!p) return 0;
+  const bal = Number(p.loan_balance_current ?? p.original_loan ?? 0);
+  if(bal <= 0) return 0;
+  const r = (Number(p.interest_rate) || 0) / 12;
+  const termM = (Number(p.loan_term_years) || 30) * 12;
   const now = new Date();
-  props.forEach(p => {
-    const bal = Number(p.loan_balance_current ?? p.original_loan ?? 0);
-    if(bal <= 0) return;
-    const r = (Number(p.interest_rate) || 0) / 12;
-    const termM = (Number(p.loan_term_years) || 30) * 12;
-    const yb = Number(p.year_bought) || now.getFullYear();
-    const elapsed = Math.max(0, (now.getFullYear() - yb) * 12 + now.getMonth());
-    const n = Math.max(termM - elapsed, 12);          // remaining months
-    const pmt = r > 0 ? bal * r / (1 - Math.pow(1 + r, -n)) : bal / n;
-    principal += Math.max(0, pmt - bal * r);          // payment − interest = principal
-  });
-  return Math.round(principal * 100) / 100;
+  const yb = Number(p.year_bought) || now.getFullYear();
+  const elapsed = Math.max(0, (now.getFullYear() - yb) * 12 + now.getMonth());
+  const n = Math.max(termM - elapsed, 12);            // remaining months
+  const pmt = r > 0 ? bal * r / (1 - Math.pow(1 + r, -n)) : bal / n;
+  return Math.round(Math.max(0, pmt - bal * r) * 100) / 100;
+}
+
+/** Look up a property in the model by id. */
+function _propertyById(id){
+  if(id == null || id === '') return null;
+  return (state.property_list || []).find(p => String(p.id) === String(id)) || null;
+}
+
+/** Aggregate monthly principal across owner-occupied loans (fallback used when a
+ *  mortgage row isn't linked to a specific property). */
+function _pporMonthlyPrincipal(){
+  return (state.property_list || [])
+    .filter(p => propertyOwnedNow(p) && _isPporNow(p))
+    .reduce((sum, p) => sum + _loanMonthlyPrincipal(p), 0);
+}
+
+/** <option> list of properties for a mortgage row's link dropdown. */
+function _propertyOptionsHtml(selId){
+  const opts = (state.property_list || [])
+    .map(p => `<option value="${p.id}"${String(p.id)===String(selId)?' selected':''}>${escapeHtml(p.name||('Property '+p.id))}</option>`)
+    .join('');
+  return `<option value=""${!selId?' selected':''}>Not linked (all cost)</option>${opts}`;
 }
 
 /** Break a saved budget month's wealth-building into three FIRE-progress
@@ -5550,7 +5586,7 @@ function _monthWealthSegments(rec){
   const hasActual = inc != null || exps.some(e => e.actual != null);
   if(!hasActual) return null;
   const income = inc ?? rec.income_planned ?? 0;
-  let allExp = 0, invContrib = 0, extraSuper = 0, extraMortgage = 0, mortgagePay = 0;
+  let allExp = 0, invContrib = 0, extraSuper = 0, extraMortgage = 0, mortgagePrincipal = 0;
   exps.forEach(e => {
     const amt = (e.actual ?? e.planned ?? 0) || 0;
     const { subcategory } = parseCategoryDescription(e.category || '');
@@ -5558,9 +5594,15 @@ function _monthWealthSegments(rec){
     if(subcategory === 'Investment Contributions')     invContrib    += amt;
     else if(subcategory === 'Extra Super Contributions') extraSuper   += amt;
     else if(subcategory === 'Extra Mortgage / Offset')   extraMortgage += amt;
-    else if(subcategory === 'Rent / Mortgage')           mortgagePay  += amt;
+    else if(subcategory === 'Mortgage'){
+      // Equity = principal portion of the payment. Prefer the split stored on
+      // the row; else auto-compute from the linked property; cap at the payment.
+      let princ = (e.principal != null) ? Number(e.principal)
+                : _loanMonthlyPrincipal(_propertyById(e.property_id));
+      mortgagePrincipal += Math.min(Math.max(0, princ), amt);
+    }
   });
-  const principal = Math.min(_pporMonthlyPrincipal(), mortgagePay); // principal inside the mortgage payment
+  const principal = mortgagePrincipal;                              // principal inside mortgage payments
   const liquid = (income - allExp) + invContrib;                    // leftover cash + shares
   const superA = _employerSuperMonthly() + extraSuper;
   const equity = principal + extraMortgage;
@@ -6228,16 +6270,15 @@ function updateBudgetSummary(){
     // back so the FIRE pace reflects wealth built, not just cash left over.
     // Also add employer super (never in take-home) and home-loan principal
     // (the equity slice of the mortgage), matching the stacked Overview chart.
-    let wealthAddBack = 0, mortgagePay = 0;
+    let wealthAddBack = 0, principalAdd = 0;
     document.querySelectorAll('#expenseTableBody .expense-row').forEach(row => {
       const sub = row.querySelector('.exp-subcat')?.value?.trim();
       const freqMult = FREQ_TO_MONTHLY[row.querySelector('.exp-freq')?.value] ?? 1;
       const raw = (hasExpA ? row.querySelector('.exp-actual')?.value : '') || row.querySelector('.exp-budget')?.value || '';
       const v = (parseFloat(String(raw).replace(/[,$]/g,'')) || 0) * freqMult;
       if(WEALTH_BUILDING_CATS.has(sub)) wealthAddBack += v;
-      else if(sub === 'Rent / Mortgage') mortgagePay += v;
+      else if(sub === 'Mortgage') principalAdd += Math.min(_mortgageRowPrincipalMonthly(row), v);
     });
-    const principalAdd = Math.min(_pporMonthlyPrincipal(), mortgagePay);
     const liveNet = rawNet == null ? null
                   : rawNet + wealthAddBack + _employerSuperMonthly() + principalAdd;
     const fireN = _dashFireNumber();
@@ -6514,20 +6555,211 @@ function addExpenseRow(data){
     <td><select class="exp-input exp-freq" onchange="expRowChanged(${id})">${freqOpts}</select></td>
     <td><button class="exp-del" onclick="deleteExpenseRow(${id})" title="Remove row">×</button></td>`;
 
+  if(data){
+    if(data.property_id != null && data.property_id !== ''){
+      // Linked to a property → keep auto-splitting so it tracks the balance.
+      tr.dataset.propertyId = data.property_id;
+      tr.dataset.principalMode = 'auto';
+    } else if(data.principal != null){
+      // A stored principal with no property link is a manual override.
+      tr.dataset.principalMonthly = data.principal;
+      tr.dataset.principalMode = 'manual';
+    }
+  }
   tbody.appendChild(tr);
   _applyExpRowColor(tr);
+  _setupMortgageRow(tr);
 }
 
 /** Trigger summary + autosave when any expense field changes */
 function expRowChanged(id){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(row && row.querySelector('.exp-subcat')?.value?.trim() === 'Mortgage') _recalcMortgageRow(row);
   updateBudgetSummary();
   scheduleAutosave();
 }
 
-/** Sub-category changed — re-sort within the group, then normal update */
+/** Sub-category changed — reconfigure mortgage UI, re-sort, then normal update */
 function expSubcatChanged(id){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(row) _setupMortgageRow(row);
   sortExpenseRows();
   expRowChanged(id);
+}
+
+/* ── Mortgage rows: link a property, split interest vs principal ────────────
+   A Mortgage row shows the TOTAL payment only. Its description cell becomes a
+   property dropdown; picking one auto-splits the payment into interest (a
+   living cost) and principal (equity that counts toward FIRE). The ⊕ button
+   opens a popover to view or override the split. State lives on the <tr>:
+     data-property-id, data-principal-monthly, data-principal-mode(auto|manual)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/** Monthly total payment typed on a row (actual if present, else budget). */
+function _rowMonthlyPayment(row){
+  const freqMult = FREQ_TO_MONTHLY[row.querySelector('.exp-freq')?.value] ?? 1;
+  const raw = row.querySelector('.exp-actual')?.value || row.querySelector('.exp-budget')?.value || '';
+  return (parseFloat(String(raw).replace(/[,$]/g,'')) || 0) * freqMult;
+}
+
+/** Monthly principal for a mortgage row: manual override, else auto from the
+ *  linked property's loan. Caller caps this at the actual payment. */
+function _mortgageRowPrincipalMonthly(row){
+  if(!row) return 0;
+  if(row.dataset.principalMode === 'manual') return Number(row.dataset.principalMonthly) || 0;
+  return _loanMonthlyPrincipal(_propertyById(row.querySelector('.exp-mort-prop')?.value));
+}
+
+/** Swap a Mortgage row into property-linked mode (or restore a normal row). */
+function _setupMortgageRow(row){
+  if(!row) return;
+  const id = row.dataset.rowId;
+  const isMort = row.querySelector('.exp-subcat')?.value?.trim() === 'Mortgage';
+  row.classList.toggle('is-mortgage', isMort);
+
+  if(isMort){
+    // description input → property dropdown (once)
+    const descInp = row.querySelector('input.exp-desc');
+    if(descInp){
+      const sel = document.createElement('select');
+      sel.className = 'exp-input exp-mort-prop';
+      sel.title = 'Link a property to auto-split interest vs principal';
+      sel.innerHTML = _propertyOptionsHtml(row.dataset.propertyId || descInp.value || '');
+      sel.setAttribute('onchange', `mortgagePropChanged(${id})`);
+      descInp.replaceWith(sel);
+    }
+    // ⊕ split button in the Actual cell (once)
+    const actCell = row.querySelector('.exp-actual')?.closest('td');
+    if(actCell && !actCell.querySelector('.exp-mort-split')){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'exp-mort-split';
+      btn.textContent = '⊕';
+      btn.title = 'Split into interest and principal';
+      btn.setAttribute('onclick', `openMortgageSplit(${id}, this)`);
+      actCell.querySelector('.dollar-wrap')?.after(btn);
+    }
+    _recalcMortgageRow(row);
+  } else {
+    // restore a plain note input if this row was previously a mortgage
+    const sel = row.querySelector('.exp-mort-prop');
+    if(sel){
+      const inp = document.createElement('input');
+      inp.className = 'exp-input exp-desc';
+      inp.type = 'text';
+      inp.placeholder = 'Note (optional)';
+      inp.setAttribute('oninput', `expRowChanged(${id})`);
+      sel.replaceWith(inp);
+    }
+    row.querySelector('.exp-mort-split')?.remove();
+    delete row.dataset.propertyId; delete row.dataset.principalMonthly; delete row.dataset.principalMode;
+  }
+}
+
+/** Property link changed — reset to auto split and recompute. */
+function mortgagePropChanged(id){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(!row) return;
+  row.dataset.propertyId = row.querySelector('.exp-mort-prop')?.value || '';
+  row.dataset.principalMode = 'auto';          // relinking re-enables auto-split
+  delete row.dataset.principalMonthly;
+  _recalcMortgageRow(row);
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+
+/** Recompute the row's stored monthly principal (auto mode) + refresh any open
+ *  popover and the ⊕ button's on/off look. */
+function _recalcMortgageRow(row){
+  const pay = _rowMonthlyPayment(row);
+  if(row.dataset.principalMode !== 'manual'){
+    const auto = _loanMonthlyPrincipal(_propertyById(row.querySelector('.exp-mort-prop')?.value));
+    row.dataset.principalMonthly = String(Math.min(auto, pay || auto));
+  }
+  const btn = row.querySelector('.exp-mort-split');
+  if(btn){
+    const hasSplit = (Number(row.dataset.principalMonthly) || 0) > 0;
+    btn.classList.toggle('has-split', hasSplit);
+  }
+  if(_mortSplitOpenRow === row) _renderMortgageSplitPop(row);
+}
+
+let _mortSplitOpenRow = null;
+/** Open/close the interest–principal split popover for a mortgage row. */
+function openMortgageSplit(id, anchor){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(!row) return;
+  if(_mortSplitOpenRow === row){ closeMortgageSplit(); return; }
+  _mortSplitOpenRow = row;
+  let pop = document.getElementById('mortSplitPop');
+  if(!pop){
+    pop = document.createElement('div');
+    pop.id = 'mortSplitPop';
+    pop.className = 'mort-split-pop';
+    document.body.appendChild(pop);
+  }
+  _renderMortgageSplitPop(row);
+  const r = anchor.getBoundingClientRect();
+  pop.style.top  = `${window.scrollY + r.bottom + 6}px`;
+  pop.style.left = `${window.scrollX + Math.min(r.left, window.innerWidth - 280)}px`;
+  pop.style.display = 'block';
+  setTimeout(() => document.addEventListener('mousedown', _mortSplitOutside), 0);
+}
+function _mortSplitOutside(e){
+  const pop = document.getElementById('mortSplitPop');
+  if(pop && !pop.contains(e.target) && !e.target.classList?.contains('exp-mort-split')) closeMortgageSplit();
+}
+function closeMortgageSplit(){
+  const pop = document.getElementById('mortSplitPop');
+  if(pop) pop.style.display = 'none';
+  _mortSplitOpenRow = null;
+  document.removeEventListener('mousedown', _mortSplitOutside);
+}
+function _renderMortgageSplitPop(row){
+  const pop = document.getElementById('mortSplitPop');
+  if(!pop) return;
+  const id   = row.dataset.rowId;
+  const pay  = _rowMonthlyPayment(row);
+  const prop = _propertyById(row.querySelector('.exp-mort-prop')?.value);
+  const principal = Math.min(_mortgageRowPrincipalMonthly(row), pay || Infinity) || 0;
+  const interest  = Math.max(0, pay - principal);
+  const manual = row.dataset.principalMode === 'manual';
+  const srcNote = manual ? 'Manual split'
+    : prop ? `Auto from ${escapeHtml(prop.name || 'property')} (updates as the balance falls)`
+    : 'Link a property above to auto-split, or type the principal below';
+  pop.innerHTML = `
+    <div class="msp-head">Split this mortgage <span class="info-tip" data-tip="mortgage_split">?</span></div>
+    <div class="msp-row"><span>Interest (living cost)</span><b>${fmtDollar(interest)}/mo</b></div>
+    <div class="msp-row"><span>Principal (builds equity)</span>
+      <span class="dollar-wrap msp-inp"><span class="inp-dollar">$</span>
+      <input type="text" inputmode="decimal" value="${principal ? Math.round(principal) : ''}"
+             placeholder="0" oninput="mortgageSplitEdited(${id}, this.value)"></span></div>
+    <div class="msp-note">${srcNote}${pay ? '' : ' · enter the payment amount first'}</div>
+    ${manual ? `<button type="button" class="msp-reset" onclick="mortgageSplitReset(${id})">↺ Back to auto</button>` : ''}`;
+  initInfoTips();
+}
+/** User typed a principal override in the popover. */
+function mortgageSplitEdited(id, val){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(!row) return;
+  const pay = _rowMonthlyPayment(row);
+  let p = parseFloat(String(val).replace(/[,$]/g,''));
+  if(isNaN(p)) p = 0;
+  p = Math.max(0, Math.min(p, pay || p));
+  row.dataset.principalMode = 'manual';
+  row.dataset.principalMonthly = String(p);
+  _recalcMortgageRow(row);
+  updateBudgetSummary();
+  scheduleAutosave();
+}
+function mortgageSplitReset(id){
+  const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
+  if(!row) return;
+  row.dataset.principalMode = 'auto';
+  delete row.dataset.principalMonthly;
+  _recalcMortgageRow(row);
+  updateBudgetSummary();
+  scheduleAutosave();
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -7009,7 +7241,9 @@ function populateLogForm(data, incomeOverride){
         description: description,
         budget:      cat.planned != null ? cat.planned : '',
         actual:      cat.actual  != null ? cat.actual  : '',
-        freq:        'Monthly'   // API always stores monthly amounts
+        freq:        'Monthly',  // API always stores monthly amounts
+        property_id: cat.property_id != null ? cat.property_id : null,
+        principal:   cat.principal   != null ? cat.principal   : null
       });
     });
   }
@@ -8409,7 +8643,7 @@ function fillTestData(){
     if(expBody){ expBody.innerHTML=''; _expRowCounter=0; }
     addIncomeRow({ source:'Salary / Wages', description:'Main job', budget:8500, actual:8200, freq:'Monthly', is_gross:false });
     [
-      { group:'Housing',      subcategory:'Rent / Mortgage',         description:'Apartment', budget:2400, actual:2400 },
+      { group:'Housing',      subcategory:'Rent',                    description:'Apartment', budget:2400, actual:2400 },
       { group:'Food & Drink', subcategory:'Groceries',               description:'',          budget:600,  actual:570  },
       { group:'Transport',    subcategory:'Fuel',                    description:'',          budget:200,  actual:185  },
       { group:'Housing',      subcategory:'Utilities',               description:'',          budget:180,  actual:195  },
@@ -8429,7 +8663,7 @@ function fillTestData(){
     _budgUpsertMonth(m, {
       income_planned: 8500, income_actual: 8200 + jitter(),
       expenses: [
-        {category:'Rent / Mortgage',         planned:2400, actual:2400},
+        {category:'Rent',                    planned:2400, actual:2400},
         {category:'Groceries',               planned:600,  actual:580+jitter()},
         {category:'Fuel',                    planned:200,  actual:190+jitter()},
         {category:'Utilities',               planned:180,  actual:185+jitter()},
