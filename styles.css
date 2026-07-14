@@ -2431,7 +2431,14 @@ select.exp-input { cursor:pointer; }
 .mort-split-pop .msp-dot.prin { background:#059669; }
 .mort-split-pop .msp-field .dollar-wrap { width:104px; padding:4px 8px; border-radius:7px; }
 .mort-split-pop .msp-field .dollar-wrap:focus-within {
-  border-color:#059669; box-shadow:none;   /* no heavy halo inside the popover */
+  border-color:#059669 !important; box-shadow:none !important; background:#fff;   /* thin border is the focus cue, no box */
+}
+/* The global input:focus rule adds a 3px green box-shadow halo and :focus-visible
+   adds a 2px offset outline — together they read as a detached green box around
+   the field. Suppress both here; the green wrap border above indicates focus. */
+.mort-split-pop .msp-field input:focus,
+.mort-split-pop .msp-field input:focus-visible {
+  outline:none !important; outline-offset:0 !important; box-shadow:none !important;
 }
 .mort-split-pop .msp-field input {
   border:none; background:transparent; width:100%; font-size:13px; color:#151816;
