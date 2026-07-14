@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  pnc_depreciation: {
+    title: 'Depreciation (mostly new builds)',
+    body: 'Depreciation is a paper deduction — you claim wear-and-tear on the building and its fittings without spending a cent, so it lifts your negative-gearing tax back while your cash flow is untouched. It\'s biggest on new or near-new builds: roughly $8,000–15,000 a year early on (building at 2.5% p.a. plus fixtures and fittings). Established homes are usually far less — often $2,000–5,000, and close to $0 if built before 1987 or bought second-hand after May 2017, when the rules stopped investors depreciating used fittings. Only the tax saved (depreciation × your marginal rate) reduces your cost, not the full amount. For an exact figure, get a quantity surveyor\'s depreciation schedule.'
+  },
   pnc_offset: {
     title: 'Offset account',
     body: 'Cash sitting in an offset account linked to the loan is netted against your loan balance before interest is charged — $50,000 in offset on a $600,000 loan means you only pay interest on $550,000. Your repayment stays the same, so the interest you save goes straight to extra principal: you pay the loan down faster and build equity quicker. It also cuts your deductible interest slightly (a smaller negative-gearing benefit), but you come out ahead because you save interest at the full rate and only give back tax at your marginal rate. Unlike a redraw, offset money stays yours to withdraw anytime.'
@@ -4859,6 +4863,7 @@ function calcPropertyNetCost(){
   const insurance  = num('pnc_ins');
   const rates      = num('pnc_rates');
   const strata     = num('pnc_strata');
+  const depreciation = num('pnc_depreciation');   // non-cash tax deduction (mostly new builds)
   const salary     = num('pnc_salary');
   const hasPartner = !!el('pnc_partner_toggle')?.checked;
   const partnerSalary = hasPartner ? num('pnc_partner_salary') : 0;
@@ -4884,7 +4889,8 @@ function calcPropertyNetCost(){
   const mgmt  = annualRent * mgmtPct;
   const maint = propValue * maintPct;
   const cashExpenses = mgmt + insurance + maint + rates + strata;   // deductible cash costs
-  const deductible   = yearInterest + cashExpenses;                 // principal is NOT deductible
+  // Deductible for tax adds non-cash depreciation; principal is never deductible.
+  const deductible   = yearInterest + cashExpenses + depreciation;
   const rentalResult = annualRent - deductible;                     // <0 = loss (negative gearing)
 
   // Tax effect: apply the rental result to salary (split 50/50 with a partner).
@@ -4961,6 +4967,10 @@ function calcPropertyNetCost(){
         <span class="pnc-line-lbl">${cashLbl}</span>
         <span class="pnc-line-val">${money(-cashBeforeTax)}</span>
       </div>
+      ${depreciation > 0 ? `<div class="pnc-line noncash">
+        <span class="pnc-line-lbl">Depreciation <em>non-cash — extra tax deduction</em></span>
+        <span class="pnc-line-val">−$${Math.round(depreciation).toLocaleString()}</span>
+      </div>` : ''}
       ${row(taxLbl, taxBenefit, {note:taxNote})}
       <div class="pnc-line total">
         <span class="pnc-line-lbl">Net ${isCost?'cost':'gain'} after tax</span>

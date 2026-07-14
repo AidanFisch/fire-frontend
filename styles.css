@@ -2450,6 +2450,8 @@ select.exp-input { cursor:pointer; }
 .pnc-line:first-of-type { border-top:none; }
 .pnc-line-lbl em { font-style:normal; color:#9CA3AF; font-size:11px; }
 .pnc-line-val { font-variant-numeric:tabular-nums; color:#151816; white-space:nowrap; }
+.pnc-line.noncash { color:#8A8F8B; }
+.pnc-line.noncash .pnc-line-val { color:#8A8F8B; }
 .pnc-line.subtotal { font-weight:600; border-top:1px solid #E5E7EB; margin-top:2px; }
 .pnc-line.total { font-weight:700; font-size:13.5px; border-top:2px solid #D6D9DD; margin-top:2px; padding-top:8px; }
 .pnc-line.total .pnc-line-val { color:#151816; }
