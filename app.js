@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  pnc_offset: {
+    title: 'Offset account',
+    body: 'Cash sitting in an offset account linked to the loan is netted against your loan balance before interest is charged — $50,000 in offset on a $600,000 loan means you only pay interest on $550,000. Your repayment stays the same, so the interest you save goes straight to extra principal: you pay the loan down faster and build equity quicker. It also cuts your deductible interest slightly (a smaller negative-gearing benefit), but you come out ahead because you save interest at the full rate and only give back tax at your marginal rate. Unlike a redraw, offset money stays yours to withdraw anytime.'
+  },
   pnc_costs: {
     title: 'Typical running costs',
     body: 'Rough Australian ranges to start from — adjust to your property. Agent/management: 5–9% of rent (metro ~7%). Maintenance: 0.5–1.5% of the property value a year (older places cost more). Insurance (building + landlord): ~$1,000–2,500. Council rates: ~$1,500–3,000. Strata/body corporate applies to apartments and townhouses only — houses are $0. All of these are tax-deductible against your rental income.'
@@ -4846,6 +4850,7 @@ function calcPropertyNetCost(){
 
   const propValue  = num('pnc_value');
   const loan       = num('pnc_loan');
+  const offset     = Math.min(num('pnc_offset'), loan);   // offset can't exceed the loan
   const rate       = num('pnc_rate') / 100;
   const term       = num('pnc_term') || 30;
   const weeklyRent = num('pnc_rent');
@@ -4859,16 +4864,21 @@ function calcPropertyNetCost(){
   const partnerSalary = hasPartner ? num('pnc_partner_salary') : 0;
   const pw = el('pnc_partner_wrap'); if(pw) pw.hidden = !hasPartner;
 
-  // Year-one interest / principal via a 12-month amortisation walk.
+  // Year-one interest / principal via a 12-month amortisation walk. The offset
+  // reduces the balance interest is charged on, so the same repayment pays down
+  // more principal. Track a no-offset run too, to show the interest saved.
   const r = rate / 12, n = term * 12;
   const monthlyPmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
   let bal = loan, yearInterest = 0, yearPrincipal = 0;
+  let balNo = loan, interestNoOffset = 0;
   for(let i = 0; i < 12 && bal > 0.005; i++){
-    const int = bal * r;
+    const int = Math.max(0, bal - offset) * r;                 // offset lowers charged interest
     const prin = Math.min(monthlyPmt - int, bal);
     yearInterest += int; yearPrincipal += prin; bal -= prin;
+    if(balNo > 0.005){ const it = balNo * r; interestNoOffset += it; balNo -= Math.min(monthlyPmt - it, balNo); }
   }
   const annualRepay = yearInterest + yearPrincipal;
+  const interestSaved = Math.max(0, interestNoOffset - yearInterest);
 
   const annualRent = weeklyRent * 52;
   const mgmt  = annualRent * mgmtPct;
@@ -4903,6 +4913,10 @@ function calcPropertyNetCost(){
   const isCost = netInclPrincipal >= 0;
   const headWord = isCost ? 'costs you' : 'puts in your pocket';
   const headCls  = isCost ? 'cost' : 'gain';
+  // Offset impact: interest saved becomes extra principal (repayment is fixed),
+  // so the win shows up as equity + lower true cost, not lower cash out.
+  const margCombined = calcTax(hasPartner && partnerSalary > salary ? partnerSalary : salary, TAX_SETTINGS).marginalRate + 0.02;
+  const offsetAfterTax = interestSaved * (1 - margCombined);
   // Direction-aware labels: a positively geared property earns a taxable profit
   // (extra tax), a negatively geared one makes a loss (tax back).
   const gearingLoss  = rentalResult < 0;
@@ -4928,10 +4942,15 @@ function calcPropertyNetCost(){
       <div class="pnc-head-sub">out of pocket after tax, including loan principal</div>
     </div>
 
+    ${offset > 0 ? `<div class="pnc-offset-note">
+      <span class="pnc-offset-ico">💰</span>
+      <span>Your <b>${money(offset)}</b> offset saves <b>${money(interestSaved)}/yr</b> in interest — about <b>${money(offsetAfterTax)}</b> after tax. Your repayment doesn't change, so that saving pays down the loan instead: faster equity, lower true cost.</span>
+    </div>` : ''}
+
     <div class="pnc-break">
       <div class="pnc-break-hd">Where it goes — per year</div>
       ${row('Rent received', annualRent)}
-      ${row('Loan interest', -yearInterest)}
+      ${row('Loan interest', -yearInterest, offset>0 ? {note:`offset saves ${money(interestSaved)}/yr`} : {})}
       ${row('Loan principal', -yearPrincipal, {note:'builds your equity'})}
       ${row('Agent / management', -mgmt)}
       ${row('Maintenance', -maint)}
