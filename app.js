@@ -4891,8 +4891,6 @@ function calcPropertyNetCost(){
     ? benefitFor(salary, 0.5) + benefitFor(partnerSalary, 0.5)
     : benefitFor(salary, 1);
 
-  const marginal = calcTax(hasPartner && partnerSalary > salary ? partnerSalary : salary, TAX_SETTINGS).marginalRate;
-
   // Net costs (annual). "Out of pocket" includes principal (a real cash outflow);
   // "true holding cost" excludes it because principal builds your equity.
   const netInclPrincipal = (annualRepay + cashExpenses - annualRent) - taxBenefit;
@@ -4905,6 +4903,14 @@ function calcPropertyNetCost(){
   const isCost = netInclPrincipal >= 0;
   const headWord = isCost ? 'costs you' : 'puts in your pocket';
   const headCls  = isCost ? 'cost' : 'gain';
+  // Direction-aware labels: a positively geared property earns a taxable profit
+  // (extra tax), a negatively geared one makes a loss (tax back).
+  const gearingLoss  = rentalResult < 0;
+  const cashBeforeTax = annualRepay + cashExpenses - annualRent;   // >0 = shortfall
+  const cashLbl = cashBeforeTax >= 0 ? 'Cash shortfall before tax' : 'Cash surplus before tax';
+  const taxLbl  = gearingLoss ? 'Negative-gearing tax back' : 'Tax on rental profit';
+  const taxNote = gearingLoss ? `cuts taxable income by ${money(-rentalResult)}`
+                              : `adds ${money(rentalResult)} to taxable income`;
 
   const row = (label, val, opts={}) => `
     <div class="pnc-line ${opts.cls||''}">
@@ -4933,10 +4939,10 @@ function calcPropertyNetCost(){
       ${row('Council rates', -rates)}
       ${strata>0 ? row('Strata / body corp', -strata) : ''}
       <div class="pnc-line subtotal">
-        <span class="pnc-line-lbl">Cash shortfall before tax</span>
-        <span class="pnc-line-val">${money(-(annualRepay + cashExpenses - annualRent))}</span>
+        <span class="pnc-line-lbl">${cashLbl}</span>
+        <span class="pnc-line-val">${money(-cashBeforeTax)}</span>
       </div>
-      ${row(`Negative-gearing tax back`, taxBenefit, {note:`${Math.round(marginal*100)}% marginal + Medicare`})}
+      ${row(taxLbl, taxBenefit, {note:taxNote})}
       <div class="pnc-line total">
         <span class="pnc-line-lbl">Net ${isCost?'cost':'gain'} after tax</span>
         <span class="pnc-line-val">${money(-netInclPrincipal)}</span>
