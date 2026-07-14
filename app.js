@@ -6818,7 +6818,9 @@ function _renderMortgageSplitPop(){
     ${manual ? `<button type="button" class="msp-reset" onclick="mortgageSplitReset(${id},'${which}')">↺ Back to auto-split</button>` : ''}`;
   initInfoTips();
 }
-/** Either field edited → re-sum to the cell total, store principal, go manual. */
+/** Either field edited → re-sum to the cell total, store principal, go manual.
+ *  Updates happen in place (total text + button state); we deliberately do NOT
+ *  re-render the popover, which would blow away the input the user is typing in. */
 function mortgageSplitEdited(id, which){
   const row = document.querySelector(`#expenseTableBody [data-row-id="${id}"]`);
   const pop = document.getElementById('mortSplitPop');
@@ -6832,7 +6834,8 @@ function mortgageSplitEdited(id, which){
   row.dataset[c.modeKey] = 'manual';
   row.dataset[c.prinKey] = String(Math.round(prinPP * mult * 100) / 100);
   const tv = pop.querySelector('.msp-total-val'); if(tv) tv.textContent = fmtDollar(intPP + prinPP);
-  _recalcMortgageRow(row);
+  const btn = row.querySelector(c.sel)?.closest('td')?.querySelector('.exp-mort-split');
+  if(btn) btn.classList.toggle('has-split', prinPP > 0);
   updateBudgetSummary();
   scheduleAutosave();
 }
