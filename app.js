@@ -4867,11 +4867,34 @@ const DEFAULT_BUDGET_CATS = [
 
 /** Live category list — loaded from localStorage, falls back to defaults */
 let BUDGET_CATS = (function(){
+  let cats = null;
   try {
     const saved = localStorage.getItem('fire_budget_cats_v1');
-    if(saved) return JSON.parse(saved);
+    if(saved) cats = JSON.parse(saved);
   } catch(_){}
-  return DEFAULT_BUDGET_CATS.map(c => ({...c}));
+  if(!Array.isArray(cats) || !cats.length) return DEFAULT_BUDGET_CATS.map(c => ({...c}));
+
+  // ── Migrate saved category lists to newer defaults ──
+  let changed = false;
+  // "Rent / Mortgage" was split into separate "Rent" and "Mortgage" categories.
+  cats.forEach(c => {
+    if(c.label === 'Rent / Mortgage'){ c.label = 'Rent'; if(c.key === 'hous_rent' || !c.key) c.key = 'hous_rent'; changed = true; }
+  });
+  // Add any default categories the saved list doesn't have yet (matched by key,
+  // falling back to label), so new features like "Mortgage" appear for everyone.
+  DEFAULT_BUDGET_CATS.forEach((def, i) => {
+    const has = cats.some(c => (c.key && def.key && c.key === def.key) || c.label === def.label);
+    if(!has){
+      // Insert near its default neighbour to keep grouping sensible.
+      const prev = DEFAULT_BUDGET_CATS[i-1];
+      const at = prev ? cats.findIndex(c => c.label === prev.label) : -1;
+      const entry = {...def};
+      if(at >= 0) cats.splice(at+1, 0, entry); else cats.push(entry);
+      changed = true;
+    }
+  });
+  if(changed){ try { localStorage.setItem('fire_budget_cats_v1', JSON.stringify(cats)); } catch(_){} }
+  return cats;
 })();
 
 function saveBudgetCats(){
