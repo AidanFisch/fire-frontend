@@ -1,13 +1,16 @@
 /* WealthModel service worker.
  *
  * Strategy:
- *  - Navigations: network-first, falling back to the cached shell offline.
- *    (Deploys are always picked up when online — nothing goes stale.)
- *  - Same-origin static assets (icons, manifest): stale-while-revalidate.
+ *  - Navigations AND app code (js/css): network-first, falling back to cache
+ *    offline. Deploys are always picked up when online — nothing goes stale.
+ *  - Other same-origin static assets (icons, manifest): stale-while-revalidate.
  *  - Cross-origin (API on Render, Firebase, CDNs) is never intercepted —
  *    model runs and auth always hit the network directly.
  */
-const CACHE = 'wm-shell-v1';
+const CACHE = 'wm-shell-v2';
+
+// App code that must never be served stale after a deploy.
+const NETWORK_FIRST = /\.(?:js|css)$/;
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -34,6 +37,23 @@ self.addEventListener('fetch', (e) => {
           return res;
         })
         .catch(() => caches.match('shell'))
+    );
+    return;
+  }
+
+  // App code (js/css): network-first so a deploy is picked up immediately,
+  // falling back to the cached copy only when offline.
+  if (NETWORK_FIRST.test(url.pathname)) {
+    e.respondWith(
+      fetch(req)
+        .then(res => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then(c => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req))
     );
     return;
   }
