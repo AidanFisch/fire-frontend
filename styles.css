@@ -2389,41 +2389,64 @@ input.exp-input[type="number"]::-webkit-outer-spin-button,
 input.exp-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 select.exp-input { cursor:pointer; }
 
-/* Mortgage row: ⊕ interest/principal split control + popover */
-.expense-row.is-mortgage .exp-actual { flex:1; }
-.expense-row.is-mortgage td:has(.exp-mort-split){ white-space:nowrap; }
+/* Mortgage row: interest/principal split control (a suffix icon inside each
+   amount field) + its two-field editor popover */
+.expense-row.is-mortgage .dollar-wrap { padding-right:2px; }
 .exp-mort-split {
+  position:relative; flex:0 0 auto;
   display:inline-flex; align-items:center; justify-content:center;
-  width:22px; height:22px; margin-left:5px; vertical-align:middle;
-  border:1px solid #E5E7EB; border-radius:5px; background:#fff;
-  color:#5A625D; font-size:13px; line-height:1; cursor:pointer;
-  transition:background .15s, border-color .15s, color .15s;
+  width:24px; height:24px; margin-left:2px; padding:0;
+  border:none; border-radius:6px; background:transparent;
+  color:#8A8F8B; cursor:pointer;
+  transition:background .15s, color .15s, transform .1s;
 }
-.exp-mort-split:hover { border-color:#059669; color:#059669; background:#F3F4F2; }
-.exp-mort-split.has-split { border-color:#059669; color:#059669; background:rgba(5,150,105,.08); }
-.exp-mort-split:focus-visible { outline:none; border-color:#059669; box-shadow:0 0 0 2px rgba(5,150,105,.18); }
+.exp-mort-split:hover { background:rgba(5,150,105,.10); color:#059669; }
+.exp-mort-split:active { transform:scale(.92); }
+.exp-mort-split.has-split { color:#059669; }
+.exp-mort-split.has-split::after {
+  content:""; position:absolute; top:3px; right:3px;
+  width:5px; height:5px; border-radius:50%; background:#059669;
+}
+.exp-mort-split:focus-visible { outline:none; background:rgba(5,150,105,.12); box-shadow:0 0 0 2px rgba(5,150,105,.30); }
 
 .mort-split-pop {
-  position:absolute; z-index:3500; display:none; width:264px;
-  background:#fff; border:1px solid #D6D9DD; border-radius:12px;
-  box-shadow:0 8px 28px rgba(21,24,22,.16); padding:14px; font-size:12px; color:#3E4A3F;
+  position:absolute; z-index:3500; display:none; width:272px;
+  background:#fff; border:1px solid #E5E7EB; border-radius:14px;
+  box-shadow:0 12px 34px rgba(21,24,22,.18), 0 2px 6px rgba(21,24,22,.06);
+  padding:16px; font-size:12px; color:#3E4A3F;
+  animation:mspIn .14s ease-out;
 }
-.mort-split-pop .msp-head { font-size:13px; font-weight:600; color:#151816; margin-bottom:10px; }
-.mort-split-pop .msp-row {
-  display:flex; align-items:center; justify-content:space-between; gap:10px; margin:7px 0;
+@keyframes mspIn { from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+.mort-split-pop .msp-head {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-size:13px; font-weight:650; color:#151816; margin:0 0 13px;
 }
-.mort-split-pop .msp-row b { color:#151816; font-variant-numeric:tabular-nums; }
-.mort-split-pop .msp-inp { width:110px; padding:3px 6px; }
-.mort-split-pop .msp-inp input {
-  border:none; background:transparent; width:100%; font-size:12px; color:#151816;
-  outline:none; font-family:inherit; text-align:right;
+.mort-split-pop .msp-field {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; margin:9px 0;
 }
-.mort-split-pop .msp-note { margin-top:10px; color:#6A716B; line-height:1.45; }
+.mort-split-pop .msp-lbl { display:flex; align-items:center; gap:7px; color:#3E4A3F; }
+.mort-split-pop .msp-lbl em { font-style:normal; color:#8A8F8B; font-size:11px; }
+.mort-split-pop .msp-dot { width:9px; height:9px; border-radius:3px; flex:0 0 auto; }
+.mort-split-pop .msp-dot.int  { background:#94A3B8; }
+.mort-split-pop .msp-dot.prin { background:#059669; }
+.mort-split-pop .msp-field .dollar-wrap { width:104px; padding:4px 8px; border-radius:7px; }
+.mort-split-pop .msp-field input {
+  border:none; background:transparent; width:100%; font-size:13px; color:#151816;
+  outline:none; font-family:inherit; text-align:right; font-variant-numeric:tabular-nums;
+}
+.mort-split-pop .msp-total {
+  display:flex; align-items:center; justify-content:space-between;
+  margin:13px 0 0; padding-top:11px; border-top:1px solid #EEF0EC;
+  color:#5A625D;
+}
+.mort-split-pop .msp-total b { color:#151816; font-size:14px; font-variant-numeric:tabular-nums; }
+.mort-split-pop .msp-note { margin-top:11px; color:#6A716B; line-height:1.5; font-size:11.5px; }
 .mort-split-pop .msp-reset {
-  margin-top:10px; background:none; border:none; color:#059669; font-size:12px;
-  cursor:pointer; padding:0; font-family:inherit;
+  margin-top:11px; background:none; border:none; color:#059669; font-size:12px;
+  font-weight:550; cursor:pointer; padding:0; font-family:inherit;
 }
 .mort-split-pop .msp-reset:hover { text-decoration:underline; }
+@media (prefers-reduced-motion: reduce){ .mort-split-pop{ animation:none; } }
 
 /* $ prefix wrapper for budget/actual cells */
 .dollar-wrap {
