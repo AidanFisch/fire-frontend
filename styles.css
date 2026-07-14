@@ -2430,6 +2430,9 @@ select.exp-input { cursor:pointer; }
 .mort-split-pop .msp-dot.int  { background:#94A3B8; }
 .mort-split-pop .msp-dot.prin { background:#059669; }
 .mort-split-pop .msp-field .dollar-wrap { width:104px; padding:4px 8px; border-radius:7px; }
+.mort-split-pop .msp-field .dollar-wrap:focus-within {
+  border-color:#059669; box-shadow:none;   /* no heavy halo inside the popover */
+}
 .mort-split-pop .msp-field input {
   border:none; background:transparent; width:100%; font-size:13px; color:#151816;
   outline:none; font-family:inherit; text-align:right; font-variant-numeric:tabular-nums;
