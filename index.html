@@ -290,6 +290,7 @@
         <button id="btnPortfolio"     onclick="showPortfolioTab()">Holdings</button>
         <button id="btnPropertiesNav" onclick="showPropertiesTab()">Properties</button>
         <button id="btnResults"       onclick="showTab('results')">Model</button>
+        <button id="btnTools"         onclick="showToolsTab()">Tools</button>
       </div>
       <div class="header-actions">
         <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
@@ -1249,6 +1250,77 @@
 
 
 <!-- ══════════════════════════════════════
+     TOOLS TAB — quick standalone calculators
+     ══════════════════════════════════════ -->
+<section id="tab-tools" class="tabs" style="margin-top:18px;">
+  <div class="tools-intro">
+    <h1 class="tools-title">Quick tools</h1>
+    <p class="tools-sub">Fast, no-signup calculators. For the full picture — your FIRE date, super, and long-term projections — <a href="#" onclick="showTab('results');return false;">build your model</a>.</p>
+  </div>
+
+  <!-- Property Net Cost Calculator -->
+  <div class="card tool-card">
+    <div class="tool-head">
+      <h2 class="tool-name">Investment Property — Net Holding Cost</h2>
+      <p class="tool-desc">What a rental really costs you out of pocket each week, after rent and negative-gearing tax back.</p>
+    </div>
+
+    <div class="pnc-grid">
+      <!-- Inputs -->
+      <div class="pnc-inputs">
+        <p class="budget-section-lbl">Property &amp; loan</p>
+        <label class="pnc-field"><span>Property value</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_value" type="text" inputmode="decimal" value="750,000" oninput="calcPropertyNetCost()"></span></label>
+        <label class="pnc-field"><span>Loan amount</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_loan" type="text" inputmode="decimal" value="600,000" oninput="calcPropertyNetCost()"></span></label>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Interest rate</span>
+            <span class="dollar-wrap"><input id="pnc_rate" type="text" inputmode="decimal" value="6.0" oninput="calcPropertyNetCost()"><span class="inp-suffix">% p.a.</span></span></label>
+          <label class="pnc-field"><span>Loan term</span>
+            <span class="dollar-wrap"><input id="pnc_term" type="text" inputmode="decimal" value="30" oninput="calcPropertyNetCost()"><span class="inp-suffix">yrs</span></span></label>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Rent</p>
+        <label class="pnc-field"><span>Weekly rent</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rent" type="text" inputmode="decimal" value="620" oninput="calcPropertyNetCost()"><span class="inp-suffix">/wk</span></span></label>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Running costs <span class="info-tip" data-tip="pnc_costs">?</span></p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Agent / management</span>
+            <span class="dollar-wrap"><input id="pnc_mgmt" type="text" inputmode="decimal" value="7" oninput="calcPropertyNetCost()"><span class="inp-suffix">% rent</span></span>
+            <em class="pnc-hint">5–9%</em></label>
+          <label class="pnc-field"><span>Maintenance</span>
+            <span class="dollar-wrap"><input id="pnc_maint" type="text" inputmode="decimal" value="1" oninput="calcPropertyNetCost()"><span class="inp-suffix">% value</span></span>
+            <em class="pnc-hint">0.5–1.5%</em></label>
+        </div>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Insurance</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_ins" type="text" inputmode="decimal" value="1,500" oninput="calcPropertyNetCost()"><span class="inp-suffix">/yr</span></span>
+            <em class="pnc-hint">$1k–2.5k</em></label>
+          <label class="pnc-field"><span>Council rates</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rates" type="text" inputmode="decimal" value="2,000" oninput="calcPropertyNetCost()"><span class="inp-suffix">/yr</span></span>
+            <em class="pnc-hint">$1.5k–3k</em></label>
+        </div>
+        <label class="pnc-field"><span>Strata / body corp <em class="pnc-hint">apartments only</em></span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_strata" type="text" inputmode="decimal" value="0" oninput="calcPropertyNetCost()"><span class="inp-suffix">/yr</span></span></label>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Your income <span class="info-tip" data-tip="pnc_gearing">?</span></p>
+        <label class="pnc-field"><span>Your salary</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_salary" type="text" inputmode="decimal" value="120,000" oninput="calcPropertyNetCost()"><span class="inp-suffix">/yr</span></span></label>
+        <label class="pnc-toggle"><input type="checkbox" id="pnc_partner_toggle" onchange="calcPropertyNetCost()"><span class="pnc-toggle-track"><span class="pnc-toggle-thumb"></span></span><span>Own it with a partner (50/50)</span></label>
+        <label class="pnc-field" id="pnc_partner_wrap" hidden><span>Partner salary</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_partner_salary" type="text" inputmode="decimal" value="90,000" oninput="calcPropertyNetCost()"><span class="inp-suffix">/yr</span></span></label>
+      </div>
+
+      <!-- Results -->
+      <div class="pnc-results" id="pncResults"></div>
+    </div>
+    <p class="tool-foot">Estimate only — year-one figures, current tax rates, no depreciation or capital growth. Not financial advice. <a href="#" onclick="showTab('results');return false;">Model it properly →</a></p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
      DASHBOARD / OVERVIEW TAB
      ══════════════════════════════════════ -->
 <section id="tab-dashboard" class="tabs" style="margin-top:18px;">
@@ -1561,6 +1633,10 @@
   <button class="mtab" data-mtab="results" onclick="showTab('results')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-6 4 3 6-8"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
     <span>Model</span>
+  </button>
+  <button class="mtab" data-mtab="tools" onclick="showToolsTab()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
+    <span>Tools</span>
   </button>
 </nav>
 

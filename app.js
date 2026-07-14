@@ -2180,6 +2180,18 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  pnc_costs: {
+    title: 'Typical running costs',
+    body: 'Rough Australian ranges to start from — adjust to your property. Agent/management: 5–9% of rent (metro ~7%). Maintenance: 0.5–1.5% of the property value a year (older places cost more). Insurance (building + landlord): ~$1,000–2,500. Council rates: ~$1,500–3,000. Strata/body corporate applies to apartments and townhouses only — houses are $0. All of these are tax-deductible against your rental income.'
+  },
+  pnc_gearing: {
+    title: 'Negative gearing & your salary',
+    body: 'When a rental costs more to hold (interest + expenses) than the rent it earns, the loss is deducted from your salary, lowering your taxable income and giving you tax back at your marginal rate — so a higher earner gets a bigger benefit. That\'s why your salary matters here. Add a partner and we assume 50/50 ownership, splitting the loss (and the tax back) across both of you at each person\'s own rate. Principal repayments are NOT deductible — only interest and running costs are.'
+  },
+  pnc_holding: {
+    title: 'True holding cost vs out of pocket',
+    body: 'Out of pocket is every dollar that actually leaves your account, including loan principal. But principal isn\'t really a cost — it pays down your loan and becomes your equity, so you keep it. True holding cost strips the principal out to show what the property genuinely costs you to own (interest + running costs − rent − tax back). Out of pocket is what your cash flow feels; true holding cost is the economic reality.'
+  },
   plan_delta: {
     title: 'Ahead of / behind your plan',
     body: 'Your plan needs your wealth to grow by a set amount each month (income − tax − living costs, plus employer super) while your invested wealth compounds. Starting from your net worth in your first logged Holdings month, we project that plan forward to today (assuming a 5% real return) and compare it to your actual net worth now. Ahead means your real net worth is above that line; behind means below. Because it uses net worth, everything counts — savings, mortgage principal, super and market moves — so a strong (or weak) market shows up here too. It appears once you\'ve logged at least two months of Holdings.'
@@ -4814,6 +4826,139 @@ showTab = function(name){
   // On the Model tab (desktop width) the inputs panel docks beside the results
   placeInputsPanel();
 };
+
+/* ═══════════════════════════════════════════════════════
+   TOOLS TAB — standalone calculators (no login / model needed)
+   ═══════════════════════════════════════════════════════ */
+
+function showToolsTab(){
+  showTab('tools');
+  document.getElementById('btnTools')?.classList.add('active');
+  calcPropertyNetCost();
+  initInfoTips();
+}
+
+/** Property net-cost calculator: what an investment property costs out of
+ *  pocket per week/month after rent and negative-gearing tax back. */
+function calcPropertyNetCost(){
+  const el  = id => document.getElementById(id);
+  const num = id => { const v = parseFloat(String(el(id)?.value || '').replace(/[,$%\s]/g,'')); return isNaN(v) ? 0 : v; };
+
+  const propValue  = num('pnc_value');
+  const loan       = num('pnc_loan');
+  const rate       = num('pnc_rate') / 100;
+  const term       = num('pnc_term') || 30;
+  const weeklyRent = num('pnc_rent');
+  const mgmtPct    = num('pnc_mgmt') / 100;
+  const maintPct   = num('pnc_maint') / 100;
+  const insurance  = num('pnc_ins');
+  const rates      = num('pnc_rates');
+  const strata     = num('pnc_strata');
+  const salary     = num('pnc_salary');
+  const hasPartner = !!el('pnc_partner_toggle')?.checked;
+  const partnerSalary = hasPartner ? num('pnc_partner_salary') : 0;
+  const pw = el('pnc_partner_wrap'); if(pw) pw.hidden = !hasPartner;
+
+  // Year-one interest / principal via a 12-month amortisation walk.
+  const r = rate / 12, n = term * 12;
+  const monthlyPmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
+  let bal = loan, yearInterest = 0, yearPrincipal = 0;
+  for(let i = 0; i < 12 && bal > 0.005; i++){
+    const int = bal * r;
+    const prin = Math.min(monthlyPmt - int, bal);
+    yearInterest += int; yearPrincipal += prin; bal -= prin;
+  }
+  const annualRepay = yearInterest + yearPrincipal;
+
+  const annualRent = weeklyRent * 52;
+  const mgmt  = annualRent * mgmtPct;
+  const maint = propValue * maintPct;
+  const cashExpenses = mgmt + insurance + maint + rates + strata;   // deductible cash costs
+  const deductible   = yearInterest + cashExpenses;                 // principal is NOT deductible
+  const rentalResult = annualRent - deductible;                     // <0 = loss (negative gearing)
+
+  // Tax effect: apply the rental result to salary (split 50/50 with a partner).
+  // Exclude the Medicare Levy Surcharge — that's a private-health penalty, not a
+  // negative-gearing benefit, and most investors carry hospital cover. This keeps
+  // the tax back at the standard marginal-rate + Medicare-levy figure.
+  const benefitFor = (sal, share) => {
+    if(sal <= 0) return 0;
+    const t0 = calcTax(sal, TAX_SETTINGS);
+    const t1 = calcTax(Math.max(0, sal + rentalResult * share), TAX_SETTINGS);
+    return (t0.totalTax - t0.mls) - (t1.totalTax - t1.mls);   // >0 when a loss lowers tax
+  };
+  const taxBenefit = (hasPartner && partnerSalary > 0)
+    ? benefitFor(salary, 0.5) + benefitFor(partnerSalary, 0.5)
+    : benefitFor(salary, 1);
+
+  const marginal = calcTax(hasPartner && partnerSalary > salary ? partnerSalary : salary, TAX_SETTINGS).marginalRate;
+
+  // Net costs (annual). "Out of pocket" includes principal (a real cash outflow);
+  // "true holding cost" excludes it because principal builds your equity.
+  const netInclPrincipal = (annualRepay + cashExpenses - annualRent) - taxBenefit;
+  const netExclPrincipal = (yearInterest + cashExpenses - annualRent) - taxBenefit;
+
+  const out = el('pncResults');
+  if(!out) return;
+  const wk = v => v / 52, mo = v => v / 12;
+  const money = v => (v < 0 ? '−' : '') + '$' + Math.abs(Math.round(v)).toLocaleString();
+  const isCost = netInclPrincipal >= 0;
+  const headWord = isCost ? 'costs you' : 'puts in your pocket';
+  const headCls  = isCost ? 'cost' : 'gain';
+
+  const row = (label, val, opts={}) => `
+    <div class="pnc-line ${opts.cls||''}">
+      <span class="pnc-line-lbl">${label}${opts.note?` <em>${opts.note}</em>`:''}</span>
+      <span class="pnc-line-val">${opts.sign===false ? money(val) : (val>=0?'+':'−')+'$'+Math.abs(Math.round(val)).toLocaleString()}</span>
+    </div>`;
+
+  out.innerHTML = `
+    <div class="pnc-headline ${headCls}">
+      <div class="pnc-head-lbl">This property ${headWord}</div>
+      <div class="pnc-head-nums">
+        <div><b>${money(Math.abs(wk(netInclPrincipal)))}</b><span>/week</span></div>
+        <div><b>${money(Math.abs(mo(netInclPrincipal)))}</b><span>/month</span></div>
+      </div>
+      <div class="pnc-head-sub">out of pocket after tax, including loan principal</div>
+    </div>
+
+    <div class="pnc-break">
+      <div class="pnc-break-hd">Where it goes — per year</div>
+      ${row('Rent received', annualRent)}
+      ${row('Loan interest', -yearInterest)}
+      ${row('Loan principal', -yearPrincipal, {note:'builds your equity'})}
+      ${row('Agent / management', -mgmt)}
+      ${row('Maintenance', -maint)}
+      ${row('Insurance', -insurance)}
+      ${row('Council rates', -rates)}
+      ${strata>0 ? row('Strata / body corp', -strata) : ''}
+      <div class="pnc-line subtotal">
+        <span class="pnc-line-lbl">Cash shortfall before tax</span>
+        <span class="pnc-line-val">${money(-(annualRepay + cashExpenses - annualRent))}</span>
+      </div>
+      ${row(`Negative-gearing tax back`, taxBenefit, {note:`${Math.round(marginal*100)}% marginal + Medicare`})}
+      <div class="pnc-line total">
+        <span class="pnc-line-lbl">Net ${isCost?'cost':'gain'} after tax</span>
+        <span class="pnc-line-val">${money(-netInclPrincipal)}</span>
+      </div>
+    </div>
+
+    <div class="pnc-alt">
+      <div>
+        <div class="pnc-alt-lbl">True holding cost <span class="info-tip" data-tip="pnc_holding">?</span></div>
+        <div class="pnc-alt-note">excludes principal — that money becomes your equity</div>
+      </div>
+      <div class="pnc-alt-nums">
+        <b>${money(Math.abs(wk(netExclPrincipal)))}</b><span>/wk</span>
+        <b>${money(Math.abs(mo(netExclPrincipal)))}</b><span>/mo</span>
+      </div>
+    </div>
+    <div class="pnc-cta">
+      Want to see how this fits your FIRE date, super and 30-year net worth?
+      <button class="btn primary" onclick="showTab('results')">Build your full model</button>
+    </div>`;
+  initInfoTips();
+}
 
 /* ═══════════════════════════════════════════════════════
    BUDGET TAB
