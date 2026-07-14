@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  plan_delta: {
+    title: 'Ahead of / behind your plan',
+    body: 'Your plan needs your wealth to grow by a set amount each month (income − tax − living costs, plus employer super) while your invested wealth compounds. Starting from your net worth in your first logged Holdings month, we project that plan forward to today (assuming a 5% real return) and compare it to your actual net worth now. Ahead means your real net worth is above that line; behind means below. Because it uses net worth, everything counts — savings, mortgage principal, super and market moves — so a strong (or weak) market shows up here too. It appears once you\'ve logged at least two months of Holdings.'
+  },
   mortgage_split: {
     title: 'Splitting your mortgage',
     body: 'A mortgage payment is two different things: interest (the true cost of borrowing — money you never get back, like rent) and principal (paying down the loan, which builds equity you own — real progress toward FIRE). Because the row is linked to a property, we split the payment automatically from that loan\'s rate and balance, updating as the balance falls. To set it yourself, just edit the Interest or Principal field — the two always add up to the total shown in the cell, and it switches to a manual split (↺ Back to auto re-links it). Only the principal counts as wealth built; the interest stays a living cost. Budget and Actual each keep their own split.'
@@ -8183,6 +8187,7 @@ function showDashboard(){
 
 function renderDashboard(){
   _dashFireCard();
+  _dashPlanDelta_render();
   _dashStats();
   _dashNWChart_render();
   _dashBudgetChart_render();
@@ -8226,6 +8231,54 @@ function _dashFireNumber(){
   const target = toNumber(state.inputs?.todays_lifestyle_income);
   const swr = toNumber(state.inputs?.stock_swr) || 0.04;
   return target > 0 ? target / swr : null;
+}
+
+/* "$X ahead / behind your plan" — anchors to your earliest logged Holdings
+   month, projects the plan forward from there (the monthly FIRE target the pace
+   line uses, compounding at 5% real like your invested wealth), and compares to
+   your net worth now. Net worth is the common currency, so principal, super and
+   market moves all count. Returns null until there's history to anchor to. */
+function _dashPlanDeltaData(){
+  const target = fireModelTargetMonthly();
+  if(!(target > 0)) return null;
+  const port = portLoad();
+  const monthly = port.monthly || {};
+  const assets  = port.assets  || [];
+  const nwAt = m => _nwForMonthAssets(assets.map(a => ({ ...a, value:(monthly[m]||{})[a.id] || 0 })));
+  const months = Object.keys(monthly).sort().filter(m => nwAt(m) > 0);
+  if(months.length < 2) return null;                 // need a start point + now
+  const m0 = months[0];
+  const nw0 = nwAt(m0);
+  const nwNow = _dashCurrentNW();
+  const [y0, mo0] = m0.split('-').map(Number);
+  const now = new Date();
+  const n = (now.getFullYear() - y0) * 12 + (now.getMonth() + 1 - mo0);
+  if(n < 1 || nwNow <= 0) return null;
+  const r = Math.pow(1.05, 1/12) - 1;                // 5% real, monthly
+  const planNow = nw0 * Math.pow(1 + r, n) + target * ((Math.pow(1 + r, n) - 1) / r);
+  return { delta: nwNow - planNow, planNow, nwNow, n, m0 };
+}
+
+function _dashPlanDelta_render(){
+  const el = document.getElementById('dashPlanDelta');
+  if(!el) return;
+  const d = _dashPlanDeltaData();
+  if(!d){ el.hidden = true; el.innerHTML = ''; return; }
+  const tol = Math.max(1500, d.planNow * 0.02);      // within ~2% reads as on track
+  const onTrack = Math.abs(d.delta) <= tol;
+  const ahead = d.delta >= 0;
+  const cls = onTrack ? 'ontrack' : (ahead ? 'ahead' : 'behind');
+  const abs = fmtDollar(Math.abs(Math.round(d.delta)));
+  const mLabel = new Date(d.m0 + '-01').toLocaleString('default', { month:'short', year:'numeric' });
+  const ico  = onTrack ? '✓' : (ahead ? '▲' : '▼');
+  const main = onTrack ? "You're on track with your plan"
+             : `You're <b>${abs}</b> ${ahead ? 'ahead of' : 'behind'} your plan`;
+  el.hidden = false;
+  el.className = 'plan-delta ' + cls;
+  el.innerHTML = `<span class="pd-ico">${ico}</span>
+    <span class="pd-text"><span class="pd-main">${main}</span>
+    <span class="pd-sub">vs the pace needed since ${mLabel} <span class="info-tip" data-tip="plan_delta">?</span></span></span>`;
+  initInfoTips();
 }
 
 function _dashFireCard(){
