@@ -2190,7 +2190,7 @@ const INFO_TIPS = {
   },
   fire_pace: {
     title: 'Wealth built vs FIRE pace',
-    body: 'The dashed line — your FIRE pace — is the total you need to put toward wealth each month to stay on plan: income minus tax minus living costs, PLUS your employer super. Each bar is what you actually built in a logged Budget month, stacked into three kinds of progress because they aren\'t interchangeable: Invested / saved (green) is spendable — leftover cash plus share contributions; Super (indigo) is your 12% employer contribution plus any extra, locked until preservation age; Home equity (amber) is the principal you paid down on your mortgage plus any extra repayments/offset. All three count toward FIRE on a total-net-worth basis, so a month heavy on mortgage principal or super is NOT "behind" — the stack shows exactly where your progress went. Reach the line and you\'re on track. Mortgage principal is worked out automatically from your home loan in the model; add your home under Properties for it to appear.'
+    body: 'The dashed line — your FIRE pace — is the total you need to put toward wealth each month to stay on plan: income minus tax minus living costs, PLUS your employer super, MINUS your home-loan interest. (Your Current Expenses input excludes the mortgage, so we subtract the interest here to match the bars, which also treat interest as a cost. Principal is left out of both — it just moves cash into equity.) Each bar is what you actually built in a logged Budget month, stacked into three kinds of progress because they aren\'t interchangeable: Invested / saved (green) is spendable — leftover cash plus share contributions; Super (indigo) is your 12% employer contribution plus any extra, locked until preservation age; Home equity (amber) is the principal you paid down on your mortgage plus any extra repayments/offset. All three count toward FIRE on a total-net-worth basis, so a month heavy on mortgage principal or super is NOT "behind" — the stack shows exactly where your progress went. Reach the line and you\'re on track. Mortgage principal is worked out automatically from your home loan in the model; add your home under Properties for it to appear.'
   },
   savings_rate: {
     title: 'Savings Rate',
@@ -5518,15 +5518,27 @@ function renderBudgetYearTable(data){
  *  = (current_income − estimated_tax − current_expenses) / 12
  *  This is what the model expects you to have left each month after earning,
  *  paying tax, and covering living costs — the pool deployed into stocks/super etc. */
+/** Monthly interest on your home loan (PPOR) — a real living cost the bars
+ *  subtract, but which Current Expenses excludes ("excl. mortgages"). We net it
+ *  off the target so both sides treat mortgage interest the same way. Principal
+ *  is neutral (it just moves cash → equity) so it isn't subtracted. */
+function _pporMonthlyInterest(){
+  return (state.property_list || [])
+    .filter(p => _isPporNow(p))
+    .reduce((s, p) => s + _loanMonthlySplit(p).interest, 0);
+}
+
 function fireModelTargetMonthly(){
   const grossAnnual  = Number(state.inputs.current_income   || 0);
   const expensesAnnual = Number(state.inputs.current_expenses || 0);
   if(!grossAnnual) return 0;
   const taxBreakdown = calcTax(grossAnnual, TAX_SETTINGS);
-  // Take-home surplus the plan needs each month, PLUS employer super — which is
-  // automatic FIRE progress the bars also count, so both sides include it.
+  // Take-home surplus the plan needs each month, PLUS employer super (auto FIRE
+  // progress the bars count), MINUS home-loan interest (a living cost the bars
+  // subtract but Current Expenses omits). Keeps target and bars like-for-like.
   const target = (grossAnnual - taxBreakdown.totalTax - expensesAnnual) / 12
-               + _employerSuperMonthly();
+               + _employerSuperMonthly()
+               - _pporMonthlyInterest();
   return Math.max(0, target);
 }
 
