@@ -4875,6 +4875,10 @@ function showToolsHome(){
   const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = true;
 }
 function showTool(name){
+  // Reachable straight from the nav dropdown while another tab is showing, so
+  // always activate the Tools tab first — not just swap the inner panel.
+  showTab('tools');
+  document.getElementById('btnTools')?.classList.add('active');
   const home = document.getElementById('toolsHome'); if(home) home.hidden = true;
   document.querySelectorAll('#tab-tools .tool-panel').forEach(p => p.hidden = (p.id !== 'tool-' + name));
   const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = false;

@@ -290,7 +290,31 @@
         <button id="btnPortfolio"     onclick="showPortfolioTab()">Holdings</button>
         <button id="btnPropertiesNav" onclick="showPropertiesTab()">Properties</button>
         <button id="btnResults"       onclick="showTab('results')">Model</button>
-        <button id="btnTools"         onclick="showToolsTab()">Tools</button>
+        <div class="nav-dd">
+          <button id="btnTools" onclick="showToolsTab()" aria-haspopup="true">Tools <span class="nav-dd-caret" aria-hidden="true">▾</span></button>
+          <div class="nav-dd-menu" role="menu">
+            <div class="nav-dd-card">
+              <button class="nav-dd-item" role="menuitem" onclick="showTool('property')">
+                <span class="nav-dd-ico" aria-hidden="true">🏠</span>
+                <span class="nav-dd-txt"><b>Investment Property</b><em>Net weekly holding cost</em></span>
+              </button>
+              <button class="nav-dd-item" role="menuitem" onclick="showTool('borrowing')">
+                <span class="nav-dd-ico" aria-hidden="true">🏦</span>
+                <span class="nav-dd-txt"><b>Borrowing Power &amp; Stamp Duty</b><em>What you can borrow and spend</em></span>
+              </button>
+              <button class="nav-dd-item" role="menuitem" onclick="showTool('offset')">
+                <span class="nav-dd-ico" aria-hidden="true">⚡</span>
+                <span class="nav-dd-txt"><b>Offset &amp; Extra Repayments</b><em>Years and interest saved</em></span>
+              </button>
+              <button class="nav-dd-item" role="menuitem" onclick="showTool('rentbuy')">
+                <span class="nav-dd-ico" aria-hidden="true">⚖️</span>
+                <span class="nav-dd-txt"><b>Rent vs Buy</b><em>Where you'd actually end up</em></span>
+              </button>
+              <div class="nav-dd-sep"></div>
+              <button class="nav-dd-item nav-dd-all" role="menuitem" onclick="showToolsTab()">All tools →</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="header-actions">
         <!-- Auth: sign-in button (logged out) / user badge (logged in) -->
