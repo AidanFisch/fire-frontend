@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  rb_chart: {
+    title: 'Reading the chart',
+    body: 'The solid green line is your net worth if you buy — home equity (value minus what you still owe) plus any investments once owning becomes cheaper than renting. The dashed indigo line is the renter\'s portfolio: the deposit, stamp duty and costs they never spent, invested, plus everything they save each month while renting is cheaper. The renter starts AHEAD, because the buyer just handed over stamp duty and costs that vanish on day one. Where the lines cross is your break-even — the point buying overtakes renting. Before it, renting won; after it, buying is winning and the gap usually widens as rent keeps rising and the loan shrinks. Drag the growth and return sliders and watch the crossing move — sometimes off the chart entirely.'
+  },
   rb_assumptions: {
     title: 'What drives rent vs buy',
     body: 'This runs both paths month by month. The buyer sinks their deposit, stamp duty and costs into the home; the renter invests that exact same cash instead, then keeps investing whatever the cheaper option saves each month (early on that\'s usually renting, but as rent grows owning often becomes cheaper — then the owner starts investing the difference). We compare net worth at the end: home equity plus any investments, versus the renter\'s portfolio. The result hinges almost entirely on two numbers: property growth vs investment return. Long-run Australian housing has done roughly 5–7% and diversified shares roughly 7–10%, but nudge either and the answer flips — so treat this as a way to test your assumptions, not a prediction. It also ignores selling costs, rate changes, and the security of owning your home.'
@@ -5086,6 +5090,9 @@ function calcRentBuy(){
   let renterPort = upfront, buyerPort = 0, breakEven = null;
   let totalRentPaid = 0, totalInterest = 0, renterContribs = 0;
   const months = Math.round(years * 12);
+  // Year 0: the buyer's wealth is their equity (deposit); the renter still holds
+  // the duty + costs the buyer just handed over, so they start ahead.
+  const series = [{ buy: price - loan, rent: upfront }];
   for(let m = 1; m <= months; m++){
     let pay = 0;
     if(bal > 0.005){
@@ -5102,6 +5109,7 @@ function calcRentBuy(){
     renterPort *= (1 + iM); buyerPort *= (1 + iM);
     propValue *= (1 + gM); rentM *= (1 + rgM);
     if(breakEven === null && (propValue - bal + buyerPort) >= renterPort) breakEven = m;
+    if(m % 12 === 0) series.push({ buy: propValue - bal + buyerPort, rent: renterPort });
   }
   const buyNW = propValue - bal + buyerPort;
   const rentNW = renterPort;
@@ -5142,7 +5150,69 @@ function calcRentBuy(){
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
   _toolSyncSliders('tool-rentbuy');
+  _rbChartRender(series, breakEven);
   initInfoTips();
+}
+
+let _rbChartInst = null;
+/** Net worth over time — buying vs renting & investing, so the crossover shows. */
+function _rbChartRender(series, breakEvenMonths){
+  const cv = document.getElementById('rbChart');
+  if(!cv || typeof Chart === 'undefined') return;
+  const labels = series.map((_, i) => i);
+  const beYr = breakEvenMonths != null ? breakEvenMonths / 12 : null;
+  if(_rbChartInst){ _rbChartInst.destroy(); _rbChartInst = null; }
+  _rbChartInst = new Chart(cv.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Buy — home equity + investments', data: series.map(p => p.buy),
+        borderColor:'#059669', borderWidth:2.4, pointRadius:0, tension:.15,
+        pointStyle:'line', fill:'origin', backgroundColor:'rgba(5,150,105,.07)' },
+      { label:'Rent & invest — portfolio', data: series.map(p => p.rent),
+        borderColor:'#6366F1', borderWidth:2.4, borderDash:[6,4], pointRadius:0, tension:.15, pointStyle:'line', fill:false }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend: _toolLegend(),
+        tooltip:{ callbacks:{
+          title: items => `Year ${items[0].label}` + (beYr && Math.abs(items[0].label - beYr) < .5 ? '  ·  break-even' : ''),
+          label: c => `${c.dataset.label}: ${fmtDollar(c.parsed.y)}`,
+          footer: items => {
+            if(items.length < 2) return '';
+            const d = items[0].parsed.y - items[1].parsed.y;
+            return (d >= 0 ? 'Buying ahead by ' : 'Renting ahead by ') + fmtDollar(Math.abs(d));
+          }
+        }}
+      },
+      scales:{
+        y:{ ticks:{ callback: v => '$' + moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:true },
+        x:{ title:{ display:true, text:'Years', font:{size:11} }, grid:{ display:false } }
+      }
+    }
+  });
+}
+
+/** Legend that actually distinguishes solid from dashed: draw a line segment
+ *  (not a dot) and carry each dataset's borderDash through to it. */
+function _toolLegend(){
+  return {
+    position:'top',
+    labels:{
+      usePointStyle:true, pointStyle:'line', boxWidth:28, boxHeight:2,
+      font:{ size:11 }, color:'#3E4A3F', padding:14,
+      generateLabels: chart => chart.data.datasets.map((ds, i) => ({
+        text: ds.label,
+        strokeStyle: ds.borderColor,
+        fillStyle: ds.borderColor,
+        lineWidth: Math.max(2, ds.borderWidth || 2),
+        lineDash: ds.borderDash || [],
+        pointStyle: 'line',
+        hidden: !chart.isDatasetVisible(i),
+        datasetIndex: i
+      }))
+    }
+  };
 }
 
 /* ── Offset & extra repayments payoff simulator ─────────────────────────── */
@@ -5227,16 +5297,16 @@ function _offChartRender(base, scen){
   _offChartInst = new Chart(cv.getContext('2d'), {
     type: 'line',
     data: { labels, datasets: [
-      { label:'Loan balance — standard', data: pick(base,'bal'), borderColor:'#9CA3AF', borderDash:[6,4], borderWidth:1.6, pointRadius:0, tension:.15, fill:false },
-      { label:'Loan balance — your plan', data: pick(scen,'bal'), borderColor:'#059669', borderWidth:2.4, pointRadius:0, tension:.15,
+      { label:'Loan balance — standard', data: pick(base,'bal'), borderColor:'#9CA3AF', borderDash:[6,4], borderWidth:1.8, pointRadius:0, tension:.15, pointStyle:'line', fill:false },
+      { label:'Loan balance — your plan', data: pick(scen,'bal'), borderColor:'#059669', borderWidth:2.4, pointRadius:0, tension:.15, pointStyle:'line',
         fill:'origin', backgroundColor:'rgba(5,150,105,.07)' },
-      { label:'Interest paid — standard', data: pick(base,'cumInt'), borderColor:'#F3D08A', borderDash:[6,4], borderWidth:1.6, pointRadius:0, tension:.15, fill:false },
-      { label:'Interest paid — your plan', data: pick(scen,'cumInt'), borderColor:'#F59E0B', borderWidth:2, pointRadius:0, tension:.15, fill:false }
+      { label:'Interest paid — standard', data: pick(base,'cumInt'), borderColor:'#D9A441', borderDash:[6,4], borderWidth:1.8, pointRadius:0, tension:.15, pointStyle:'line', fill:false },
+      { label:'Interest paid — your plan', data: pick(scen,'cumInt'), borderColor:'#F59E0B', borderWidth:2.2, pointRadius:0, tension:.15, pointStyle:'line', fill:false }
     ]},
     options: {
       responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
       plugins:{
-        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        legend: _toolLegend(),
         tooltip:{ callbacks:{
           title: items => `Year ${items[0].label}`,
           label: c => c.parsed.y == null ? null : `${c.dataset.label}: ${fmtDollar(c.parsed.y)}`
