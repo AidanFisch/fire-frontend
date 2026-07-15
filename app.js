@@ -2200,6 +2200,10 @@ const INFO_TIPS = {
     title: 'How this works',
     body: 'Your minimum repayment stays the same, but money in an offset account is netted off your loan balance before interest is charged — so less of each repayment is eaten by interest and more pays down the loan. That means the interest you save is automatically reinvested into paying the loan off faster. Extra repayments do the same, directly. Together they can cut years off a 30-year loan and save tens of thousands in interest.'
   },
+  off_chart: {
+    title: 'Reading the chart',
+    body: 'The green line is your loan balance with the offset and extra repayments; the grey dashed line is the same loan with neither. Where green hits zero is the day you\'re debt-free — the gap to the grey line is the time you saved. The amber lines are the interest you\'ve handed the bank so far, cumulatively: solid is your plan, dashed is the standard loan, and the gap between them at the end is your total interest saved. Notice the green line starts dropping faster and keeps accelerating — every dollar of interest you avoid becomes principal, which shrinks next month\'s interest again.'
+  },
   off_grow: {
     title: 'Growing your offset',
     body: 'If you sweep spare cash into your offset each month — a portion of your pay, say — the offset balance grows over time, cutting your interest by more and more as it builds. Unlike extra repayments, offset money stays yours to withdraw whenever you need it, which makes it a flexible way to get ahead without locking the cash away.'
@@ -4864,7 +4868,14 @@ showTab = function(name){
    ═══════════════════════════════════════════════════════ */
 
 /* Tool router: a home grid + a dropdown switch between calculators. */
+/** Collapse the nav hover-menu after a pick — the pointer is still over it, so
+ *  CSS :hover would keep it open. Cleared on mouseleave (see .nav-dd markup). */
+function _closeNavDD(){
+  document.querySelector('.nav-dd')?.classList.add('dd-closed');
+  if(document.activeElement?.closest?.('.nav-dd')) document.activeElement.blur();
+}
 function showToolsTab(){
+  _closeNavDD();
   showTab('tools');
   document.getElementById('btnTools')?.classList.add('active');
   showToolsHome();
@@ -4875,6 +4886,7 @@ function showToolsHome(){
   const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = true;
 }
 function showTool(name){
+  _closeNavDD();
   // Reachable straight from the nav dropdown while another tab is showing, so
   // always activate the Tools tab first — not just swap the inner panel.
   showTab('tools');
@@ -4882,7 +4894,6 @@ function showTool(name){
   const home = document.getElementById('toolsHome'); if(home) home.hidden = true;
   document.querySelectorAll('#tab-tools .tool-panel').forEach(p => p.hidden = (p.id !== 'tool-' + name));
   const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = false;
-  const sel = document.getElementById('toolSelect'); if(sel) sel.value = name;
   if(name === 'property')      calcPropertyNetCost();
   else if(name === 'borrowing') calcBorrowing();
   else if(name === 'offset')    calcOffsetImpact();
@@ -5146,18 +5157,21 @@ function calcOffsetImpact(){
   const basePmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
 
   const sim = (offStart, extraP, growP) => {
-    let bal = loan, off = offStart, months = 0, interest = 0;
+    let bal = loan, off = offStart, months = 0, interest = 0, princPaid = 0;
     const pmt = basePmt + extraP;
     const cap = n * 4;
+    const series = [{ bal: loan, cumInt: 0, cumPrin: 0 }];   // yearly snapshots
     while(bal > 0.005 && months < cap){
       const it = Math.max(0, bal - off) * r;
       interest += it;
       let principal = pmt - it;
       if(principal <= 0){ months = Infinity; break; }   // never repays
       if(principal > bal) principal = bal;
-      bal -= principal; off += growP; months++;
+      bal -= principal; princPaid += principal; off += growP; months++;
+      if(months % 12 === 0) series.push({ bal: Math.max(0, bal), cumInt: interest, cumPrin: princPaid });
     }
-    return { months, interest };
+    if(isFinite(months) && months % 12 !== 0) series.push({ bal: Math.max(0, bal), cumInt: interest, cumPrin: princPaid });
+    return { months, interest, series };
   };
   const base = sim(0, 0, 0);
   const scen = sim(offset0, extra, grow);
@@ -5197,7 +5211,43 @@ function calcOffsetImpact(){
   const offS = document.getElementById('off_offset_r');
   if(offS) offS.max = String(Math.max(10000, Math.round(loan)));
   _toolSyncSliders('tool-offset');
+  _offChartRender(base, scen);
   initInfoTips();
+}
+
+let _offChartInst = null;
+/** Loan balance + interest paid over time: standard vs your plan. */
+function _offChartRender(base, scen){
+  const cv = document.getElementById('offChart');
+  if(!cv || typeof Chart === 'undefined') return;
+  const maxYrs = Math.max(base.series.length, scen.series.length);
+  const labels = Array.from({ length: maxYrs }, (_, i) => i);
+  const pick = (s, key) => { const a = s.series.map(p => p[key]); while(a.length < maxYrs) a.push(null); return a; };
+  if(_offChartInst){ _offChartInst.destroy(); _offChartInst = null; }
+  _offChartInst = new Chart(cv.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Loan balance — standard', data: pick(base,'bal'), borderColor:'#9CA3AF', borderDash:[6,4], borderWidth:1.6, pointRadius:0, tension:.15, fill:false },
+      { label:'Loan balance — your plan', data: pick(scen,'bal'), borderColor:'#059669', borderWidth:2.4, pointRadius:0, tension:.15,
+        fill:'origin', backgroundColor:'rgba(5,150,105,.07)' },
+      { label:'Interest paid — standard', data: pick(base,'cumInt'), borderColor:'#F3D08A', borderDash:[6,4], borderWidth:1.6, pointRadius:0, tension:.15, fill:false },
+      { label:'Interest paid — your plan', data: pick(scen,'cumInt'), borderColor:'#F59E0B', borderWidth:2, pointRadius:0, tension:.15, fill:false }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ position:'top', labels:{ boxWidth:12, font:{size:11}, usePointStyle:true } },
+        tooltip:{ callbacks:{
+          title: items => `Year ${items[0].label}`,
+          label: c => c.parsed.y == null ? null : `${c.dataset.label}: ${fmtDollar(c.parsed.y)}`
+        }}
+      },
+      scales:{
+        y:{ ticks:{ callback: v => '$' + moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:true },
+        x:{ title:{ display:true, text:'Years', font:{size:11} }, grid:{ display:false } }
+      }
+    }
+  });
 }
 
 /** Property net-cost calculator: what an investment property costs out of

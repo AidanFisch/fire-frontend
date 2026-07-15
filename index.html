@@ -290,7 +290,7 @@
         <button id="btnPortfolio"     onclick="showPortfolioTab()">Holdings</button>
         <button id="btnPropertiesNav" onclick="showPropertiesTab()">Properties</button>
         <button id="btnResults"       onclick="showTab('results')">Model</button>
-        <div class="nav-dd">
+        <div class="nav-dd" onmouseleave="this.classList.remove('dd-closed')">
           <button id="btnTools" onclick="showToolsTab()" aria-haspopup="true">Tools <span class="nav-dd-caret" aria-hidden="true">▾</span></button>
           <div class="nav-dd-menu" role="menu">
             <div class="nav-dd-card">
@@ -1281,12 +1281,6 @@
   <!-- Sub-nav: back + tool dropdown (hidden on the home grid) -->
   <div class="tools-topbar" id="toolsTopbar" hidden>
     <button class="tools-back" onclick="showToolsHome()"><span aria-hidden="true">←</span> All tools</button>
-    <select id="toolSelect" class="tools-select" onchange="showTool(this.value)" aria-label="Select a tool">
-      <option value="property">Investment Property — Net Cost</option>
-      <option value="borrowing">Borrowing Power &amp; Stamp Duty</option>
-      <option value="offset">Offset &amp; Extra Repayments</option>
-      <option value="rentbuy">Rent vs Buy</option>
-    </select>
   </div>
 
   <!-- HOME: intro + tool tiles -->
@@ -1478,6 +1472,10 @@
           <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_grow" type="text" inputmode="decimal" value="0" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span></label>
       </div>
       <div class="pnc-results" id="offResults"></div>
+    </div>
+    <div class="tool-chart">
+      <p class="tool-chart-hd">Your loan over time <span class="info-tip" data-tip="off_chart">?</span></p>
+      <div class="tool-chart-wrap"><canvas id="offChart"></canvas></div>
     </div>
     <p class="tool-foot">Assumes a fixed interest rate and that your repayment stays level (so the interest you save is reinvested into the loan). Real rates and repayments change over time.</p>
   </div>
