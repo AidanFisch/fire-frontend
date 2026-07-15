@@ -1253,12 +1253,45 @@
      TOOLS TAB — quick standalone calculators
      ══════════════════════════════════════ -->
 <section id="tab-tools" class="tabs" style="margin-top:18px;">
-  <div class="tools-intro">
-    <h1 class="tools-title">Quick tools</h1>
-    <p class="tools-sub">Fast, no-signup calculators. For the full picture — your FIRE date, super, and long-term projections — <a href="#" onclick="showTab('results');return false;">build your model</a>.</p>
+
+  <!-- Sub-nav: back + tool dropdown (hidden on the home grid) -->
+  <div class="tools-topbar" id="toolsTopbar" hidden>
+    <button class="tools-back" onclick="showToolsHome()"><span aria-hidden="true">←</span> All tools</button>
+    <select id="toolSelect" class="tools-select" onchange="showTool(this.value)" aria-label="Select a tool">
+      <option value="property">Investment Property — Net Cost</option>
+      <option value="borrowing">Borrowing Power &amp; Stamp Duty</option>
+      <option value="offset">Offset &amp; Extra Repayments</option>
+    </select>
   </div>
 
-  <!-- Property Net Cost Calculator -->
+  <!-- HOME: intro + tool tiles -->
+  <div id="toolsHome">
+    <div class="tools-intro">
+      <h1 class="tools-title">Quick tools</h1>
+      <p class="tools-sub">Fast, no-signup calculators for the big property-and-money questions. For the full picture — your FIRE date, super and 30-year projections — <a href="#" onclick="showTab('results');return false;">build your model</a>.</p>
+    </div>
+    <div class="tools-cards">
+      <button class="tool-tile" onclick="showTool('property')">
+        <span class="tool-tile-ico">🏠</span>
+        <span class="tool-tile-name">Investment Property — Net Cost</span>
+        <span class="tool-tile-desc">What a rental really costs out of pocket each week, after rent, offset, depreciation and negative-gearing tax back.</span>
+      </button>
+      <button class="tool-tile" onclick="showTool('borrowing')">
+        <span class="tool-tile-ico">🏦</span>
+        <span class="tool-tile-name">Borrowing Power &amp; Stamp Duty</span>
+        <span class="tool-tile-desc">Roughly how much you can borrow from your income, plus stamp duty and the deposit you'll need in your state.</span>
+      </button>
+      <button class="tool-tile" onclick="showTool('offset')">
+        <span class="tool-tile-ico">⚡</span>
+        <span class="tool-tile-name">Offset &amp; Extra Repayments</span>
+        <span class="tool-tile-desc">How an offset balance and extra repayments cut years off your loan and save you interest.</span>
+      </button>
+    </div>
+    <p class="tools-home-foot">Estimates only, current AU tax and duty rates. Not financial advice.</p>
+  </div>
+
+  <!-- TOOL: Investment property net cost -->
+  <div id="tool-property" class="tool-panel" hidden>
   <div class="card tool-card">
     <div class="tool-head">
       <h2 class="tool-name">Investment Property — Net Holding Cost</h2>
@@ -1319,8 +1352,99 @@
       <!-- Results -->
       <div class="pnc-results" id="pncResults"></div>
     </div>
-    <p class="tool-foot">Estimate only — year-one figures, current tax rates, no depreciation or capital growth. Not financial advice. <a href="#" onclick="showTab('results');return false;">Model it properly →</a></p>
+    <p class="tool-foot">Estimate only — year-one figures, current tax rates. Not financial advice. <a href="#" onclick="showTab('results');return false;">Model it properly →</a></p>
   </div>
+  </div><!-- /#tool-property -->
+
+  <!-- TOOL: Borrowing power & stamp duty -->
+  <div id="tool-borrowing" class="tool-panel" hidden>
+  <div class="card tool-card">
+    <div class="tool-head">
+      <h2 class="tool-name">Borrowing Power &amp; Stamp Duty</h2>
+      <p class="tool-desc">A rough guide to how much a lender may let you borrow, the stamp duty in your state, and the deposit you'll need.</p>
+    </div>
+    <div class="pnc-grid">
+      <div class="pnc-inputs">
+        <p class="budget-section-lbl">Income</p>
+        <label class="pnc-field"><span>Your salary</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_salary" type="text" inputmode="decimal" value="120,000" oninput="calcBorrowing()"><span class="inp-suffix">/yr</span></span></label>
+        <label class="pnc-toggle"><input type="checkbox" id="bp_partner_toggle" onchange="calcBorrowing()"><span class="pnc-toggle-track"><span class="pnc-toggle-thumb"></span></span><span>Add a co-borrower</span></label>
+        <label class="pnc-field" id="bp_partner_wrap" hidden><span>Their salary</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_partner_salary" type="text" inputmode="decimal" value="90,000" oninput="calcBorrowing()"><span class="inp-suffix">/yr</span></span></label>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Commitments <span class="info-tip" data-tip="bp_commitments">?</span></p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Dependants</span>
+            <span class="dollar-wrap"><input id="bp_deps" type="text" inputmode="decimal" value="0"  oninput="calcBorrowing()"></span></label>
+          <label class="pnc-field"><span>Living expenses</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_expenses" type="text" inputmode="decimal" value="" placeholder="auto" oninput="calcBorrowing()"><span class="inp-suffix">/mo</span></span>
+            <em class="pnc-hint">blank = estimate</em></label>
+        </div>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Other loan repayments</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_debts" type="text" inputmode="decimal" value="0" oninput="calcBorrowing()"><span class="inp-suffix">/mo</span></span></label>
+          <label class="pnc-field"><span>Credit card limits</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_cards" type="text" inputmode="decimal" value="0" oninput="calcBorrowing()"></span></label>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Loan &amp; purchase</p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Interest rate <span class="info-tip" data-tip="bp_buffer">?</span></span>
+            <span class="dollar-wrap"><input id="bp_rate" type="text" inputmode="decimal" value="6.0" oninput="calcBorrowing()"><span class="inp-suffix">% p.a.</span></span></label>
+          <label class="pnc-field"><span>Loan term</span>
+            <span class="dollar-wrap"><input id="bp_term" type="text" inputmode="decimal" value="30" oninput="calcBorrowing()"><span class="inp-suffix">yrs</span></span></label>
+        </div>
+        <label class="pnc-field"><span>Deposit / savings</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_deposit" type="text" inputmode="decimal" value="150,000" oninput="calcBorrowing()"></span></label>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>State <span class="info-tip" data-tip="bp_duty">?</span></span>
+            <span class="dollar-wrap" style="padding:2px 4px;"><select id="bp_state" class="pnc-plain-select" onchange="calcBorrowing()">
+              <option value="NSW">NSW</option><option value="VIC">VIC</option><option value="QLD">QLD</option>
+              <option value="WA">WA</option><option value="SA">SA</option><option value="TAS">TAS</option>
+              <option value="ACT">ACT</option><option value="NT">NT</option></select></span></label>
+          <div class="pnc-field" style="justify-content:flex-end;"><span>&nbsp;</span>
+            <label class="pnc-toggle" style="margin:0;"><input type="checkbox" id="bp_fhb" onchange="calcBorrowing()"><span class="pnc-toggle-track"><span class="pnc-toggle-thumb"></span></span><span>First-home buyer</span></label></div>
+        </div>
+      </div>
+      <div class="pnc-results" id="bpResults"></div>
+    </div>
+    <p class="tool-foot">Indicative only — lenders assess differently and add a serviceability buffer; stamp duty and first-home concessions change and vary by state. Always confirm with a broker and your state revenue office.</p>
+  </div>
+  </div><!-- /#tool-borrowing -->
+
+  <!-- TOOL: Offset & extra repayments -->
+  <div id="tool-offset" class="tool-panel" hidden>
+  <div class="card tool-card">
+    <div class="tool-head">
+      <h2 class="tool-name">Offset &amp; Extra Repayments</h2>
+      <p class="tool-desc">See how an offset balance and extra repayments pay your loan off sooner and slash the interest — with the interest you save reinvested automatically.</p>
+    </div>
+    <div class="pnc-grid">
+      <div class="pnc-inputs">
+        <p class="budget-section-lbl">Your loan</p>
+        <label class="pnc-field"><span>Loan amount</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_loan" type="text" inputmode="decimal" value="600,000" oninput="calcOffsetImpact()"></span></label>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Interest rate</span>
+            <span class="dollar-wrap"><input id="off_rate" type="text" inputmode="decimal" value="6.0" oninput="calcOffsetImpact()"><span class="inp-suffix">% p.a.</span></span></label>
+          <label class="pnc-field"><span>Loan term</span>
+            <span class="dollar-wrap"><input id="off_term" type="text" inputmode="decimal" value="30" oninput="calcOffsetImpact()"><span class="inp-suffix">yrs</span></span></label>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Your strategy <span class="info-tip" data-tip="off_strategy">?</span></p>
+        <label class="pnc-field"><span>Money in offset now</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_offset" type="text" inputmode="decimal" value="50,000" oninput="calcOffsetImpact()"></span></label>
+        <label class="pnc-field"><span>Extra repayment</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_extra" type="text" inputmode="decimal" value="500" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span></label>
+        <label class="pnc-field"><span>Extra savings into offset <span class="info-tip" data-tip="off_grow">?</span></span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_grow" type="text" inputmode="decimal" value="0" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span></label>
+      </div>
+      <div class="pnc-results" id="offResults"></div>
+    </div>
+    <p class="tool-foot">Assumes a fixed interest rate and that your repayment stays level (so the interest you save is reinvested into the loan). Real rates and repayments change over time.</p>
+  </div>
+  </div><!-- /#tool-offset -->
+
 </section>
 
 

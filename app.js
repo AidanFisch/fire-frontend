@@ -2180,6 +2180,26 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  bp_commitments: {
+    title: 'How lenders assess your spending',
+    body: 'Banks don\'t just take your word on expenses — they use the greater of what you declare and a benchmark (the HEM) based on your household. Leave living expenses blank and we estimate a HEM-style figure from your household size and dependants; enter your own to override. Credit cards count even if you never carry a balance: lenders treat the full limit as a commitment (we assume ~3.8% of the limit per month), so cancelling unused cards can lift your borrowing power. Other loan repayments (car, personal, HECS) reduce it too.'
+  },
+  bp_buffer: {
+    title: 'The serviceability buffer',
+    body: 'Lenders don\'t assess you at today\'s rate — APRA requires them to add a buffer (currently 3%) and check you could still repay if rates rose. So we test your borrowing power at your rate + 3%. Your actual repayment (shown separately) is calculated at the real rate. This is why the amount a bank will lend is lower than what today\'s repayment alone would suggest.'
+  },
+  bp_duty: {
+    title: 'Stamp duty estimate',
+    body: 'Stamp (transfer) duty is a state tax on the purchase price, on a sliding scale — it\'s often your biggest upfront cost after the deposit. We use current standard rates for your state (VIC and NT use their own formulas). First-home-buyer concessions are applied for NSW, VIC and QLD where the rules are clear-cut; other states show a reminder to check. Rates are indexed and concessions change, so treat this as indicative and confirm with your state revenue office\'s calculator.'
+  },
+  off_strategy: {
+    title: 'How this works',
+    body: 'Your minimum repayment stays the same, but money in an offset account is netted off your loan balance before interest is charged — so less of each repayment is eaten by interest and more pays down the loan. That means the interest you save is automatically reinvested into paying the loan off faster. Extra repayments do the same, directly. Together they can cut years off a 30-year loan and save tens of thousands in interest.'
+  },
+  off_grow: {
+    title: 'Growing your offset',
+    body: 'If you sweep spare cash into your offset each month — a portion of your pay, say — the offset balance grows over time, cutting your interest by more and more as it builds. Unlike extra repayments, offset money stays yours to withdraw whenever you need it, which makes it a flexible way to get ahead without locking the cash away.'
+  },
   pnc_depreciation: {
     title: 'Depreciation (mostly new builds)',
     body: 'Depreciation is a paper deduction — you claim wear-and-tear on the building and its fittings without spending a cent, so it lifts your negative-gearing tax back while your cash flow is untouched. It\'s biggest on new or near-new builds: roughly $8,000–15,000 a year early on (building at 2.5% p.a. plus fixtures and fittings). Established homes are usually far less — often $2,000–5,000, and close to $0 if built before 1987 or bought second-hand after May 2017, when the rules stopped investors depreciating used fittings. Only the tax saved (depreciation × your marginal rate) reduces your cost, not the full amount. For an exact figure, get a quantity surveyor\'s depreciation schedule.'
@@ -4839,10 +4859,217 @@ showTab = function(name){
    TOOLS TAB — standalone calculators (no login / model needed)
    ═══════════════════════════════════════════════════════ */
 
+/* Tool router: a home grid + a dropdown switch between calculators. */
 function showToolsTab(){
   showTab('tools');
   document.getElementById('btnTools')?.classList.add('active');
-  calcPropertyNetCost();
+  showToolsHome();
+}
+function showToolsHome(){
+  document.querySelectorAll('#tab-tools .tool-panel').forEach(p => p.hidden = true);
+  const home = document.getElementById('toolsHome'); if(home) home.hidden = false;
+  const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = true;
+}
+function showTool(name){
+  const home = document.getElementById('toolsHome'); if(home) home.hidden = true;
+  document.querySelectorAll('#tab-tools .tool-panel').forEach(p => p.hidden = (p.id !== 'tool-' + name));
+  const tb = document.getElementById('toolsTopbar'); if(tb) tb.hidden = false;
+  const sel = document.getElementById('toolSelect'); if(sel) sel.value = name;
+  if(name === 'property')      calcPropertyNetCost();
+  else if(name === 'borrowing') calcBorrowing();
+  else if(name === 'offset')    calcOffsetImpact();
+  initInfoTips();
+  try { window.scrollTo({ top:0, behavior:'smooth' }); } catch(_){}
+}
+
+/* Shared render helpers for the tool result panels. */
+function _toolMoney(v){ return (v < 0 ? '−' : '') + '$' + Math.abs(Math.round(v)).toLocaleString(); }
+function _toolNum(id){ const v = parseFloat(String(document.getElementById(id)?.value || '').replace(/[,$%\s]/g,'')); return isNaN(v) ? 0 : v; }
+function _toolRow(label, val, opts={}){
+  const v = opts.sign === false ? _toolMoney(val)
+          : (val >= 0 ? '+' : '−') + '$' + Math.abs(Math.round(val)).toLocaleString();
+  return `<div class="pnc-line ${opts.cls||''}"><span class="pnc-line-lbl">${label}${opts.note?` <em>${opts.note}</em>`:''}</span><span class="pnc-line-val">${v}</span></div>`;
+}
+
+/* ── Stamp duty (transfer duty) — indicative current AU rates ─────────────
+   Tiered tables: duty = base + (value − min) × rate for the top bracket that
+   applies. VIC (flat tiers) and NT (formula) are special-cased. FHB concessions
+   applied for NSW/VIC/QLD (the clearest); other states get a caveat note. */
+const _DUTY_TABLE = {
+  NSW:[{min:0,base:0,rate:0.0125},{min:17000,base:212,rate:0.015},{min:36000,base:497,rate:0.0175},{min:97000,base:1564,rate:0.035},{min:364000,base:10909,rate:0.045},{min:1212000,base:49069,rate:0.055},{min:3636000,base:182390,rate:0.07}],
+  QLD:[{min:0,base:0,rate:0},{min:5000,base:0,rate:0.015},{min:75000,base:1050,rate:0.035},{min:540000,base:17325,rate:0.045},{min:1000000,base:38025,rate:0.0575}],
+  WA: [{min:0,base:0,rate:0.019},{min:120000,base:2280,rate:0.0285},{min:150000,base:3135,rate:0.038},{min:360000,base:11115,rate:0.0475},{min:725000,base:28453,rate:0.0515}],
+  SA: [{min:0,base:0,rate:0.01},{min:12000,base:120,rate:0.02},{min:30000,base:480,rate:0.03},{min:50000,base:1080,rate:0.035},{min:100000,base:2830,rate:0.04},{min:200000,base:6830,rate:0.0475},{min:250000,base:9205,rate:0.05},{min:300000,base:11705,rate:0.055}],
+  TAS:[{min:0,base:50,rate:0},{min:3000,base:50,rate:0.0175},{min:25000,base:435,rate:0.0225},{min:75000,base:1560,rate:0.035},{min:200000,base:5935,rate:0.04},{min:375000,base:12935,rate:0.0425},{min:725000,base:27810,rate:0.045}],
+  ACT:[{min:0,base:0,rate:0.0049},{min:200000,base:980,rate:0.022},{min:300000,base:3180,rate:0.034},{min:500000,base:9980,rate:0.0432},{min:750000,base:20780,rate:0.059},{min:1000000,base:35530,rate:0.0454}]
+};
+function _dutyTiered(v, table){
+  let b = table[0];
+  for(const t of table){ if(v >= t.min) b = t; else break; }
+  return b.base + (v - b.min) * b.rate;
+}
+function _dutyVIC(v){
+  if(v <= 25000)   return v * 0.014;
+  if(v <= 130000)  return 350 + (v - 25000) * 0.024;
+  if(v <= 960000)  return 2870 + (v - 130000) * 0.06;
+  if(v <= 2000000) return v * 0.055;                 // flat
+  return 110000 + (v - 2000000) * 0.065;
+}
+function _dutyNT(v){
+  const V = v / 1000;
+  if(v <= 525000) return 0.06571441 * V * V + 15 * V;
+  if(v <= 3000000) return v * 0.0495;
+  if(v <= 5000000) return v * 0.0575;
+  return v * 0.0595;
+}
+function stampDuty(value, state, fhb){
+  if(value <= 0) return { duty:0, note:'' };
+  let duty = state === 'VIC' ? _dutyVIC(value)
+           : state === 'NT'  ? _dutyNT(value)
+           : _dutyTiered(value, _DUTY_TABLE[state] || _DUTY_TABLE.NSW);
+  duty = Math.max(0, duty);
+  let note = '';
+  if(fhb){
+    const conc = (exempt, top) => {
+      if(value <= exempt){ duty = 0; note = `first-home exempt (≤$${(exempt/1000)}k)`; }
+      else if(value < top){ duty = Math.round(duty * (1 - (top - value) / (top - exempt))); note = 'first-home concession'; }
+      else note = 'above first-home threshold';
+    };
+    if(state === 'NSW')      conc(800000, 1000000);
+    else if(state === 'VIC') conc(600000, 750000);
+    else if(state === 'QLD') conc(700000, 800000);
+    else note = 'first-home concessions may apply — check your state';
+  }
+  return { duty: Math.round(duty), note };
+}
+
+/* ── Borrowing power & stamp duty ───────────────────────────────────────── */
+function calcBorrowing(){
+  const salary = _toolNum('bp_salary');
+  const hasP   = !!document.getElementById('bp_partner_toggle')?.checked;
+  const pSalary = hasP ? _toolNum('bp_partner_salary') : 0;
+  const pw = document.getElementById('bp_partner_wrap'); if(pw) pw.hidden = !hasP;
+  const deps   = _toolNum('bp_deps');
+  const debts  = _toolNum('bp_debts');            // monthly
+  const cards  = _toolNum('bp_cards');
+  const rate   = _toolNum('bp_rate') / 100;
+  const term   = _toolNum('bp_term') || 30;
+  const deposit = _toolNum('bp_deposit');
+  const state  = document.getElementById('bp_state')?.value || 'NSW';
+  const fhb    = !!document.getElementById('bp_fhb')?.checked;
+
+  const netMonthly = (calcTax(salary, TAX_SETTINGS).net + (pSalary > 0 ? calcTax(pSalary, TAX_SETTINGS).net : 0)) / 12;
+  const expRaw = (document.getElementById('bp_expenses')?.value || '').trim();
+  const estLiving = (hasP ? 3200 : 2200) + deps * 450;   // rough HEM-style monthly
+  const living = expRaw !== '' ? _toolNum('bp_expenses') : estLiving;
+  const cardCommit = cards * 0.038;                       // ~3.8%/mo of the limit
+  const surplus = Math.max(0, netMonthly - living - debts - cardCommit);
+
+  const aRate = (rate + 0.03) / 12, n = term * 12;        // +3% serviceability buffer
+  const maxLoan = aRate > 0 ? surplus * (1 - Math.pow(1 + aRate, -n)) / aRate : surplus * n;
+
+  const otherCosts = 3000;                                // legals + inspections (rough)
+  let price = deposit + maxLoan;
+  for(let i = 0; i < 5; i++){ const d = stampDuty(price, state, fhb).duty; price = Math.max(0, deposit + maxLoan - d - otherCosts); }
+  const duty = stampDuty(price, state, fhb);
+
+  const realR = rate / 12;
+  const realRepay = maxLoan > 0 && realR > 0 ? maxLoan * realR / (1 - Math.pow(1 + realR, -n)) : 0;
+  const lvr = price > 0 ? maxLoan / price : 0;
+
+  const out = document.getElementById('bpResults'); if(!out) return;
+  out.innerHTML = `
+    <div class="pnc-headline gain">
+      <div class="pnc-head-lbl">You could borrow up to</div>
+      <div class="pnc-head-nums">
+        <div><b>${_toolMoney(maxLoan)}</b><span>home loan</span></div>
+        <div><b>${_toolMoney(price)}</b><span>purchase price</span></div>
+      </div>
+      <div class="pnc-head-sub">with your ${_toolMoney(deposit)} deposit, in ${state}</div>
+    </div>
+    <div class="pnc-break">
+      <div class="pnc-break-hd">How a lender sees it — per month</div>
+      ${_toolRow('Net income (after tax)', netMonthly)}
+      ${_toolRow('Living expenses', -living, {note: expRaw === '' ? 'estimated' : ''})}
+      ${debts > 0 ? _toolRow('Other loan repayments', -debts) : ''}
+      ${cards > 0 ? _toolRow('Credit cards', -cardCommit, {note:'3.8% of limit'}) : ''}
+      <div class="pnc-line total"><span class="pnc-line-lbl">Left for repayments</span><span class="pnc-line-val">${_toolMoney(surplus)}</span></div>
+      <div class="pnc-line"><span class="pnc-line-lbl">Actual repayment on max loan</span><span class="pnc-line-val">${_toolMoney(realRepay)}/mo</span></div>
+    </div>
+    <div class="pnc-break">
+      <div class="pnc-break-hd">Upfront costs in ${state}</div>
+      ${_toolRow('Stamp duty', -duty.duty, duty.note ? {note:duty.note} : {})}
+      ${_toolRow('Legal, inspection, etc.', -otherCosts)}
+      ${_toolRow('Your deposit', deposit)}
+    </div>
+    ${lvr > 0.8 ? `<div class="pnc-offset-note" style="background:#FEF7EA;border-color:#F3D08A;color:#8a5a12;"><span class="pnc-offset-ico">⚠️</span><span>At this price your deposit is under 20% (${Math.round(lvr*100)}% LVR), so lenders will likely charge <b>Lender's Mortgage Insurance</b> — often several thousand dollars on top. A bigger deposit avoids it.</span></div>` : ''}
+    <div class="pnc-cta">
+      Ready to see how a purchase reshapes your FIRE timeline?
+      <button class="btn primary" onclick="showTab('results')">Build your full model</button>
+    </div>`;
+  initInfoTips();
+}
+
+/* ── Offset & extra repayments payoff simulator ─────────────────────────── */
+function calcOffsetImpact(){
+  const loan = _toolNum('off_loan');
+  const rate = _toolNum('off_rate') / 100;
+  const term = _toolNum('off_term') || 30;
+  const offset0 = _toolNum('off_offset');
+  const extra = _toolNum('off_extra');
+  const grow = _toolNum('off_grow');
+  const r = rate / 12, n = term * 12;
+  const basePmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
+
+  const sim = (offStart, extraP, growP) => {
+    let bal = loan, off = offStart, months = 0, interest = 0;
+    const pmt = basePmt + extraP;
+    const cap = n * 4;
+    while(bal > 0.005 && months < cap){
+      const it = Math.max(0, bal - off) * r;
+      interest += it;
+      let principal = pmt - it;
+      if(principal <= 0){ months = Infinity; break; }   // never repays
+      if(principal > bal) principal = bal;
+      bal -= principal; off += growP; months++;
+    }
+    return { months, interest };
+  };
+  const base = sim(0, 0, 0);
+  const scen = sim(offset0, extra, grow);
+  const monthsSaved = isFinite(scen.months) ? Math.max(0, base.months - scen.months) : 0;
+  const interestSaved = base.interest - scen.interest;
+
+  const fmtDur = m => {
+    if(!isFinite(m)) return '30+ yrs';
+    const y = Math.floor(m / 12), mo = Math.round(m % 12);
+    return (y ? `${y} yr${y>1?'s':''}` : '') + (mo ? `${y?' ':''}${mo} mo` : '') || '0 mo';
+  };
+
+  const out = document.getElementById('offResults'); if(!out) return;
+  out.innerHTML = `
+    <div class="pnc-headline gain">
+      <div class="pnc-head-lbl">Loan paid off in</div>
+      <div class="pnc-head-nums">
+        <div><b>${fmtDur(scen.months)}</b><span>vs ${fmtDur(base.months)} standard</span></div>
+        <div><b>${fmtDur(monthsSaved)}</b><span>sooner</span></div>
+      </div>
+      <div class="pnc-head-sub">and ${_toolMoney(interestSaved)} less interest over the life of the loan</div>
+    </div>
+    <div class="pnc-break">
+      <div class="pnc-break-hd">Total interest paid</div>
+      ${_toolRow('Standard loan, no offset', base.interest, {sign:false})}
+      ${_toolRow('With your offset + extra', scen.interest, {sign:false})}
+      <div class="pnc-line total"><span class="pnc-line-lbl">Interest saved</span><span class="pnc-line-val">${_toolMoney(interestSaved)}</span></div>
+    </div>
+    <div class="pnc-alt">
+      <div><div class="pnc-alt-lbl">Standard repayment</div><div class="pnc-alt-note">before your extra ${extra>0?`+ ${_toolMoney(extra)}/mo`:''}</div></div>
+      <div class="pnc-alt-nums"><b>${_toolMoney(basePmt)}</b><span>/mo</span></div>
+    </div>
+    <div class="pnc-cta">
+      See how paying your home off early frees up your FIRE plan.
+      <button class="btn primary" onclick="showTab('results')">Build your full model</button>
+    </div>`;
   initInfoTips();
 }
 
