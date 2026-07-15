@@ -2473,6 +2473,32 @@ select.exp-input { cursor:pointer; }
 .pnc-field .dollar-wrap input:focus,
 .pnc-field .dollar-wrap input:focus-visible { outline:none !important; outline-offset:0 !important; box-shadow:none !important; }
 .pnc-field .inp-suffix { font-size:11px; color:#6A716B; padding-left:4px; flex-shrink:0; white-space:nowrap; }
+/* Slim slider under an input — drag to explore, type for an exact value.
+   Global `input` rules force a white box + focus halo, so override them here. */
+input[type="range"].pnc-slider {
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:4px; margin:9px 0 1px; padding:0;
+  background:#E3E6E2 !important; border:none !important; border-radius:999px !important;
+  box-shadow:none !important; cursor:pointer;
+}
+input[type="range"].pnc-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:15px; height:15px; border-radius:50%;
+  background:#fff; border:2px solid #059669; cursor:grab;
+  box-shadow:0 1px 3px rgba(21,24,22,.22);
+  transition:transform .1s ease-out;
+}
+input[type="range"].pnc-slider::-webkit-slider-thumb:hover { transform:scale(1.1); }
+input[type="range"].pnc-slider:active::-webkit-slider-thumb { transform:scale(1.18); cursor:grabbing; }
+input[type="range"].pnc-slider::-moz-range-thumb {
+  width:15px; height:15px; border-radius:50%; background:#fff; border:2px solid #059669;
+  cursor:grab; box-shadow:0 1px 3px rgba(21,24,22,.22);
+}
+input[type="range"].pnc-slider::-moz-range-track { background:#E3E6E2; height:4px; border-radius:999px; }
+input[type="range"].pnc-slider:focus { outline:none; box-shadow:none !important; }
+input[type="range"].pnc-slider:focus-visible::-webkit-slider-thumb { box-shadow:0 0 0 4px rgba(5,150,105,.25); }
+input[type="range"].pnc-slider:focus-visible::-moz-range-thumb { box-shadow:0 0 0 4px rgba(5,150,105,.25); }
+
 .pnc-toggle { display:flex; align-items:center; gap:9px; margin:12px 0 4px; font-size:12.5px; color:#3E4A3F; cursor:pointer; }
 .pnc-toggle input { position:absolute; opacity:0; width:0; height:0; }
 .pnc-toggle-track { width:34px; height:19px; border-radius:999px; background:#D6D9DD; position:relative; transition:background .18s; flex:0 0 auto; }

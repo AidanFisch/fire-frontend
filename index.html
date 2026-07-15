@@ -1337,17 +1337,20 @@
         <label class="pnc-field"><span>Loan amount</span>
           <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_loan" type="text" inputmode="decimal" value="600,000" oninput="calcPropertyNetCost()"></span></label>
         <label class="pnc-field"><span>Money in offset <span class="info-tip" data-tip="pnc_offset">?</span></span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_offset" type="text" inputmode="decimal" value="0" oninput="calcPropertyNetCost()"></span></label>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_offset" type="text" inputmode="decimal" value="0" oninput="calcPropertyNetCost()"></span>
+          <input type="range" class="pnc-slider" id="pnc_offset_r" data-for="pnc_offset" data-fmt="money" min="0" max="600000" step="5000" value="0" oninput="toolSlider(this)" aria-label="Money in offset"></label>
         <div class="pnc-row2">
           <label class="pnc-field"><span>Interest rate</span>
-            <span class="dollar-wrap"><input id="pnc_rate" type="text" inputmode="decimal" value="6.0" oninput="calcPropertyNetCost()"><span class="inp-suffix">% p.a.</span></span></label>
+            <span class="dollar-wrap"><input id="pnc_rate" type="text" inputmode="decimal" value="6.0" oninput="calcPropertyNetCost()"><span class="inp-suffix">% p.a.</span></span>
+            <input type="range" class="pnc-slider" data-for="pnc_rate" min="2" max="10" step="0.1" value="6" oninput="toolSlider(this)" aria-label="Interest rate"></label>
           <label class="pnc-field"><span>Loan term</span>
             <span class="dollar-wrap"><input id="pnc_term" type="text" inputmode="decimal" value="30" oninput="calcPropertyNetCost()"><span class="inp-suffix">yrs</span></span></label>
         </div>
 
         <p class="budget-section-lbl" style="margin-top:16px;">Rent</p>
         <label class="pnc-field"><span>Weekly rent</span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rent" type="text" inputmode="decimal" value="620" oninput="calcPropertyNetCost()"><span class="inp-suffix">/wk</span></span></label>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rent" type="text" inputmode="decimal" value="620" oninput="calcPropertyNetCost()"><span class="inp-suffix">/wk</span></span>
+          <input type="range" class="pnc-slider" data-for="pnc_rent" min="0" max="1500" step="10" value="620" oninput="toolSlider(this)" aria-label="Weekly rent"></label>
 
         <p class="budget-section-lbl" style="margin-top:16px;">Running costs <span class="info-tip" data-tip="pnc_costs">?</span></p>
         <div class="pnc-row2">
@@ -1420,12 +1423,14 @@
         <p class="budget-section-lbl" style="margin-top:16px;">Loan &amp; purchase</p>
         <div class="pnc-row2">
           <label class="pnc-field"><span>Interest rate <span class="info-tip" data-tip="bp_buffer">?</span></span>
-            <span class="dollar-wrap"><input id="bp_rate" type="text" inputmode="decimal" value="6.0" oninput="calcBorrowing()"><span class="inp-suffix">% p.a.</span></span></label>
+            <span class="dollar-wrap"><input id="bp_rate" type="text" inputmode="decimal" value="6.0" oninput="calcBorrowing()"><span class="inp-suffix">% p.a.</span></span>
+            <input type="range" class="pnc-slider" data-for="bp_rate" min="2" max="10" step="0.1" value="6" oninput="toolSlider(this)" aria-label="Interest rate"></label>
           <label class="pnc-field"><span>Loan term</span>
             <span class="dollar-wrap"><input id="bp_term" type="text" inputmode="decimal" value="30" oninput="calcBorrowing()"><span class="inp-suffix">yrs</span></span></label>
         </div>
         <label class="pnc-field"><span>Deposit / savings</span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_deposit" type="text" inputmode="decimal" value="150,000" oninput="calcBorrowing()"></span></label>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="bp_deposit" type="text" inputmode="decimal" value="150,000" oninput="calcBorrowing()"></span>
+          <input type="range" class="pnc-slider" data-for="bp_deposit" data-fmt="money" min="0" max="500000" step="5000" value="150000" oninput="toolSlider(this)" aria-label="Deposit"></label>
         <div class="pnc-row2">
           <label class="pnc-field"><span>State <span class="info-tip" data-tip="bp_duty">?</span></span>
             <span class="dollar-wrap" style="padding:2px 4px;"><select id="bp_state" class="pnc-plain-select" onchange="calcBorrowing()">
@@ -1456,16 +1461,19 @@
           <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_loan" type="text" inputmode="decimal" value="600,000" oninput="calcOffsetImpact()"></span></label>
         <div class="pnc-row2">
           <label class="pnc-field"><span>Interest rate</span>
-            <span class="dollar-wrap"><input id="off_rate" type="text" inputmode="decimal" value="6.0" oninput="calcOffsetImpact()"><span class="inp-suffix">% p.a.</span></span></label>
+            <span class="dollar-wrap"><input id="off_rate" type="text" inputmode="decimal" value="6.0" oninput="calcOffsetImpact()"><span class="inp-suffix">% p.a.</span></span>
+            <input type="range" class="pnc-slider" data-for="off_rate" min="2" max="10" step="0.1" value="6" oninput="toolSlider(this)" aria-label="Interest rate"></label>
           <label class="pnc-field"><span>Loan term</span>
             <span class="dollar-wrap"><input id="off_term" type="text" inputmode="decimal" value="30" oninput="calcOffsetImpact()"><span class="inp-suffix">yrs</span></span></label>
         </div>
 
         <p class="budget-section-lbl" style="margin-top:16px;">Your strategy <span class="info-tip" data-tip="off_strategy">?</span></p>
         <label class="pnc-field"><span>Money in offset now</span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_offset" type="text" inputmode="decimal" value="50,000" oninput="calcOffsetImpact()"></span></label>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_offset" type="text" inputmode="decimal" value="50,000" oninput="calcOffsetImpact()"></span>
+          <input type="range" class="pnc-slider" id="off_offset_r" data-for="off_offset" data-fmt="money" min="0" max="600000" step="5000" value="50000" oninput="toolSlider(this)" aria-label="Money in offset"></label>
         <label class="pnc-field"><span>Extra repayment</span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_extra" type="text" inputmode="decimal" value="500" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span></label>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_extra" type="text" inputmode="decimal" value="500" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span>
+          <input type="range" class="pnc-slider" data-for="off_extra" data-fmt="money" min="0" max="3000" step="50" value="500" oninput="toolSlider(this)" aria-label="Extra repayment"></label>
         <label class="pnc-field"><span>Extra savings into offset <span class="info-tip" data-tip="off_grow">?</span></span>
           <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="off_grow" type="text" inputmode="decimal" value="0" oninput="calcOffsetImpact()"><span class="inp-suffix">/mo</span></span></label>
       </div>
@@ -1530,12 +1538,15 @@
         <p class="budget-section-lbl" style="margin-top:16px;">Assumptions <span class="info-tip" data-tip="rb_assumptions">?</span></p>
         <div class="pnc-row2">
           <label class="pnc-field"><span>Property growth</span>
-            <span class="dollar-wrap"><input id="rb_growth" type="text" inputmode="decimal" value="5.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+            <span class="dollar-wrap"><input id="rb_growth" type="text" inputmode="decimal" value="5.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span>
+            <input type="range" class="pnc-slider" data-for="rb_growth" min="0" max="10" step="0.1" value="5" oninput="toolSlider(this)" aria-label="Property growth"></label>
           <label class="pnc-field"><span>Investment return</span>
-            <span class="dollar-wrap"><input id="rb_return" type="text" inputmode="decimal" value="7.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+            <span class="dollar-wrap"><input id="rb_return" type="text" inputmode="decimal" value="7.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span>
+            <input type="range" class="pnc-slider" data-for="rb_return" min="0" max="12" step="0.1" value="7" oninput="toolSlider(this)" aria-label="Investment return"></label>
         </div>
         <label class="pnc-field"><span>Compare over</span>
-          <span class="dollar-wrap"><input id="rb_years" type="text" inputmode="decimal" value="10" oninput="calcRentBuy()"><span class="inp-suffix">years</span></span></label>
+          <span class="dollar-wrap"><input id="rb_years" type="text" inputmode="decimal" value="10" oninput="calcRentBuy()"><span class="inp-suffix">years</span></span>
+          <input type="range" class="pnc-slider" data-for="rb_years" min="1" max="30" step="1" value="10" oninput="toolSlider(this)" aria-label="Compare over years"></label>
       </div>
       <div class="pnc-results" id="rbResults"></div>
     </div>

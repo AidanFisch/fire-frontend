@@ -4891,6 +4891,31 @@ function showTool(name){
   try { window.scrollTo({ top:0, behavior:'smooth' }); } catch(_){}
 }
 
+/* ── Sliders ───────────────────────────────────────────────────────────────
+   Each range carries data-for="<textInputId>". Dragging writes the value into
+   the text box and re-runs that panel's calculator; typing in the box pushes the
+   value back to the slider via _toolSyncSliders() at the end of each calc. */
+function toolSlider(el){
+  const t = document.getElementById(el.dataset.for);
+  if(!t) return;
+  const v = Number(el.value);
+  t.value = el.dataset.fmt === 'money' ? v.toLocaleString() : String(v);
+  const panel = el.closest('.tool-panel')?.id;
+  if(panel === 'tool-property')       calcPropertyNetCost();
+  else if(panel === 'tool-borrowing') calcBorrowing();
+  else if(panel === 'tool-offset')    calcOffsetImpact();
+  else if(panel === 'tool-rentbuy')   calcRentBuy();
+}
+/** Push current text-input values back onto their sliders (clamped to range). */
+function _toolSyncSliders(panelId){
+  document.querySelectorAll(`#${panelId} input[type="range"][data-for]`).forEach(s => {
+    const t = document.getElementById(s.dataset.for);
+    if(!t) return;
+    const v = parseFloat(String(t.value).replace(/[,$%\s]/g,''));
+    if(!isNaN(v)) s.value = Math.min(Math.max(v, Number(s.min)), Number(s.max));
+  });
+}
+
 /* Shared render helpers for the tool result panels. */
 function _toolMoney(v){ return (v < 0 ? '−' : '') + '$' + Math.abs(Math.round(v)).toLocaleString(); }
 function _toolNum(id){ const v = parseFloat(String(document.getElementById(id)?.value || '').replace(/[,$%\s]/g,'')); return isNaN(v) ? 0 : v; }
@@ -5016,6 +5041,7 @@ function calcBorrowing(){
       Ready to see how a purchase reshapes your FIRE timeline?
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
+  _toolSyncSliders('tool-borrowing');
   initInfoTips();
 }
 
@@ -5104,6 +5130,7 @@ function calcRentBuy(){
       This ignores lifestyle — but your FIRE plan shouldn't ignore either path.
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
+  _toolSyncSliders('tool-rentbuy');
   initInfoTips();
 }
 
@@ -5167,6 +5194,9 @@ function calcOffsetImpact(){
       See how paying your home off early frees up your FIRE plan.
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
+  const offS = document.getElementById('off_offset_r');
+  if(offS) offS.max = String(Math.max(10000, Math.round(loan)));
+  _toolSyncSliders('tool-offset');
   initInfoTips();
 }
 
@@ -5328,6 +5358,9 @@ function calcPropertyNetCost(){
       Want to see how this fits your FIRE date, super and 30-year net worth?
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
+  const offSlider = el('pnc_offset_r');
+  if(offSlider) offSlider.max = String(Math.max(10000, Math.round(loan)));   // can't offset more than you owe
+  _toolSyncSliders('tool-property');
   initInfoTips();
 }
 
