@@ -2221,8 +2221,8 @@ const INFO_TIPS = {
     body: 'When a rental costs more to hold (interest + expenses) than the rent it earns, the loss is deducted from your salary, lowering your taxable income and giving you tax back at your marginal rate — so a higher earner gets a bigger benefit. That\'s why your salary matters here. Add a partner and we assume 50/50 ownership, splitting the loss (and the tax back) across both of you at each person\'s own rate. Principal repayments are NOT deductible — only interest and running costs are.'
   },
   pnc_holding: {
-    title: 'True cost vs cash out of pocket',
-    body: 'The headline is the true holding cost: interest + running costs − rent − tax back. It leaves out loan principal, because principal isn\'t a cost — it pays down your loan and becomes equity you keep. It\'s also what the property would cost you on an interest-only loan, which is what most investors use. Cash out of pocket adds the principal back: every dollar that actually leaves your account, which is what your weekly cash flow feels. Watch what an offset does: cash out of pocket barely moves (your repayment is fixed) and can even tick up as the smaller interest deduction trims your tax back — but true cost falls, because the interest you saved is now buying you equity instead of vanishing to the bank.'
+    title: 'Cash out of pocket vs actual cost',
+    body: 'Two different questions. CASH OUT OF POCKET is what leaves your account: repayment (interest AND principal) + running costs − rent − tax back. It\'s what your weekly budget feels. ACTUAL COST strips the principal out, because principal isn\'t spent — it pays down your loan and becomes equity you keep. So it\'s interest + running costs − rent − tax back: the money genuinely gone. It\'s also what the property would cost on an interest-only loan, which is what most investors use. What an offset does: your repayment never changes, so the only reason cash out of pocket shifts is that a smaller interest bill means a smaller tax refund — it can tick UP. Meanwhile actual cost FALLS, because you burned less interest and that money bought equity instead. The one figure an offset can\'t touch is the before-tax line (repayment + costs − rent). Worth knowing: because an offset kills a deductible expense, most advisers say put spare cash against your home loan (non-deductible) rather than an investment property\'s offset.'
   },
   plan_delta: {
     title: 'Ahead of / behind your plan',
@@ -5267,12 +5267,21 @@ function calcPropertyNetCost(){
 
   out.innerHTML = `
     <div class="pnc-headline ${headCls}">
-      <div class="pnc-head-lbl">This property ${headWord}</div>
-      <div class="pnc-head-nums">
-        <div><b>${money(Math.abs(wk(netExclPrincipal)))}</b><span>/week</span></div>
-        <div><b>${money(Math.abs(mo(netExclPrincipal)))}</b><span>/month</span></div>
+      <div class="pnc-head-lbl">This property ${headWord} <span class="info-tip" data-tip="pnc_holding">?</span></div>
+      <div class="pnc-head-two">
+        <div class="pnc-hcol">
+          <div class="pnc-hcol-lbl">Cash out of pocket</div>
+          <div class="pnc-hcol-big"><b>${money(Math.abs(wk(netInclPrincipal)))}</b><span>/wk</span></div>
+          <div class="pnc-hcol-mo">${money(Math.abs(mo(netInclPrincipal)))}/mo</div>
+          <div class="pnc-hcol-note">what actually leaves your account, including loan principal</div>
+        </div>
+        <div class="pnc-hcol accent">
+          <div class="pnc-hcol-lbl">Actual cost</div>
+          <div class="pnc-hcol-big"><b>${money(Math.abs(wk(netExclPrincipal)))}</b><span>/wk</span></div>
+          <div class="pnc-hcol-mo">${money(Math.abs(mo(netExclPrincipal)))}/mo</div>
+          <div class="pnc-hcol-note">money genuinely gone — principal excluded, that's equity you keep</div>
+        </div>
       </div>
-      <div class="pnc-head-sub">true cost after rent and tax — loan principal excluded, that's your equity</div>
     </div>
 
     ${offset > 0 ? `<div class="pnc-offset-note">
@@ -5307,12 +5316,12 @@ function calcPropertyNetCost(){
 
     <div class="pnc-alt">
       <div>
-        <div class="pnc-alt-lbl">Cash out of pocket <span class="info-tip" data-tip="pnc_holding">?</span></div>
-        <div class="pnc-alt-note">includes principal — what actually leaves your account</div>
+        <div class="pnc-alt-lbl">Before any tax back</div>
+        <div class="pnc-alt-note">repayment + costs − rent. An offset never changes this — your repayment is fixed.</div>
       </div>
       <div class="pnc-alt-nums">
-        <b>${money(Math.abs(wk(netInclPrincipal)))}</b><span>/wk</span>
-        <b>${money(Math.abs(mo(netInclPrincipal)))}</b><span>/mo</span>
+        <b>${money(Math.abs(wk(cashBeforeTax)))}</b><span>/wk</span>
+        <b>${money(Math.abs(mo(cashBeforeTax)))}</b><span>/mo</span>
       </div>
     </div>
     <div class="pnc-cta">

@@ -2494,6 +2494,20 @@ select.exp-input { cursor:pointer; }
 .pnc-head-nums span { font-size:11px; color:#6A716B; margin-top:2px; }
 .pnc-head-sub { font-size:11px; color:#6A716B; margin-top:9px; }
 
+/* Two labelled cost columns inside the headline box */
+.pnc-head-two { display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; }
+.pnc-hcol { padding:11px 12px; border-radius:10px; background:rgba(255,255,255,.66); border:1px solid rgba(21,24,22,.07); }
+.pnc-hcol.accent { background:#fff; border-color:rgba(21,24,22,.14); }
+.pnc-hcol-lbl { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#5A625D; margin-bottom:5px; }
+.pnc-hcol-big { display:flex; align-items:baseline; gap:3px; }
+.pnc-hcol-big b { font-size:24px; font-weight:750; letter-spacing:-0.03em; font-variant-numeric:tabular-nums; line-height:1.05; color:#151816; }
+.pnc-hcol-big span { font-size:11px; color:#6A716B; }
+.pnc-headline.cost .pnc-hcol.accent .pnc-hcol-big b { color:#B45309; }
+.pnc-headline.gain .pnc-hcol.accent .pnc-hcol-big b { color:#047857; }
+.pnc-hcol-mo { font-size:11.5px; color:#5A625D; font-variant-numeric:tabular-nums; margin-top:1px; }
+.pnc-hcol-note { font-size:10.5px; color:#6A716B; line-height:1.4; margin-top:6px; }
+@media (max-width:420px){ .pnc-head-two { grid-template-columns:1fr; } }
+
 .pnc-offset-note {
   display:flex; gap:9px; align-items:flex-start;
   padding:11px 13px; border-radius:10px; font-size:12px; line-height:1.5;
