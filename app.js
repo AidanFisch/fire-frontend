@@ -2188,6 +2188,10 @@ const INFO_TIPS = {
     title: 'What drives rent vs buy',
     body: 'This runs both paths month by month. The buyer sinks their deposit, stamp duty and costs into the home; the renter invests that exact same cash instead, then keeps investing whatever the cheaper option saves each month (early on that\'s usually renting, but as rent grows owning often becomes cheaper — then the owner starts investing the difference). We compare net worth at the end: home equity plus any investments, versus the renter\'s portfolio. The result hinges almost entirely on two numbers: property growth vs investment return. Long-run Australian housing has done roughly 5–7% and diversified shares roughly 7–10%, but nudge either and the answer flips — so treat this as a way to test your assumptions, not a prediction. It also ignores selling costs, rate changes, and the security of owning your home.'
   },
+  bp_chart: {
+    title: 'Why rates move your borrowing power',
+    body: 'Your income and expenses set a fixed monthly surplus — the most you can put toward a repayment. What that surplus can actually buy depends entirely on the rate: at a higher rate, more of every repayment is interest, so the same surplus services a smaller loan. This curve steps in 0.25% (25 basis points), the increment the RBA moves in, so each step along the line is one rate decision. The marked point is your current rate. Notice the line is steeper at the low end — early hikes bite hardest. And remember lenders assess you at your rate plus a 3% buffer, so the whole curve already sits lower than today\'s repayment alone would suggest.'
+  },
   bp_commitments: {
     title: 'How lenders assess your spending',
     body: 'Banks don\'t just take your word on expenses — they use the greater of what you declare and a benchmark (the HEM) based on your household. Leave living expenses blank and we estimate a HEM-style figure from your household size and dependants; enter your own to override. Credit cards count even if you never carry a balance: lenders treat the full limit as a commitment (we assume ~3.8% of the limit per month), so cancelling unused cards can lift your borrowing power. Other loan repayments (car, personal, HECS) reduce it too.'
@@ -5014,8 +5018,15 @@ function calcBorrowing(){
   const cardCommit = cards * 0.038;                       // ~3.8%/mo of the limit
   const surplus = Math.max(0, netMonthly - living - debts - cardCommit);
 
-  const aRate = (rate + 0.03) / 12, n = term * 12;        // +3% serviceability buffer
-  const maxLoan = aRate > 0 ? surplus * (1 - Math.pow(1 + aRate, -n)) / aRate : surplus * n;
+  const n = term * 12;
+  // Max loan the surplus services at a given rate, assessed at rate + 3% buffer.
+  const maxLoanAt = rt => {
+    const a = (rt + 0.03) / 12;
+    return a > 0 ? surplus * (1 - Math.pow(1 + a, -n)) / a : surplus * n;
+  };
+  const maxLoan = maxLoanAt(rate);
+  const BP25 = 0.0025;                                     // the RBA moves in 25bp steps
+  const dropPer25 = Math.max(0, maxLoan - maxLoanAt(rate + BP25));
 
   const otherCosts = 3000;                                // legals + inspections (rough)
   let price = deposit + maxLoan;
@@ -5051,13 +5062,67 @@ function calcBorrowing(){
       ${_toolRow('Legal, inspection, etc.', -otherCosts)}
       ${_toolRow('Your deposit', deposit)}
     </div>
+    ${dropPer25 > 0 ? `<div class="pnc-offset-note"><span class="pnc-offset-ico">📉</span><span>Every <b>0.25%</b> rate rise cuts what you can borrow by about <b>${_toolMoney(dropPer25)}</b> — a single RBA move. A 1% run of hikes would take roughly <b>${_toolMoney(maxLoan - maxLoanAt(rate + 0.01))}</b> off it.</span></div>` : ''}
     ${lvr > 0.8 ? `<div class="pnc-offset-note" style="background:#FEF7EA;border-color:#F3D08A;color:#8a5a12;"><span class="pnc-offset-ico">⚠️</span><span>At this price your deposit is under 20% (${Math.round(lvr*100)}% LVR), so lenders will likely charge <b>Lender's Mortgage Insurance</b> — often several thousand dollars on top. A bigger deposit avoids it.</span></div>` : ''}
     <div class="pnc-cta">
       Ready to see how a purchase reshapes your FIRE timeline?
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
   _toolSyncSliders('tool-borrowing');
+  _bpChartRender(maxLoanAt, rate);
   initInfoTips();
+}
+
+let _bpChartInst = null;
+/** Borrowing power across a rate range, stepped in 25bp — the increment the RBA
+ *  actually moves in — with your current rate marked. */
+function _bpChartRender(maxLoanAt, rate){
+  const cv = document.getElementById('bpChart');
+  if(!cv || typeof Chart === 'undefined') return;
+  const STEP = 0.0025;
+  const lo = Math.max(0.01, Math.round((rate - 0.02) / STEP) * STEP);   // ~2% below
+  const pts = [];
+  for(let i = 0; i <= 20; i++){                                         // 21 points = 5% span
+    const rt = Math.round((lo + i * STEP) * 10000) / 10000;
+    pts.push({ rt, loan: maxLoanAt(rt) });
+  }
+  // Mark whichever 25bp step is closest to the user's actual rate.
+  const hereIdx = pts.reduce((b, p, i) => Math.abs(p.rt - rate) < Math.abs(pts[b].rt - rate) ? i : b, 0);
+  if(_bpChartInst){ _bpChartInst.destroy(); _bpChartInst = null; }
+  _bpChartInst = new Chart(cv.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: pts.map(p => (p.rt * 100).toFixed(2) + '%'),
+      datasets: [{
+        label: 'Most you could borrow',
+        data: pts.map(p => p.loan),
+        borderColor: '#059669', borderWidth: 2.4, tension: .15, pointStyle: 'line',
+        fill: 'origin', backgroundColor: 'rgba(5,150,105,.07)',
+        pointRadius: pts.map((_, i) => i === hereIdx ? 5 : 0),
+        pointBackgroundColor: '#fff', pointBorderColor: '#151816', pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => `At ${items[0].label}` + (items[0].dataIndex === hereIdx ? '  ·  your rate' : ''),
+          label: c => 'Borrow up to ' + fmtDollar(c.parsed.y),
+          footer: items => {
+            const d = pts[hereIdx].loan - items[0].parsed.y;
+            if(Math.abs(d) < 1) return 'This is your current rate';
+            return (d > 0 ? '−' : '+') + fmtDollar(Math.abs(d)) + ' vs your rate';
+          }
+        }}
+      },
+      scales: {
+        y: { ticks:{ callback: v => '$' + moneyAxis(v) }, grid:{ color:'#F0EDE8' }, beginAtZero:true },
+        x: { title:{ display:true, text:'Interest rate (25bp steps)', font:{size:11} },
+             grid:{ display:false }, ticks:{ maxRotation:0, autoSkip:true, maxTicksLimit:9, font:{size:10} } }
+      }
+    }
+  });
 }
 
 /* ── Rent vs Buy ─────────────────────────────────────────────────────────
