@@ -2217,8 +2217,8 @@ const INFO_TIPS = {
     body: 'When a rental costs more to hold (interest + expenses) than the rent it earns, the loss is deducted from your salary, lowering your taxable income and giving you tax back at your marginal rate — so a higher earner gets a bigger benefit. That\'s why your salary matters here. Add a partner and we assume 50/50 ownership, splitting the loss (and the tax back) across both of you at each person\'s own rate. Principal repayments are NOT deductible — only interest and running costs are.'
   },
   pnc_holding: {
-    title: 'True holding cost vs out of pocket',
-    body: 'Out of pocket is every dollar that actually leaves your account, including loan principal. But principal isn\'t really a cost — it pays down your loan and becomes your equity, so you keep it. True holding cost strips the principal out to show what the property genuinely costs you to own (interest + running costs − rent − tax back). Out of pocket is what your cash flow feels; true holding cost is the economic reality.'
+    title: 'True cost vs cash out of pocket',
+    body: 'The headline is the true holding cost: interest + running costs − rent − tax back. It leaves out loan principal, because principal isn\'t a cost — it pays down your loan and becomes equity you keep. It\'s also what the property would cost you on an interest-only loan, which is what most investors use. Cash out of pocket adds the principal back: every dollar that actually leaves your account, which is what your weekly cash flow feels. Watch what an offset does: cash out of pocket barely moves (your repayment is fixed) and can even tick up as the smaller interest deduction trims your tax back — but true cost falls, because the interest you saved is now buying you equity instead of vanishing to the bank.'
   },
   plan_delta: {
     title: 'Ahead of / behind your plan',
@@ -5143,7 +5143,10 @@ function calcPropertyNetCost(){
   if(!out) return;
   const wk = v => v / 52, mo = v => v / 12;
   const money = v => (v < 0 ? '−' : '') + '$' + Math.abs(Math.round(v)).toLocaleString();
-  const isCost = netInclPrincipal >= 0;
+  // Headline is the TRUE holding cost (principal excluded — it's equity you keep,
+  // not a cost). Using the incl-principal figure made an offset look like it
+  // *raised* your cost, when it actually converts interest into equity.
+  const isCost = netExclPrincipal >= 0;
   const headWord = isCost ? 'costs you' : 'puts in your pocket';
   const headCls  = isCost ? 'cost' : 'gain';
   // Offset impact: interest saved becomes extra principal (repayment is fixed),
@@ -5169,10 +5172,10 @@ function calcPropertyNetCost(){
     <div class="pnc-headline ${headCls}">
       <div class="pnc-head-lbl">This property ${headWord}</div>
       <div class="pnc-head-nums">
-        <div><b>${money(Math.abs(wk(netInclPrincipal)))}</b><span>/week</span></div>
-        <div><b>${money(Math.abs(mo(netInclPrincipal)))}</b><span>/month</span></div>
+        <div><b>${money(Math.abs(wk(netExclPrincipal)))}</b><span>/week</span></div>
+        <div><b>${money(Math.abs(mo(netExclPrincipal)))}</b><span>/month</span></div>
       </div>
-      <div class="pnc-head-sub">out of pocket after tax, including loan principal</div>
+      <div class="pnc-head-sub">true cost after rent and tax — loan principal excluded, that's your equity</div>
     </div>
 
     ${offset > 0 ? `<div class="pnc-offset-note">
@@ -5207,12 +5210,12 @@ function calcPropertyNetCost(){
 
     <div class="pnc-alt">
       <div>
-        <div class="pnc-alt-lbl">True holding cost <span class="info-tip" data-tip="pnc_holding">?</span></div>
-        <div class="pnc-alt-note">excludes principal — that money becomes your equity</div>
+        <div class="pnc-alt-lbl">Cash out of pocket <span class="info-tip" data-tip="pnc_holding">?</span></div>
+        <div class="pnc-alt-note">includes principal — what actually leaves your account</div>
       </div>
       <div class="pnc-alt-nums">
-        <b>${money(Math.abs(wk(netExclPrincipal)))}</b><span>/wk</span>
-        <b>${money(Math.abs(mo(netExclPrincipal)))}</b><span>/mo</span>
+        <b>${money(Math.abs(wk(netInclPrincipal)))}</b><span>/wk</span>
+        <b>${money(Math.abs(mo(netInclPrincipal)))}</b><span>/mo</span>
       </div>
     </div>
     <div class="pnc-cta">
