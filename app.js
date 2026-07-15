@@ -2180,6 +2180,10 @@ const INFO_TIPS = {
     title: 'Expected Sale Price',
     body: 'Leave blank to use the model\'s projected property value in the sale year (based on your growth rate). Enter a specific figure to override the projection.'
   },
+  rb_assumptions: {
+    title: 'What drives rent vs buy',
+    body: 'This runs both paths month by month. The buyer sinks their deposit, stamp duty and costs into the home; the renter invests that exact same cash instead, then keeps investing whatever the cheaper option saves each month (early on that\'s usually renting, but as rent grows owning often becomes cheaper — then the owner starts investing the difference). We compare net worth at the end: home equity plus any investments, versus the renter\'s portfolio. The result hinges almost entirely on two numbers: property growth vs investment return. Long-run Australian housing has done roughly 5–7% and diversified shares roughly 7–10%, but nudge either and the answer flips — so treat this as a way to test your assumptions, not a prediction. It also ignores selling costs, rate changes, and the security of owning your home.'
+  },
   bp_commitments: {
     title: 'How lenders assess your spending',
     body: 'Banks don\'t just take your word on expenses — they use the greater of what you declare and a benchmark (the HEM) based on your household. Leave living expenses blank and we estimate a HEM-style figure from your household size and dependants; enter your own to override. Credit cards count even if you never carry a balance: lenders treat the full limit as a commitment (we assume ~3.8% of the limit per month), so cancelling unused cards can lift your borrowing power. Other loan repayments (car, personal, HECS) reduce it too.'
@@ -4878,6 +4882,7 @@ function showTool(name){
   if(name === 'property')      calcPropertyNetCost();
   else if(name === 'borrowing') calcBorrowing();
   else if(name === 'offset')    calcOffsetImpact();
+  else if(name === 'rentbuy')   calcRentBuy();
   initInfoTips();
   try { window.scrollTo({ top:0, behavior:'smooth' }); } catch(_){}
 }
@@ -5005,6 +5010,94 @@ function calcBorrowing(){
     ${lvr > 0.8 ? `<div class="pnc-offset-note" style="background:#FEF7EA;border-color:#F3D08A;color:#8a5a12;"><span class="pnc-offset-ico">⚠️</span><span>At this price your deposit is under 20% (${Math.round(lvr*100)}% LVR), so lenders will likely charge <b>Lender's Mortgage Insurance</b> — often several thousand dollars on top. A bigger deposit avoids it.</span></div>` : ''}
     <div class="pnc-cta">
       Ready to see how a purchase reshapes your FIRE timeline?
+      <button class="btn primary" onclick="showTab('results')">Build your full model</button>
+    </div>`;
+  initInfoTips();
+}
+
+/* ── Rent vs Buy ─────────────────────────────────────────────────────────
+   Runs both paths month by month. The buyer sinks deposit + stamp duty + costs
+   into the home; the renter invests that same cash and keeps investing whatever
+   the cheaper option saves each month (either side can be the cheaper one).
+   Compares net worth: home equity + any investments vs the renter's portfolio. */
+function calcRentBuy(){
+  const price = _toolNum('rb_price'), deposit = _toolNum('rb_deposit');
+  const rate = _toolNum('rb_rate') / 100, term = _toolNum('rb_term') || 30;
+  const state = document.getElementById('rb_state')?.value || 'NSW';
+  const fhb = !!document.getElementById('rb_fhb')?.checked;
+  const ratesY = _toolNum('rb_rates'), insY = _toolNum('rb_ins');
+  const maintPct = _toolNum('rb_maint') / 100, strataY = _toolNum('rb_strata');
+  const weeklyRent = _toolNum('rb_rent'), rentGrow = _toolNum('rb_rentgrow') / 100;
+  const growth = _toolNum('rb_growth') / 100, invReturn = _toolNum('rb_return') / 100;
+  const years = Math.max(1, _toolNum('rb_years') || 10);
+
+  const duty = stampDuty(price, state, fhb);
+  const otherCosts = 3000;
+  const upfront = deposit + duty.duty + otherCosts;    // cash the buyer commits
+  const loan = Math.max(0, price - deposit);
+  const r = rate / 12, n = term * 12;
+  const pmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
+  const gM = Math.pow(1 + growth, 1/12) - 1;
+  const iM = Math.pow(1 + invReturn, 1/12) - 1;
+  const rgM = Math.pow(1 + rentGrow, 1/12) - 1;
+
+  let bal = loan, propValue = price, rentM = weeklyRent * 52 / 12;
+  let renterPort = upfront, buyerPort = 0, breakEven = null;
+  let totalRentPaid = 0, totalInterest = 0, renterContribs = 0;
+  const months = Math.round(years * 12);
+  for(let m = 1; m <= months; m++){
+    let pay = 0;
+    if(bal > 0.005){
+      const it = bal * r; let pr = pmt - it;
+      if(pr > bal) pr = bal;
+      if(pr < 0) pr = 0;
+      bal -= pr; pay = it + pr; totalInterest += it;
+    }
+    const ownM = (ratesY + insY + strataY + propValue * maintPct) / 12;
+    const buyOut = pay + ownM;
+    totalRentPaid += rentM;
+    const diff = buyOut - rentM;
+    if(diff > 0){ renterPort += diff; renterContribs += diff; } else buyerPort += -diff;
+    renterPort *= (1 + iM); buyerPort *= (1 + iM);
+    propValue *= (1 + gM); rentM *= (1 + rgM);
+    if(breakEven === null && (propValue - bal + buyerPort) >= renterPort) breakEven = m;
+  }
+  const buyNW = propValue - bal + buyerPort;
+  const rentNW = renterPort;
+  const gap = buyNW - rentNW;
+  const buyWins = gap >= 0;
+
+  const out = document.getElementById('rbResults'); if(!out) return;
+  const yrsTxt = m => m == null ? null : (m / 12).toFixed(1).replace(/\.0$/, '');
+  out.innerHTML = `
+    <div class="pnc-headline ${buyWins ? 'gain' : 'cost'}">
+      <div class="pnc-head-lbl">After ${years} year${years>1?'s':''}, ${buyWins ? 'buying' : 'renting + investing'} is ahead by</div>
+      <div class="pnc-head-nums"><div><b>${_toolMoney(Math.abs(gap))}</b><span>in net worth</span></div></div>
+      <div class="pnc-head-sub">${breakEven ? `buying pulls ahead after about ${yrsTxt(breakEven)} year${breakEven>12?'s':''}` : `renting stays ahead for the whole ${years} years`}</div>
+    </div>
+    <div class="pnc-break">
+      <div class="pnc-break-hd">If you buy — after ${years} years</div>
+      ${_toolRow('Home value', propValue, {sign:false})}
+      ${_toolRow('Loan still owing', -bal)}
+      <div class="pnc-line subtotal"><span class="pnc-line-lbl">Home equity</span><span class="pnc-line-val">${_toolMoney(propValue - bal)}</span></div>
+      ${buyerPort > 1 ? _toolRow('Invested savings', buyerPort, {note:'once owning is cheaper than renting'}) : ''}
+      <div class="pnc-line total"><span class="pnc-line-lbl">Net worth</span><span class="pnc-line-val">${_toolMoney(buyNW)}</span></div>
+    </div>
+    <div class="pnc-break">
+      <div class="pnc-break-hd">If you rent &amp; invest — after ${years} years</div>
+      ${_toolRow('Upfront cash invested', upfront, {note:'deposit + stamp duty + costs'})}
+      ${renterContribs > 1 ? _toolRow('Monthly savings invested', renterContribs, {note:'vs the cost of owning'}) : ''}
+      ${_toolRow('Investment growth at ' + (invReturn*100).toFixed(1) + '%', rentNW - upfront - renterContribs)}
+      <div class="pnc-line total"><span class="pnc-line-lbl">Net worth (portfolio)</span><span class="pnc-line-val">${_toolMoney(rentNW)}</span></div>
+      <div class="pnc-line noncash"><span class="pnc-line-lbl">Rent paid along the way <em>gone, not invested</em></span><span class="pnc-line-val">−$${Math.round(totalRentPaid).toLocaleString()}</span></div>
+    </div>
+    <div class="pnc-alt">
+      <div><div class="pnc-alt-lbl">Upfront to buy in ${state}</div>
+        <div class="pnc-alt-note">stamp duty ${_toolMoney(duty.duty)}${duty.note ? ' · ' + duty.note : ''} + ${_toolMoney(otherCosts)} costs</div></div>
+      <div class="pnc-alt-nums"><b>${_toolMoney(upfront)}</b></div>
+    </div>
+    <div class="pnc-cta">
+      This ignores lifestyle — but your FIRE plan shouldn't ignore either path.
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
     </div>`;
   initInfoTips();

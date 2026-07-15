@@ -1261,6 +1261,7 @@
       <option value="property">Investment Property — Net Cost</option>
       <option value="borrowing">Borrowing Power &amp; Stamp Duty</option>
       <option value="offset">Offset &amp; Extra Repayments</option>
+      <option value="rentbuy">Rent vs Buy</option>
     </select>
   </div>
 
@@ -1285,6 +1286,11 @@
         <span class="tool-tile-ico">⚡</span>
         <span class="tool-tile-name">Offset &amp; Extra Repayments</span>
         <span class="tool-tile-desc">How an offset balance and extra repayments cut years off your loan and save you interest.</span>
+      </button>
+      <button class="tool-tile" onclick="showTool('rentbuy')">
+        <span class="tool-tile-ico">⚖️</span>
+        <span class="tool-tile-name">Rent vs Buy</span>
+        <span class="tool-tile-desc">Buy a home, or rent and invest the difference? See where you'd actually end up, and when buying gets ahead.</span>
       </button>
     </div>
     <p class="tools-home-foot">Estimates only, current AU tax and duty rates. Not financial advice.</p>
@@ -1444,6 +1450,74 @@
     <p class="tool-foot">Assumes a fixed interest rate and that your repayment stays level (so the interest you save is reinvested into the loan). Real rates and repayments change over time.</p>
   </div>
   </div><!-- /#tool-offset -->
+
+  <!-- TOOL: Rent vs Buy -->
+  <div id="tool-rentbuy" class="tool-panel" hidden>
+  <div class="card tool-card">
+    <div class="tool-head">
+      <h2 class="tool-name">Rent vs Buy</h2>
+      <p class="tool-desc">Buy a home, or rent and invest the difference? We run both side by side and show where you'd actually end up.</p>
+    </div>
+    <div class="pnc-grid">
+      <div class="pnc-inputs">
+        <p class="budget-section-lbl">If you buy</p>
+        <label class="pnc-field"><span>Property price</span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_price" type="text" inputmode="decimal" value="750,000" oninput="calcRentBuy()"></span></label>
+        <label class="pnc-field"><span>Deposit <em class="pnc-hint">stamp duty paid on top</em></span>
+          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_deposit" type="text" inputmode="decimal" value="150,000" oninput="calcRentBuy()"></span></label>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Interest rate</span>
+            <span class="dollar-wrap"><input id="rb_rate" type="text" inputmode="decimal" value="6.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+          <label class="pnc-field"><span>Loan term</span>
+            <span class="dollar-wrap"><input id="rb_term" type="text" inputmode="decimal" value="30" oninput="calcRentBuy()"><span class="inp-suffix">yrs</span></span></label>
+        </div>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>State</span>
+            <span class="dollar-wrap" style="padding:2px 4px;"><select id="rb_state" class="pnc-plain-select" onchange="calcRentBuy()">
+              <option value="NSW">NSW</option><option value="VIC">VIC</option><option value="QLD">QLD</option>
+              <option value="WA">WA</option><option value="SA">SA</option><option value="TAS">TAS</option>
+              <option value="ACT">ACT</option><option value="NT">NT</option></select></span></label>
+          <div class="pnc-field" style="justify-content:flex-end;"><span>&nbsp;</span>
+            <label class="pnc-toggle" style="margin:0;"><input type="checkbox" id="rb_fhb" onchange="calcRentBuy()"><span class="pnc-toggle-track"><span class="pnc-toggle-thumb"></span></span><span>First-home buyer</span></label></div>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Ownership costs</p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Council rates</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_rates" type="text" inputmode="decimal" value="2,000" oninput="calcRentBuy()"><span class="inp-suffix">/yr</span></span></label>
+          <label class="pnc-field"><span>Insurance</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_ins" type="text" inputmode="decimal" value="1,500" oninput="calcRentBuy()"><span class="inp-suffix">/yr</span></span></label>
+        </div>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Maintenance</span>
+            <span class="dollar-wrap"><input id="rb_maint" type="text" inputmode="decimal" value="1" oninput="calcRentBuy()"><span class="inp-suffix">% value</span></span></label>
+          <label class="pnc-field"><span>Strata</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_strata" type="text" inputmode="decimal" value="0" oninput="calcRentBuy()"><span class="inp-suffix">/yr</span></span></label>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">If you rent instead</p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Weekly rent</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="rb_rent" type="text" inputmode="decimal" value="620" oninput="calcRentBuy()"><span class="inp-suffix">/wk</span></span></label>
+          <label class="pnc-field"><span>Rent growth</span>
+            <span class="dollar-wrap"><input id="rb_rentgrow" type="text" inputmode="decimal" value="3.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+        </div>
+
+        <p class="budget-section-lbl" style="margin-top:16px;">Assumptions <span class="info-tip" data-tip="rb_assumptions">?</span></p>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Property growth</span>
+            <span class="dollar-wrap"><input id="rb_growth" type="text" inputmode="decimal" value="5.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+          <label class="pnc-field"><span>Investment return</span>
+            <span class="dollar-wrap"><input id="rb_return" type="text" inputmode="decimal" value="7.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span></label>
+        </div>
+        <label class="pnc-field"><span>Compare over</span>
+          <span class="dollar-wrap"><input id="rb_years" type="text" inputmode="decimal" value="10" oninput="calcRentBuy()"><span class="inp-suffix">years</span></span></label>
+      </div>
+      <div class="pnc-results" id="rbResults"></div>
+    </div>
+    <p class="tool-foot">Estimate only. Assumes steady rates and growth, no selling costs, and that the renter genuinely invests every dollar they save. Real life is lumpier — and a home you own has value beyond the numbers.</p>
+  </div>
+  </div><!-- /#tool-rentbuy -->
 
 </section>
 
