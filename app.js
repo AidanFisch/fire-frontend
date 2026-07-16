@@ -5038,6 +5038,11 @@ function calcBorrowing(){
   const realR = rate / 12;
   const realRepay = maxLoan > 0 && realR > 0 ? maxLoan * realR / (1 - Math.pow(1 + realR, -n)) : 0;
   const lvr = price > 0 ? maxLoan / price : 0;
+  // LMI estimate: typical insurer premium bands by LVR (~1.1% of the loan at
+  // 80–85%, ~1.9% at 85–90%, ~3.7% at 90–95%) — indicative midpoints; the
+  // real premium also scales a little with loan size and lender.
+  let lmiEst = 0;
+  if(lvr > 0.8) lmiEst = maxLoan * (lvr <= 0.85 ? 0.011 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.037 : 0.048);
 
   const out = document.getElementById('bpResults'); if(!out) return;
   out.innerHTML = `
@@ -5065,7 +5070,7 @@ function calcBorrowing(){
       ${_toolRow('Your deposit', deposit)}
     </div>
     ${dropPer25 > 0 ? `<div class="pnc-offset-note"><span class="pnc-offset-ico">📉</span><span>Every <b>0.25%</b> rate rise cuts what you can borrow by about <b>${_toolMoney(dropPer25)}</b> — a single RBA move. A 1% run of hikes would take roughly <b>${_toolMoney(maxLoan - maxLoanAt(rate + 0.01))}</b> off it.</span></div>` : ''}
-    ${lvr > 0.8 ? `<div class="pnc-offset-note" style="background:#FEF7EA;border-color:#F3D08A;color:#8a5a12;"><span class="pnc-offset-ico">⚠️</span><span>At this price your deposit is under 20% (${Math.round(lvr*100)}% LVR), so lenders will likely charge <b>Lender's Mortgage Insurance</b> — often several thousand dollars on top. A bigger deposit avoids it.</span></div>` : ''}
+    ${lvr > 0.8 ? `<div class="pnc-offset-note" style="background:#FEF7EA;border-color:#F3D08A;color:#8a5a12;"><span class="pnc-offset-ico">⚠️</span><span>At this price your deposit is under 20% (${Math.round(lvr*100)}% LVR), so lenders will likely charge <b>Lender's Mortgage Insurance — roughly ${_toolMoney(lmiEst)}</b> at this LVR. It's usually added to the loan rather than paid up front; a bigger deposit avoids it entirely.</span></div>` : ''}
     <div class="pnc-cta">
       Ready to see how a purchase reshapes your FIRE timeline?
       <button class="btn primary" onclick="showTab('results')">Build your full model</button>
@@ -5426,7 +5431,10 @@ function calcPropertyNetCost(){
   const annualRepay = yearInterest + yearPrincipal;
   const interestSaved = Math.max(0, interestNoOffset - yearInterest);
 
-  const annualRent = weeklyRent * 52;
+  // Vacancy: weeks with no tenant earn nothing; management is charged on
+  // collected rent only.
+  const vacWeeks = Math.min(Math.max(num('pnc_vacancy'), 0), 52);
+  const annualRent = weeklyRent * (52 - vacWeeks);
   const mgmt  = annualRent * mgmtPct;
   const maint = propValue * maintPct;
   const cashExpenses = mgmt + insurance + maint + rates + strata;   // deductible cash costs
@@ -5508,7 +5516,7 @@ function calcPropertyNetCost(){
 
     <div class="pnc-break">
       <div class="pnc-break-hd">Where it goes — per year</div>
-      ${row('Rent received', annualRent)}
+      ${row('Rent received', annualRent, vacWeeks > 0 ? {note:`${52 - vacWeeks} weeks let`} : {})}
       ${row('Loan interest', -yearInterest, offset>0 ? {note:`offset saves ${money(interestSaved)}/yr`} : {})}
       ${row('Loan principal', -yearPrincipal, {note:'builds your equity'})}
       ${row('Agent / management', -mgmt)}

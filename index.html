@@ -1342,9 +1342,14 @@
         </div>
 
         <p class="budget-section-lbl" style="margin-top:16px;">Rent</p>
-        <label class="pnc-field"><span>Weekly rent</span>
-          <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rent" type="text" inputmode="decimal" value="620" oninput="calcPropertyNetCost()"><span class="inp-suffix">/wk</span></span>
-          <input type="range" class="pnc-slider" data-for="pnc_rent" min="0" max="1500" step="10" value="620" oninput="toolSlider(this)" aria-label="Weekly rent"></label>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Weekly rent</span>
+            <span class="dollar-wrap"><span class="inp-dollar">$</span><input id="pnc_rent" type="text" inputmode="decimal" value="620" oninput="calcPropertyNetCost()"><span class="inp-suffix">/wk</span></span>
+            <input type="range" class="pnc-slider" data-for="pnc_rent" min="0" max="1500" step="10" value="620" oninput="toolSlider(this)" aria-label="Weekly rent"></label>
+          <label class="pnc-field"><span>Vacancy</span>
+            <span class="dollar-wrap"><input id="pnc_vacancy" type="text" inputmode="decimal" value="2" oninput="calcPropertyNetCost()"><span class="inp-suffix">wks/yr</span></span>
+            <em class="pnc-hint">2–4 typical</em></label>
+        </div>
 
         <p class="budget-section-lbl" style="margin-top:16px;">Running costs <span class="info-tip" data-tip="pnc_costs">?</span></p>
         <div class="pnc-row2">

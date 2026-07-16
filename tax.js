@@ -76,6 +76,7 @@ const TAX_DATA = {
       { max: 141847, rate: 0.085}, { max: 150357, rate: 0.09 }, { max: 159280, rate: 0.095 },
       { max: Infinity, rate: 0.10 },
     ],
+    helpMarginal: { threshold: 67000, rate1: 0.15, tier2: 125000, tier2Base: 8700, rate2: 0.17, capFrom: 179286, capRate: 0.10 },
     defaultSuperRate: 12, concCap: 30000,
   },
   '2026-27': {
@@ -106,6 +107,7 @@ const TAX_DATA = {
       { max: 141847, rate: 0.085}, { max: 150357, rate: 0.09 }, { max: 159280, rate: 0.095 },
       { max: Infinity, rate: 0.10 },
     ],
+    helpMarginal: { threshold: 67000, rate1: 0.15, tier2: 125000, tier2Base: 8700, rate2: 0.17, capFrom: 179286, capRate: 0.10 },
     defaultSuperRate: 12, concCap: 30000,
   },
 };
@@ -148,11 +150,21 @@ function calcTax(grossAnnual, settings){
     }
   }
 
-  // 5. HECS/HELP repayment
+  // 5. HECS/HELP repayment. From 1 July 2025 HELP is a MARGINAL system
+  // (Universities Accord changes): 15c per $ over $67,000, then $8,700 + 17c
+  // per $ over $125,000, reverting to 10% of TOTAL income from $179,286
+  // (continuous at the crossover). Earlier FYs keep the whole-income tables.
   let hecs = 0;
   if(settings.hasHECS){
-    for(const tier of fy.hecsRates){
-      if(grossAnnual <= tier.max){ hecs = grossAnnual * tier.rate; break; }
+    if(fy.helpMarginal){
+      const h = fy.helpMarginal;
+      if(grossAnnual >= h.capFrom)      hecs = grossAnnual * h.capRate;
+      else if(grossAnnual > h.tier2)    hecs = h.tier2Base + (grossAnnual - h.tier2) * h.rate2;
+      else if(grossAnnual > h.threshold) hecs = (grossAnnual - h.threshold) * h.rate1;
+    } else {
+      for(const tier of fy.hecsRates){
+        if(grossAnnual <= tier.max){ hecs = grossAnnual * tier.rate; break; }
+      }
     }
   }
 
