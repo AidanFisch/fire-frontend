@@ -4949,7 +4949,9 @@ function _toolRow(label, val, opts={}){
    applies. VIC (flat tiers) and NT (formula) are special-cased. FHB concessions
    applied for NSW/VIC/QLD (the clearest); other states get a caveat note. */
 const _DUTY_TABLE = {
-  NSW:[{min:0,base:0,rate:0.0125},{min:17000,base:212,rate:0.015},{min:36000,base:497,rate:0.0175},{min:97000,base:1564,rate:0.035},{min:364000,base:10909,rate:0.045},{min:1212000,base:49069,rate:0.055},{min:3636000,base:182390,rate:0.07}],
+  // NSW brackets are CPI-indexed each 1 July — these are the 2025-26 schedule
+  // (premium tier $3.721M @ 7% per Revenue NSW).
+  NSW:[{min:0,base:0,rate:0.0125},{min:17000,base:212,rate:0.015},{min:37000,base:512,rate:0.0175},{min:99000,base:1597,rate:0.035},{min:372000,base:11152,rate:0.045},{min:1240000,base:50212,rate:0.055},{min:3721000,base:186667,rate:0.07}],
   QLD:[{min:0,base:0,rate:0},{min:5000,base:0,rate:0.015},{min:75000,base:1050,rate:0.035},{min:540000,base:17325,rate:0.045},{min:1000000,base:38025,rate:0.0575}],
   WA: [{min:0,base:0,rate:0.019},{min:120000,base:2280,rate:0.0285},{min:150000,base:3135,rate:0.038},{min:360000,base:11115,rate:0.0475},{min:725000,base:28453,rate:0.0515}],
   SA: [{min:0,base:0,rate:0.01},{min:12000,base:120,rate:0.02},{min:30000,base:480,rate:0.03},{min:50000,base:1080,rate:0.035},{min:100000,base:2830,rate:0.04},{min:200000,base:6830,rate:0.0475},{min:250000,base:9205,rate:0.05},{min:300000,base:11705,rate:0.055}],

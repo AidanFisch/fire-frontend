@@ -60,10 +60,43 @@ const TAX_DATA = {
       { min: 135000, rate: 0.37, base: 31288, label: '$135,001 – $190,000'  },
       { min: 190000, rate: 0.45, base: 51638, label: '$190,001+'            },
     ],
+    // Medicare low-income threshold raised retroactively to $28,011 in the
+    // 2026-27 Budget (phase-out end = threshold × 1.25). MLS thresholds are the
+    // indexed 2025-26 singles tiers ($101k / $118k / $158k).
     lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
-    medicareRate: 0.02, medicareThreshold: 27222, medicarePhaseEnd: 34028,
-    mlsThreshold: 93000,
-    mlsRates: [{ max: 108000, rate: 0.01 }, { max: 144000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
+    medicareRate: 0.02, medicareThreshold: 28011, medicarePhaseEnd: 35014,
+    mlsThreshold: 101000,
+    mlsRates: [{ max: 118000, rate: 0.01 }, { max: 158000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
+    hecsRates: [
+      { max:  54434, rate: 0    }, { max:  62849, rate: 0.01  }, { max:  66620, rate: 0.02  },
+      { max:  70617, rate: 0.025}, { max:  74855, rate: 0.03  }, { max:  79346, rate: 0.035 },
+      { max:  84107, rate: 0.04 }, { max:  88756, rate: 0.045}, { max:  93969, rate: 0.05  },
+      { max:  99996, rate: 0.055}, { max: 105996, rate: 0.06 }, { max: 112355, rate: 0.065 },
+      { max: 119097, rate: 0.07 }, { max: 126243, rate: 0.075}, { max: 133818, rate: 0.08  },
+      { max: 141847, rate: 0.085}, { max: 150357, rate: 0.09 }, { max: 159280, rate: 0.095 },
+      { max: Infinity, rate: 0.10 },
+    ],
+    defaultSuperRate: 12, concCap: 30000,
+  },
+  '2026-27': {
+    label: '2026–27',
+    // Legislated in the 2025-26 Budget: the 16% rate drops to 15% from
+    // 1 July 2026 (and to 14% from 1 July 2027). Bases re-accumulated:
+    // 26,800 × 0.15 = 4,020 at $45k; +90,000×0.30 = 31,020 at $135k;
+    // +55,000×0.37 = 51,370 at $190k.
+    brackets: [
+      { min:      0, rate: 0,    base:     0, label: '$0 – $18,200'         },
+      { min:  18200, rate: 0.15, base:     0, label: '$18,201 – $45,000'    },
+      { min:  45000, rate: 0.30, base:  4020, label: '$45,001 – $135,000'   },
+      { min: 135000, rate: 0.37, base: 31020, label: '$135,001 – $190,000'  },
+      { min: 190000, rate: 0.45, base: 51370, label: '$190,001+'            },
+    ],
+    lito: { full: 700, fullTo: 37500, mid: 325, taper1: 0.05, taper1From: 37500, taper2: 0.015, taper2From: 45000, taper2To: 66667 },
+    // Medicare low-income: latest legislated values (2025-26); 2026-27 gets
+    // announced retrospectively in the next Budget. MLS: 2026-27 singles tiers.
+    medicareRate: 0.02, medicareThreshold: 28011, medicarePhaseEnd: 35014,
+    mlsThreshold: 105000,
+    mlsRates: [{ max: 123000, rate: 0.01 }, { max: 164000, rate: 0.0125 }, { max: Infinity, rate: 0.015 }],
     hecsRates: [
       { max:  54434, rate: 0    }, { max:  62849, rate: 0.01  }, { max:  66620, rate: 0.02  },
       { max:  70617, rate: 0.025}, { max:  74855, rate: 0.03  }, { max:  79346, rate: 0.035 },
@@ -146,7 +179,7 @@ function calcTax(grossAnnual, settings){
 }
 
 /* ── Tax Settings state ── */
-const DEFAULT_TAX_SETTINGS = { fy:'2025-26', superRate:12, hasPHI:false, hasHECS:false, showCapWarning:true };
+const DEFAULT_TAX_SETTINGS = { fy:'2026-27', superRate:12, hasPHI:false, hasHECS:false, showCapWarning:true };
 let TAX_SETTINGS = (function(){
   try{
     const s = localStorage.getItem('fire_tax_settings_v1');
@@ -156,7 +189,7 @@ let TAX_SETTINGS = (function(){
       // from 1 Jul 2025, and old builds defaulted the FY to 2024-25 with
       // pre-Stage-3 brackets — move both forward.
       if(merged.superRate === 11.5 || merged.superRate === 11) merged.superRate = 12;
-      if(merged.fy === '2024-25') merged.fy = '2025-26';
+      if(merged.fy === '2024-25' || merged.fy === '2025-26') merged.fy = '2026-27';
       return merged;
     }
   }catch(_){}
