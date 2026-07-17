@@ -2186,7 +2186,7 @@ const INFO_TIPS = {
   },
   rb_assumptions: {
     title: 'What drives rent vs buy',
-    body: 'This runs both paths month by month. The buyer sinks their deposit, stamp duty and costs into the home; the renter invests that exact same cash instead, then keeps investing whatever the cheaper option saves each month (early on that\'s usually renting, but as rent grows owning often becomes cheaper — then the owner starts investing the difference). We compare net worth at the end: home equity plus any investments, versus the renter\'s portfolio. The result hinges almost entirely on two numbers: property growth vs investment return. Long-run Australian housing has done roughly 5–7% and diversified shares roughly 7–10%, but nudge either and the answer flips — so treat this as a way to test your assumptions, not a prediction. It also ignores selling costs, rate changes, and the security of owning your home.'
+    body: 'This runs both paths month by month. The buyer sinks their deposit, stamp duty and costs into the home; the renter invests that exact same cash instead, then keeps investing whatever the cheaper option saves each month (early on that\'s usually renting, but as rent grows owning often becomes cheaper — then the owner starts investing the difference). We compare net worth at the end: home equity plus any investments, versus the renter\'s portfolio. Two fairness settings matter: SELLING COSTS are deducted from the home\'s value (equity you can\'t actually bank), and TAX DRAG haircuts the renter\'s investment returns — a home you live in grows CGT-free, but shares and super don\'t (super ~15%, shares ~15–23% effective for most people; set 0 to ignore both). The result still hinges mostly on property growth vs investment return — long-run Australian housing roughly 5–7%, diversified shares 7–10% before tax — so treat this as a way to test assumptions, not a prediction. It still ignores rate changes and the security of owning your home.'
   },
   bp_chart: {
     title: 'Why rates move your borrowing power',
@@ -2194,7 +2194,7 @@ const INFO_TIPS = {
   },
   bp_commitments: {
     title: 'How lenders assess your spending',
-    body: 'Banks don\'t just take your word on expenses — they use the greater of what you declare and a benchmark (the HEM) based on your household. Leave living expenses blank and we estimate a HEM-style figure from your household size and dependants; enter your own to override. Credit cards count even if you never carry a balance: lenders treat the full limit as a commitment (we assume ~3.8% of the limit per month), so cancelling unused cards can lift your borrowing power. Other loan repayments (car, personal, HECS) reduce it too.'
+    body: 'Banks don\'t just take your word on expenses — they use the greater of what you declare and a benchmark (the HEM) based on your household AND your income: higher earners are assumed to spend more, so a big salary doesn\'t scale borrowing power linearly. Leave living expenses blank and we estimate a HEM-style figure from household size, dependants, and income (a base plus 12% of net income above ~$6k/mo single, ~$8k/mo couple); enter your own spending to override it. Credit cards count even if you never carry a balance: lenders treat the full limit as a commitment (we assume ~3.8% of the limit per month), so cancelling unused cards can lift your borrowing power. Other loan repayments (car, personal, HELP) reduce it too.'
   },
   bp_buffer: {
     title: 'The serviceability buffer',
@@ -5015,7 +5015,12 @@ function calcBorrowing(){
 
   const netMonthly = (calcTax(salary, TAX_SETTINGS).net + (pSalary > 0 ? calcTax(pSalary, TAX_SETTINGS).net : 0)) / 12;
   const expRaw = (document.getElementById('bp_expenses')?.value || '').trim();
-  const estLiving = (hasP ? 3200 : 2200) + deps * 450;   // rough HEM-style monthly
+  // HEM-style estimate that scales with income like the real benchmark does:
+  // a base by household + $450/dependant, plus 12% of net income above a floor
+  // ($6k/mo single, $8k/mo couple) — lenders assume higher earners spend more.
+  const hemBase  = (hasP ? 3200 : 2200) + deps * 450;
+  const hemFloor = hasP ? 8000 : 6000;
+  const estLiving = hemBase + Math.max(0, netMonthly - hemFloor) * 0.12;
   const living = expRaw !== '' ? _toolNum('bp_expenses') : estLiving;
   const cardCommit = cards * 0.038;                       // ~3.8%/mo of the limit
   const surplus = Math.max(0, netMonthly - living - debts - cardCommit);
@@ -5147,6 +5152,11 @@ function calcRentBuy(){
   const weeklyRent = _toolNum('rb_rent'), rentGrow = _toolNum('rb_rentgrow') / 100;
   const growth = _toolNum('rb_growth') / 100, invReturn = _toolNum('rb_return') / 100;
   const years = Math.max(1, _toolNum('rb_years') || 10);
+  // Honesty knobs: the renter's gains get taxed (unlike a PPOR's, which are
+  // CGT-free), and cashing out a home costs agent/legal fees.
+  const sellPct  = Math.min(Math.max(_toolNum('rb_sellcost') / 100, 0), 0.2);
+  const taxDrag  = Math.min(Math.max(_toolNum('rb_taxdrag') / 100, 0), 0.6);
+  const invAfterTax = invReturn * (1 - taxDrag);
 
   const duty = stampDuty(price, state, fhb);
   const otherCosts = 3000;
@@ -5155,7 +5165,7 @@ function calcRentBuy(){
   const r = rate / 12, n = term * 12;
   const pmt = loan > 0 ? (r > 0 ? loan * r / (1 - Math.pow(1 + r, -n)) : loan / n) : 0;
   const gM = Math.pow(1 + growth, 1/12) - 1;
-  const iM = Math.pow(1 + invReturn, 1/12) - 1;
+  const iM = Math.pow(1 + invAfterTax, 1/12) - 1;   // renter's return net of tax drag
   const rgM = Math.pow(1 + rentGrow, 1/12) - 1;
 
   let bal = loan, propValue = price, rentM = weeklyRent * 52 / 12;
@@ -5164,7 +5174,7 @@ function calcRentBuy(){
   const months = Math.round(years * 12);
   // Year 0: the buyer's wealth is their equity (deposit); the renter still holds
   // the duty + costs the buyer just handed over, so they start ahead.
-  const series = [{ buy: price - loan, rent: upfront }];
+  const series = [{ buy: price * (1 - sellPct) - loan, rent: upfront }];
   for(let m = 1; m <= months; m++){
     let pay = 0;
     if(bal > 0.005){
@@ -5180,10 +5190,11 @@ function calcRentBuy(){
     if(diff > 0){ renterPort += diff; renterContribs += diff; } else buyerPort += -diff;
     renterPort *= (1 + iM); buyerPort *= (1 + iM);
     propValue *= (1 + gM); rentM *= (1 + rgM);
-    if(breakEven === null && (propValue - bal + buyerPort) >= renterPort) breakEven = m;
-    if(m % 12 === 0) series.push({ buy: propValue - bal + buyerPort, rent: renterPort });
+    if(breakEven === null && (propValue * (1 - sellPct) - bal + buyerPort) >= renterPort) breakEven = m;
+    if(m % 12 === 0) series.push({ buy: propValue * (1 - sellPct) - bal + buyerPort, rent: renterPort });
   }
-  const buyNW = propValue - bal + buyerPort;
+  const sellCosts = propValue * sellPct;
+  const buyNW = propValue - sellCosts - bal + buyerPort;
   const rentNW = renterPort;
   const gap = buyNW - rentNW;
   const buyWins = gap >= 0;
@@ -5199,8 +5210,9 @@ function calcRentBuy(){
     <div class="pnc-break">
       <div class="pnc-break-hd">If you buy — after ${years} years</div>
       ${_toolRow('Home value', propValue, {sign:false})}
+      ${sellCosts > 0 ? _toolRow('Selling costs if you cashed out', -sellCosts, {note:(sellPct*100).toFixed(1)+'% of value'}) : ''}
       ${_toolRow('Loan still owing', -bal)}
-      <div class="pnc-line subtotal"><span class="pnc-line-lbl">Home equity</span><span class="pnc-line-val">${_toolMoney(propValue - bal)}</span></div>
+      <div class="pnc-line subtotal"><span class="pnc-line-lbl">Home equity (net of selling costs)</span><span class="pnc-line-val">${_toolMoney(propValue - sellCosts - bal)}</span></div>
       ${buyerPort > 1 ? _toolRow('Invested savings', buyerPort, {note:'once owning is cheaper than renting'}) : ''}
       <div class="pnc-line total"><span class="pnc-line-lbl">Net worth</span><span class="pnc-line-val">${_toolMoney(buyNW)}</span></div>
     </div>
@@ -5208,7 +5220,7 @@ function calcRentBuy(){
       <div class="pnc-break-hd">If you rent &amp; invest — after ${years} years</div>
       ${_toolRow('Upfront cash invested', upfront, {note:'deposit + stamp duty + costs'})}
       ${renterContribs > 1 ? _toolRow('Monthly savings invested', renterContribs, {note:'vs the cost of owning'}) : ''}
-      ${_toolRow('Investment growth at ' + (invReturn*100).toFixed(1) + '%', rentNW - upfront - renterContribs)}
+      ${_toolRow('Investment growth at ' + (invAfterTax*100).toFixed(1) + '% after tax', rentNW - upfront - renterContribs)}
       <div class="pnc-line total"><span class="pnc-line-lbl">Net worth (portfolio)</span><span class="pnc-line-val">${_toolMoney(rentNW)}</span></div>
       <div class="pnc-line noncash"><span class="pnc-line-lbl">Rent paid along the way <em>gone, not invested</em></span><span class="pnc-line-val">−$${Math.round(totalRentPaid).toLocaleString()}</span></div>
     </div>

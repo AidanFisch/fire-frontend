@@ -1551,6 +1551,14 @@
             <span class="dollar-wrap"><input id="rb_return" type="text" inputmode="decimal" value="7.0" oninput="calcRentBuy()"><span class="inp-suffix">% p.a.</span></span>
             <input type="range" class="pnc-slider" data-for="rb_return" min="0" max="12" step="0.1" value="7" oninput="toolSlider(this)" aria-label="Investment return"></label>
         </div>
+        <div class="pnc-row2">
+          <label class="pnc-field"><span>Selling costs if sold</span>
+            <span class="dollar-wrap"><input id="rb_sellcost" type="text" inputmode="decimal" value="2.5" oninput="calcRentBuy()"><span class="inp-suffix">% value</span></span>
+            <em class="pnc-hint">agent + legals</em></label>
+          <label class="pnc-field"><span>Tax drag on returns</span>
+            <span class="dollar-wrap"><input id="rb_taxdrag" type="text" inputmode="decimal" value="15" oninput="calcRentBuy()"><span class="inp-suffix">% of gains</span></span>
+            <em class="pnc-hint">super ~15%, shares ~15–23%</em></label>
+        </div>
         <label class="pnc-field"><span>Compare over</span>
           <span class="dollar-wrap"><input id="rb_years" type="text" inputmode="decimal" value="10" oninput="calcRentBuy()"><span class="inp-suffix">years</span></span>
           <input type="range" class="pnc-slider" data-for="rb_years" min="1" max="30" step="1" value="10" oninput="toolSlider(this)" aria-label="Compare over years"></label>
@@ -2011,7 +2019,7 @@
       <p>WealthModel runs a <strong>month-by-month simulation</strong> from today to your chosen end age. Every month it pays your salary, deducts tax, pays living costs and mortgages, collects rent, contributes to shares and super, grows every balance at your assumed rates, and checks whether you've reached financial independence. Nothing is a shortcut formula — it's a full simulation, which is why things like paying off a loan mid-journey or buying a property in 2031 are handled properly.</p>
 
       <h4>Tax</h4>
-      <p>Income tax uses the <strong>2025–26 Australian resident brackets</strong> (16% / 30% / 37% / 45%) plus the 2% Medicare levy with its low-income phase-in. Pre-tax super contributions reduce taxable income. Investment property losses offset your salary (negative gearing). Capital gains on property sales apply the 50% discount before 1 July 2027 and the legislated post-2027 rules (CPI cost-base indexation with a 30% minimum rate) after, including the split treatment for properties held across the boundary and the PPOR main-residence and six-year-rule exemptions.</p>
+      <p>Income tax uses the <strong>current Australian resident brackets</strong> (15% / 30% / 37% / 45% for 2026–27) plus the 2% Medicare levy with its low-income phase-in, the Medicare Levy Surcharge tiers, and LITO. The projection applies the <strong>legislated future cuts in the year they take effect</strong> — the first bracket falls to 14% from 1 July 2027. HELP debts use the post-2025 <strong>marginal repayment system</strong> (15c per dollar over $67,000). Pre-tax super contributions reduce taxable income. Investment property losses offset your salary (negative gearing). Capital gains on property sales apply the 50% discount before 1 July 2027 and the legislated post-2027 rules (CPI cost-base indexation with a 30% minimum rate) after, including the split treatment for properties held across the boundary and the PPOR main-residence and six-year-rule exemptions.</p>
 
       <h4>Superannuation</h4>
       <p>Employer SG contributions (12%) are taxed 15% on the way in, as are salary-sacrifice extras. Super grows at your assumed after-fees rate and becomes drawable at your access age (60 for most people), tax-free in drawdown.</p>
@@ -2032,6 +2040,9 @@
 
       <h4>July 2026</h4>
       <ul>
+        <li><strong>Full calculation audit</strong> — every engine re-verified against independent recomputes and official references (ATO, Revenue NSW, state duty calculators). Fixes: FY 2026–27 brackets with the legislated 15% rate, indexed MLS tiers ($101k/$118k/$158k), the raised Medicare low-income threshold, the 2025–26 NSW duty schedule, and the new HELP marginal repayment system.</li>
+        <li><strong>Quick Tools</strong> — four free, no-signup calculators: investment property net cost (with offset, depreciation, vacancy and negative gearing), borrowing power &amp; stamp duty (all 8 states, LMI estimate, rate-sensitivity chart), offset &amp; extra repayments (payoff chart), and rent vs buy (break-even chart, selling costs and tax drag included).</li>
+        <li><strong>Budget ↔ FIRE linkage</strong> — the Overview now shows wealth built (invested / super / home equity stacked) against your FIRE pace, mortgage rows auto-split interest vs principal from your loan, and a "$X ahead / behind your plan" banner tracks your actual position.</li>
         <li><strong>Desktop Model workspace</strong> — inputs now dock beside the chart with optional auto-run, so you can see your FIRE age respond as you type.</li>
         <li><strong>Bank statement import</strong> — upload a CSV and expenses auto-sort into budget categories (learns your merchants over time). All in-browser, nothing uploaded.</li>
         <li><strong>Install as an app</strong> — WealthModel is now installable on your phone/desktop from Settings.</li>
